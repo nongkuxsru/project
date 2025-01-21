@@ -1,2 +1,6 @@
-หลังจากโคลนแล้ว พิมพ์คำสั่ง 
-npm i อย่าลืม
+When finish clone github, Then
+$ npm i & npm install
+      V
+$ npm run dev 
+      V
+=> install db in db compress
