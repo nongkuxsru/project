@@ -3,22 +3,22 @@ const User = require('./Users'); // เรียกใช้งานโมเ�
 const Saving = require('./Saving'); // เรียกใช้งานโมเดล Saving
 
 const promiseSchema = new mongoose.Schema({
-    id_saving:{
+    id_saving:{ // อ้างอิงไปยัง Saving
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Saving',
         required: true
     },
-    Datepromise: {
+    Datepromise: { // วันที่ทำสัญญา
         type: Date,
         required: true,
         default: Date.now
     },
-    amount: {
+    amount: { // จำนวนเงินที่ทำสัญญา
         type: Number,
         required: true,
         min: 0
     },
-    DueDate: {
+    DueDate: { // วันที่ครบกำหนด
         type: Date,
         required: true
     }

@@ -3,6 +3,29 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const User = require('../models/Users');
 
+// Get all Users with 'staff' permission
+router.get('/staff', async (req, res, next) => {
+    try {
+        const staffUsers = await User.find({ permission: 'staff' }); // กรองเฉพาะ permission ที่เป็น 'staff'
+        res.json(staffUsers);
+    } catch (err) {
+        next(err);
+    }
+});
+
+// Get User by ID with 'staff' permission
+router.get('/staff/:id', async (req, res, next) => {
+    try {
+        const user = await User.findOne({ _id: req.params.id, permission: 'staff' }); // ค้นหาผู้ใช้ที่มี ID และ permission เป็น 'staff'
+        if (!user) {
+            return res.status(404).json({ message: 'User not found or user is not a staff member' });
+        }
+        res.json(user);
+    } catch (err) {
+        next(err);
+    }
+});
+
 // Get all Users
 router.get('/users', async (req, res, next) => {
     try {

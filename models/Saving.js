@@ -2,21 +2,21 @@ const mongoose = require('mongoose');
 const User = require('./Users'); // เรียกใช้งานโมเดล User
 
 const savingSchema = new mongoose.Schema({
-    id_member: {
+    id_member: { // อ้างอิงไปยัง User
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    balance: {
+    balance: { // ยอดเงินคงเหลือ
         type: Number,
         required: true
     },
-    id_staff: {
+    id_staff: { // อ้างอิงไปยัง User
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    createdAt: {
+    createdAt: { // วันที่สร้างข้อมูล
         type: Date,
         default: Date.now
     }
