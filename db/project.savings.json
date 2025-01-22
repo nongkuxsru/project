@@ -1,0 +1,160 @@
+[{
+  "_id": {
+    "$oid": "678fd5a8bce6cb61bb65b054"
+  },
+  "id_member": {
+    "$oid": "678fd2f22fd6ee4d2bd5f45c"
+  },
+  "balance": 5000,
+  "id_staff": {
+    "$oid": "678fd30d2fd6ee4d2bd5f470"
+  },
+  "createdAt": {
+    "$date": "2025-01-21T17:13:12.415Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "678fe36b2abe2d7081c45af2"
+  },
+  "id_member": {
+    "$oid": "678fd2f22fd6ee4d2bd5f45c"
+  },
+  "balance": 1500,
+  "id_staff": {
+    "$oid": "678fd30d2fd6ee4d2bd5f470"
+  },
+  "createdAt": {
+    "$date": "2025-01-21T18:11:55.687Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "678fe38e2abe2d7081c45af7"
+  },
+  "id_member": {
+    "$oid": "678fd2f22fd6ee4d2bd5f45d"
+  },
+  "balance": 2100,
+  "id_staff": {
+    "$oid": "678fd30d2fd6ee4d2bd5f470"
+  },
+  "createdAt": {
+    "$date": "2025-01-21T18:12:30.045Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "678fe39a2abe2d7081c45afc"
+  },
+  "id_member": {
+    "$oid": "678fd2f22fd6ee4d2bd5f461"
+  },
+  "balance": 800,
+  "id_staff": {
+    "$oid": "678fd30d2fd6ee4d2bd5f470"
+  },
+  "createdAt": {
+    "$date": "2025-01-21T18:12:42.672Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "678fe3a52abe2d7081c45b01"
+  },
+  "id_member": {
+    "$oid": "678fd2f22fd6ee4d2bd5f462"
+  },
+  "balance": 400,
+  "id_staff": {
+    "$oid": "678fd30d2fd6ee4d2bd5f470"
+  },
+  "createdAt": {
+    "$date": "2025-01-21T18:12:53.584Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "678fe3b12abe2d7081c45b06"
+  },
+  "id_member": {
+    "$oid": "678fd2f22fd6ee4d2bd5f45e"
+  },
+  "balance": 3500,
+  "id_staff": {
+    "$oid": "678fd30d2fd6ee4d2bd5f470"
+  },
+  "createdAt": {
+    "$date": "2025-01-21T18:13:05.619Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "678fe3be2abe2d7081c45b0b"
+  },
+  "id_member": {
+    "$oid": "678fd2f22fd6ee4d2bd5f464"
+  },
+  "balance": 5500,
+  "id_staff": {
+    "$oid": "678fd30d2fd6ee4d2bd5f470"
+  },
+  "createdAt": {
+    "$date": "2025-01-21T18:13:18.021Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "678fe3d22abe2d7081c45b10"
+  },
+  "id_member": {
+    "$oid": "678fd2f22fd6ee4d2bd5f465"
+  },
+  "balance": 2280,
+  "id_staff": {
+    "$oid": "678fd30d2fd6ee4d2bd5f470"
+  },
+  "createdAt": {
+    "$date": "2025-01-21T18:13:38.404Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "678fe3dd2abe2d7081c45b15"
+  },
+  "id_member": {
+    "$oid": "678fd2f22fd6ee4d2bd5f460"
+  },
+  "balance": 400,
+  "id_staff": {
+    "$oid": "678fd30d2fd6ee4d2bd5f470"
+  },
+  "createdAt": {
+    "$date": "2025-01-21T18:13:49.509Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "678fe3e82abe2d7081c45b1a"
+  },
+  "id_member": {
+    "$oid": "678fd2f22fd6ee4d2bd5f463"
+  },
+  "balance": 8500,
+  "id_staff": {
+    "$oid": "678fd30d2fd6ee4d2bd5f470"
+  },
+  "createdAt": {
+    "$date": "2025-01-21T18:14:00.582Z"
+  },
+  "__v": 0
+}]
