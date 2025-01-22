@@ -195,4 +195,58 @@
     "$date": "2025-01-21T09:00:00.000Z"
   },
   "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67906dbdf0a39c38033704d7"
+  },
+  "name": "Priya Sharma",
+  "email": "priya.sharma@example.com",
+  "password": "password456",
+  "address": "456 Gandhi Street, Delhi, India",
+  "phone": "876-543-2109",
+  "birthday": {
+    "$date": "1985-08-25T00:00:00.000Z"
+  },
+  "permission": "staff",
+  "createdAt": {
+    "$date": "2025-01-22T00:00:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67906dbdf0a39c38033704d8"
+  },
+  "name": "Rajesh Kumar",
+  "email": "rajesh.kumar@example.com",
+  "password": "password789",
+  "address": "789 Connaught Place, New Delhi, India",
+  "phone": "555-123-4567",
+  "birthday": {
+    "$date": "1988-03-30T00:00:00.000Z"
+  },
+  "permission": "staff",
+  "createdAt": {
+    "$date": "2025-01-22T00:00:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67906dbdf0a39c38033704d6"
+  },
+  "name": "Arjun Patel",
+  "email": "arjun.patel@example.com",
+  "password": "password123",
+  "address": "123 MG Road, Mumbai, India",
+  "phone": "987-654-3210",
+  "birthday": {
+    "$date": "1990-05-15T00:00:00.000Z"
+  },
+  "permission": "staff",
+  "createdAt": {
+    "$date": "2025-01-22T00:00:00.000Z"
+  },
+  "__v": 0
 }]
