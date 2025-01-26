@@ -43,3 +43,57 @@ table tr:hover {
 .actions button:hover {
     color: #555;
 }
+
+/* สไตล์สำหรับส่วนค้นหาและ filter */
+.filters {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    padding: 0.5rem;
+    border-radius: 4px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.search-box input {
+    border: none;
+    outline: none;
+    padding: 0.5rem;
+    flex: 1;
+}
+
+.search-box button {
+    background: none;
+    border: none;
+    color: #333;
+    cursor: pointer;
+}
+
+.search-box button:hover {
+    color: #555;
+}
+
+.filter-box {
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    padding: 0.5rem;
+    border-radius: 4px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.filter-box label {
+    margin-right: 0.5rem;
+}
+
+.filter-box select {
+    border: none;
+    outline: none;
+    background: none;
+    cursor: pointer;
+}
