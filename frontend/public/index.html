@@ -7,20 +7,22 @@
     <link rel="stylesheet" href="/styles/main.css">
 </head>
 <body>
-    <div class="login-container">
-        <h1>Login</h1>
-        <form id="loginForm">
-            <div>
-                <label for="email">อีเมล:</label>
-                <input type="email" id="email" placeholder="กรอกอีเมล" required>
+    <section class="container">
+        <div class="login-container">
+            <div class="circle circle-one"></div>
+            <div class="form-container">
+                <img src="https://raw.githubusercontent.com/hicodersofficial/glassmorphism-login-form/master/assets/illustration.png" alt="Login Illustration" class="illustration" />
+                <h1 class="opacity">LOGIN</h1>
+                <form id="loginForm">
+                    <input type="email" id="email" placeholder="EMAIL" />
+                    <input type="password" id="password" placeholder="PASSWORD" />
+                    <button type="submit">SUBMIT</button>
+                </form>
             </div>
-            <div>
-                <label for="password">รหัสผ่าน:</label>
-                <input type="password" id="password" placeholder="กรอกรหัสผ่าน" required>
-            </div>
-            <button type="submit">เข้าสู่ระบบ</button>
-        </form>
-    </div>
+            <div class="circle circle-two"></div>
+        </div>
+        <div class="theme-btn-container"></div>
+    </section>
     <script src="/scripts/main.js"></script>
 </body>
 </html>
