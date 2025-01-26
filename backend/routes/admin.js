@@ -49,4 +49,52 @@ router.get('/users', async (req, res) => {
     }
 });
 
+// Add user
+router.post('/users', async (req, res) => {
+    try {
+        const { name, email, password, address, phone, birthday, permission } = req.body;
+
+        // ตรวจสอบว่าข้อมูลครบถ้วน
+        if (!name || !email || !password || !address || !phone || !birthday || !permission) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
+
+        // สร้างผู้ใช้ใหม่
+        const newUser = new User({ name, email, password, address, phone, birthday, permission });
+        await newUser.save(); // บันทึกข้อมูลผู้ใช้
+
+        res.status(201).json(newUser); // ส่งข้อมูลผู้ใช้ที่เพิ่มใหม่กลับไป
+    } catch (err) {
+        console.error('Error adding user:', err); // แสดงข้อผิดพลาดใน console
+        res.status(500).json({ message: 'Failed to add user', error: err.message });
+    }
+});
+
+
+// Delete User by ID
+router.delete('/users/:id', async (req, res) => {
+    try {
+        const deletedUser = await User.findByIdAndDelete(req.params.id);
+        if (!deletedUser) return res.status(404).json({ message: 'User not found' });
+        res.json(deletedUser); // ส่งข้อมูลผู้ใช้ที่ถูกลบกลับไป
+    } catch (err) {
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+});
+
+// Edit User by ID
+router.put('/users/:id', async (req, res, next) => {
+    try {
+        const updatedUser = await User.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true } // เพื่อคืนค่าเอกสารที่อัปเดตแล้ว
+        );
+        if (!updatedUser) return res.status(404).json({ message: 'User not found' });
+        res.json(updatedUser);
+    } catch (err) {
+        next(err);
+    }
+});
+
 module.exports = router;
