@@ -14,6 +14,10 @@ router.get('/admin', async (req, res, next) => {
     }
 });
 
+// Get all Users with 'admin' permission
+router.get('/test', async (req, res, next) => {
+    res.json({ message: 'Hello admin' });
+});
 
 // Get User by ID with 'admin' permission
 router.get('/admin/:id', async (req, res, next) => {
