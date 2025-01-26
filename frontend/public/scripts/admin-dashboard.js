@@ -1,7 +1,7 @@
 // ฟังก์ชันสำหรับดึงข้อมูลผู้ใช้
 const fetchUserInfo = async () => {
     try {
-        const response = await fetch('/api/auth/user'); // เรียก API เพื่อดึงข้อมูลผู้ใช้
+        const response = await fetch('/api/admin/users'); // เรียก API เพื่อดึงข้อมูลผู้ใช้
         const data = await response.json();
 
         // อัปเดตข้อมูลผู้ใช้ในหน้าเว็บ

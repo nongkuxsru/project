@@ -38,4 +38,15 @@ router.get('/activity', async (req, res) => {
     }
 });
 
+// API สำหรับดึงข้อมูลผู้ใช้ทั้งหมด
+router.get('/users', async (req, res) => {
+    try {
+        const users = await User.find({}, { name: 1, email: 1, permission: 1, _id: 1 }); // ดึงข้อมูลเฉพาะ field ที่ต้องการ
+        res.json(users);
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({ error: 'Error fetching users' });
+    }
+});
+
 module.exports = router;
