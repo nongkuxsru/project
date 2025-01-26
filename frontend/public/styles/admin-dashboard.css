@@ -1,0 +1,250 @@
+/* Reset CSS */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* สไตล์สำหรับ Dashboard Container */
+.dashboard-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* สไตล์สำหรับ Sidebar */
+.sidebar {
+    width: 250px; /* ความกว้างของ Sidebar */
+    background-color: #333; /* สีพื้นหลัง */
+    color: #fff; /* สีข้อความ */
+    padding: 1rem;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    position: fixed; /* ทำให้ Sidebar ติดขอบซ้าย */
+    height: 100vh; /* ความสูงเต็มหน้าจอ */
+    overflow-y: auto; /* ให้สามารถ scroll ได้หากเนื้อหาเกิน */
+    transition: width 0.3s; /* เพิ่ม animation เมื่อซ่อน/แสดง Sidebar */
+}
+
+.sidebar.collapsed {
+    width: 60px; /* ความกว้างเมื่อ Sidebar ถูกซ่อน */
+}
+
+.sidebar.collapsed .sidebar-header h2 {
+    display: none; /* ซ่อนข้อความหัวข้อเมื่อ Sidebar ถูกซ่อน */
+}
+
+.sidebar.collapsed .sidebar-menu li a span {
+    display: none; /* ซ่อนข้อความเมนูเมื่อ Sidebar ถูกซ่อน */
+}
+
+.sidebar.collapsed .sidebar-menu li a i {
+    margin-right: 0; /* ลบระยะห่างของไอคอนเมื่อ Sidebar ถูกซ่อน */
+}
+
+.sidebar-header {
+    margin-bottom: 1.5rem;
+}
+
+.sidebar-header h2 {
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+.sidebar-menu {
+    list-style: none;
+}
+
+.sidebar-menu li {
+    margin-bottom: 1rem;
+}
+
+.sidebar-menu li a {
+    color: #fff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.sidebar-menu li a:hover {
+    background-color: #444;
+}
+
+.sidebar-menu li a.active {
+    background-color: #555;
+}
+
+.sidebar-menu li a i {
+    margin-right: 0.5rem;
+}
+
+/* สไตล์สำหรับ Main Content */
+.main-content {
+    flex: 1;
+    margin-left: 250px; /* ระยะห่างจาก Sidebar */
+    padding: 1rem;
+    transition: margin-left 0.3s; /* เพิ่ม animation เมื่อซ่อน/แสดง Sidebar */
+}
+
+.main-content.collapsed {
+    margin-left: 60px; /* ระยะห่างเมื่อ Sidebar ถูกซ่อน */
+}
+
+header {
+    margin-bottom: 1.5rem;
+}
+
+header h1 {
+    font-size: 2rem;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 1rem;
+}
+
+#toggleSidebar {
+    background: none;
+    border: none;
+    color: #333;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+#toggleSidebar:hover {
+    color: #555;
+}
+
+/* สไตล์สำหรับส่วนเนื้อหา */
+.user-info {
+    margin-bottom: 2rem;
+}
+
+.user-info h2 {
+    margin-bottom: 1rem;
+}
+
+.info-card {
+    background-color: #fff;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.info-card p {
+    margin-bottom: 0.5rem;
+}
+
+/* สไตล์สำหรับปุ่ม Logout */
+#logoutButton {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#logoutButton:hover {
+    background-color: #c82333;
+}
+
+/* สไตล์สำหรับ Sidebar */
+.dashboard-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #333;
+    color: #fff;
+    padding: 1rem;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-header {
+    margin-bottom: 1.5rem;
+}
+
+.sidebar-header h2 {
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+.sidebar-menu {
+    list-style: none;
+}
+
+.sidebar-menu li {
+    margin-bottom: 1rem;
+}
+
+.sidebar-menu li a {
+    color: #fff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.sidebar-menu li a:hover {
+    background-color: #444;
+}
+
+.sidebar-menu li a.active {
+    background-color: #555;
+}
+
+.sidebar-menu li a i {
+    margin-right: 0.5rem;
+}
+
+/* สไตล์สำหรับ Main Content */
+.main-content {
+    flex: 1;
+    padding: 1rem;
+    background-color: #f4f4f4;
+}
+
+/* สไตล์สำหรับปุ่ม Toggle Sidebar */
+#toggleSidebar {
+    background: none;
+    border: none;
+    color: #333;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+#toggleSidebar:hover {
+    color: #555;
+}
+
+/* สไตล์สำหรับ Sidebar ที่ถูกซ่อน */
+.sidebar.collapsed {
+    width: 60px;
+}
+
+.sidebar.collapsed .sidebar-header h2 {
+    display: none;
+}
+
+.sidebar.collapsed .sidebar-menu li a span {
+    display: none;
+}
+
+.sidebar.collapsed .sidebar-menu li a i {
+    margin-right: 0;
+}

@@ -34,6 +34,36 @@ async function syncSavings() {
     }
 }
 
+// ฟังก์ชันสำหรับดึงชื่อผู้ใช้จากฐานข้อมูล
+const getUserName = async (userId) => {
+    const user = await Saving.findOne({ userId }); // ค้นหาผู้ใช้จาก userId
+    return user ? user.name : null;
+};
+
+// ฟังก์ชันสำหรับบันทึกข้อมูลการออมทรัพย์
+const saveSavings = async (req, res) => {
+    try {
+        const { userId, amount } = req.body;
+
+        // ดึงชื่อผู้ใช้จากฐานข้อมูล
+        const name = await getUserName(userId);
+        if (!name) {
+            return res.status(404).json({ error: 'User not found!' });
+        }
+
+        // สร้างข้อมูลใหม่
+        const newSaving = new Saving({ name, userId, amount });
+        await newSaving.save(); // บันทึกลง MongoDB
+
+        res.status(201).json({ message: 'Data saved successfully!', data: newSaving });
+    } catch (error) {
+        res.status(500).json({ error: 'Error saving data!', details: error.message });
+    }
+};
+
+// Route สำหรับบันทึกข้อมูลการออมทรัพย์
+router.post('/savings', saveSavings);
+
 // Get all Savings
 router.get('/savings', async (req, res, next) => {
     try {
