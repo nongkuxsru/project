@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Saving = require('./Saving'); // Import โมเดล Saving
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -16,20 +17,21 @@ const userSchema = new mongoose.Schema({
     },
     address: {
         type: String,
-        default: '' // กำหนดค่าเริ่มต้นเป็นค่าว่าง
+        required: true
     },
     phone: {
         type: String,
-        default: '' // กำหนดค่าเริ่มต้นเป็นค่าว่าง
+        required: true
     },
     birthday: {
         type: Date,
-        default: null // ค่าเริ่มต้นเป็น null
+        required: true
     },
     permission: {
         type: String,
-        enum: ['user', 'admin', 'staff'], // กำหนดค่าที่เป็นไปได้
-        default: 'user' // ค่าเริ่มต้นเป็น 'user'
+        required: true,
+        enum: ['admin', 'staff', 'user'], // จำกัดค่า permission
+        default: 'user'
     },
     createdAt: {
         type: Date,

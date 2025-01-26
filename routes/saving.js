@@ -4,6 +4,36 @@ const mongoose = require('mongoose');
 const Saving = require('../models/Saving'); // ใช้โมเดล Saving
 const User = require('../models/Users'); // ใช้โมเดล User เพื่ออ้างอิง id_member และ id_staff
 
+async function syncSavings() {
+    try {
+        // ดึงข้อมูลผู้ใช้ทั้งหมดจาก User collection
+        const users = await User.find();
+
+        for (const user of users) {
+            // ตรวจสอบว่าผู้ใช้นั้นมีบัญชี Saving อยู่แล้วหรือไม่
+            const existingSaving = await Saving.findOne({ id_member: user._id });
+
+            if (!existingSaving) {
+                // หากไม่มีบัญชี Saving ให้สร้างบัญชีใหม่
+                if (user.permission === 'user') {
+                    await Saving.create({
+                        id_member: user._id,
+                        balance: 0,
+                        id_staff: null // กำหนดค่าเป็น null หรือ ID staff ที่ต้องการ
+                    });
+                    console.log(`Saving account created for user: ${user.name}`);
+                }
+            } else {
+                // หากมีบัญชีอยู่แล้ว ให้แสดงข้อความ (สามารถอัปเดตข้อมูลในบัญชีได้ตามต้องการ)
+                console.log(`Saving account already exists for user: ${user.name}`);
+            }
+        }
+        console.log('Saving accounts synchronized successfully!');
+    } catch (error) {
+        console.error('Error syncing savings:', error);
+    }
+}
+
 // Get all Savings
 router.get('/savings', async (req, res, next) => {
     try {

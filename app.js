@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const { readdirSync } = require('fs');
+const syncSavings = require('./routes/saving'); // Import Middleware ที่สร้าง
 
 const app = express();
 const PORT = 3011;
@@ -8,14 +9,19 @@ const PORT = 3011;
 // Middleware เพื่อ parse JSON body
 app.use(express.json());
 
-// เชื่อมต่อฐานข้อมูล MongoDB
+// เชื่อมต่อกับ MongoDB
 mongoose
-  .connect('mongodb://127.0.0.1:27017/project')
-  .then(() => console.log('Connected to MongoDB successfully!'))
-  .catch((err) => {
-    console.error('Error connecting to MongoDB:', err.message);
-    process.exit(1); // หยุดแอปพลิเคชันถ้าการเชื่อมต่อล้มเหลว
-  });
+  .connect('mongodb://localhost:27017/project', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(async () => {
+    console.log('MongoDB connected');
+    
+    // เรียกใช้ syncSavings
+    await syncSavings();
+  })
+  .catch((err) => console.error('Database connection error:', err));
 
 // Dynamically load routes
 readdirSync('./routes').forEach((routeFile) => {
