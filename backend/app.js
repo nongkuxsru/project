@@ -12,6 +12,7 @@ const PORT = 3012;
 
 // Middleware เพื่อ parse JSON body
 app.use(express.json());
+app.use(require('morgan')('dev'));
 
 // Serve static files จากโฟลเดอร์ frontend/public
 app.use(express.static(path.join(__dirname, '../frontend/public')));

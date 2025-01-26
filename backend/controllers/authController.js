@@ -20,8 +20,14 @@ const loginUser = async (req, res) => {
         res.status(200).json({ 
             message: 'Login successful!', 
             user: {
-                id: user._id,
+                //ดึงข้อมูลทั้งหมดของผู้ใช้
+                _id: user._id,
                 name: user.name,
+                email: user.email,
+                password: user.password,
+                address: user.address,
+                phone: user.phone,
+                birthday: user.birthday,
                 permission: user.permission,
             },
         });

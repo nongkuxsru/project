@@ -59,3 +59,20 @@
 .cancel-button:hover {
     background-color: #c82333;
 }
+
+/* สไตล์สำหรับช่อง User ID */
+#userId {
+    background-color: #f0f0f0; /* สีพื้นหลังทึบ */
+    border: 1px solid #ccc; /* เส้นขอบ */
+    padding: 8px; /* ช่องว่างภายใน */
+    border-radius: 4px; /* มุมโค้ง */
+    font-size: 16px; /* ขนาดตัวอักษร */
+    color: #333; /* สีตัวอักษร */
+    cursor: not-allowed; /* เปลี่ยนเคอร์เซอร์เป็นสัญลักษณ์ "ไม่允許" */
+}
+
+/* สไตล์เมื่อช่องถูกโฟกัส (optional) */
+#userId:focus {
+    outline: none; /* ลบเส้นขอบเมื่อโฟกัส */
+    border-color: #999; /* เปลี่ยนสีเส้นขอบเมื่อโฟกัส */
+}

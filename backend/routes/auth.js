@@ -16,4 +16,5 @@ router.post('/logout', (req, res) => {
         res.status(500).json({ error: 'Error during logout' });
     }
 });
+
 module.exports = router; // ส่งออก router object

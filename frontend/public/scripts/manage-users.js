@@ -49,20 +49,16 @@ const filterUsers = () => {
 // เพิ่ม Event Listeners สำหรับช่องค้นหาและ dropdown filter
 document.getElementById('searchInput').addEventListener('input', filterUsers);
 document.getElementById('permissionFilter').addEventListener('change', filterUsers);
-document.getElementById('logoutButton').addEventListener('click', logout);
 document.getElementById('toggleSidebar').addEventListener('click', toggleSidebar);
-
-// เรียกใช้ฟังก์ชันเมื่อหน้าเว็บโหลดเสร็จ
-window.onload = () => {
-    fetchUsers(); // ดึงข้อมูลผู้ใช้
-};
 
 // ฟังก์ชันสำหรับ Logout
 const logout = async () => {
     try {
         const response = await fetch('/api/auth/logout', { method: 'POST' });
         if (response.ok) {
-            window.location.href = '/'; // Redirect ไปยังหน้า Login หลังจาก Logout สำเร็จ
+            alert('น้องบ่าวติออกจริงๆใช่ม้าย?');
+            window.location.href = '/';
+            
         } else {
             alert('Logout failed. Please try again.');
         }
@@ -70,3 +66,12 @@ const logout = async () => {
         console.error('Error during logout:', error);
     }
 };
+
+// เรียกใช้ฟังก์ชันเมื่อหน้าเว็บโหลดเสร็จ
+window.onload = () => {
+    fetchUsers(); // ดึงข้อมูลผู้ใช้
+    
+// ของมึงไม่มีบรรทัดนี้ไอสึส
+document.getElementById('logoutButton').addEventListener('click', logout);
+};
+
