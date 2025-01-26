@@ -5,6 +5,7 @@ const authController = require('../controllers/authController'); // Import authC
 // Route สำหรับการเข้าสู่ระบบ
 router.post('/login', authController.loginUser);
 
+
 // API สำหรับ Logout
 router.post('/logout', (req, res) => {
     try {

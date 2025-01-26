@@ -11,6 +11,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
     });
+    
 
     const result = await response.json();
     if (response.ok) {
@@ -20,6 +21,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         const { permission } = result.user;
         switch (permission) {
             case 'admin':
+                localStorage.setItem('currentUser', JSON.stringify(result.user));
                 window.location.href = '/admin-dashboard.html'; // หน้า Admin
                 break;
             case 'staff':
