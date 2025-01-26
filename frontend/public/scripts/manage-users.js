@@ -1,5 +1,65 @@
 let allUsers = []; // เก็บข้อมูลผู้ใช้ทั้งหมด
 
+// ฟังก์ชันสำหรับแสดง modal และแก้ไขข้อมูลผู้ใช้
+const openEditModal = async (user) => {
+    const modal = document.getElementById('editUserModal');
+    const form = document.getElementById('editUserForm');
+
+    if (!modal || !form) {
+        console.error('Modal or form not found');
+        return;
+    }
+
+    // ตรวจสอบว่า user object มีค่า _id
+    const userId = user._id;
+    if (!userId) {
+        console.error('User ID is missing');
+        return;
+    }
+
+    console.log(`Fetching user data for ID: ${userId}`); // log ตรวจสอบค่า userId
+
+    try {
+        const response = await fetch(`/api/admin/users/${userId}`);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch user data: ${response.status}`);
+        }
+
+        const userData = await response.json(); // แปลง response เป็น JSON
+        console.log('Fetched user data:', userData); // ตรวจสอบข้อมูลที่ดึงมา
+
+        // เติมข้อมูลในฟอร์ม
+        document.getElementById('editName').value = userData.name || '';
+        document.getElementById('editEmail').value = userData.email || '';
+        document.getElementById('editPassword').value = userData.password || '';
+        document.getElementById('editAddress').value = userData.address || '';
+        document.getElementById('editPhone').value = userData.phone || '';
+        document.getElementById('editBirthday').value = userData.birthday
+            ? new Date(userData.birthday).toISOString().split('T')[0]
+            : '';
+        document.getElementById('editPermission').value = userData.permission || 'User';
+
+        // แสดง modal
+        modal.style.display = 'block';
+    } catch (error) {
+        console.error('Error fetching user data:', error);
+        alert('Failed to fetch user data. Please try again.');
+    }
+
+    // ปิด modal เมื่อคลิกปุ่ม close (×)
+    document.querySelector('#editUserModal .close').onclick = () => {
+        modal.style.display = 'none';
+    };
+
+    // ปิด modal เมื่อคลิกนอก modal
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    };
+};
+
+
 // ฟังก์ชันสำหรับดึงข้อมูลผู้ใช้และแสดงผลในตาราง
 const fetchAndRenderUsers = async () => {
     try {
@@ -67,66 +127,6 @@ const deleteUser = async (userId) => {
     }
 };
 
-// ฟังก์ชันสำหรับแสดง modal และเติมข้อมูลผู้ใช้
-const openEditModal = (user) => {
-    const modal = document.getElementById('editUserModal');
-    const form = document.getElementById('editUserForm');
-
-    // เติมข้อมูลผู้ใช้ในฟอร์ม
-    document.getElementById('editName').value = user.name;
-    document.getElementById('editEmail').value = user.email;
-    document.getElementById('editPermission').value = user.permission;
-
-    // แสดง modal
-    modal.style.display = 'block';
-
-    // ปิด modal เมื่อคลิกปุ่ม close (×)
-    document.querySelector('.close').onclick = () => {
-        modal.style.display = 'none';
-    };
-
-    // ปิด modal เมื่อคลิกนอก modal
-    window.onclick = (event) => {
-        if (event.target === modal) {
-            modal.style.display = 'none';
-        }
-    };
-
-    // จัดการการส่งฟอร์ม
-    form.onsubmit = async (e) => {
-        e.preventDefault();
-
-        const updatedData = {
-            name: document.getElementById('editName').value,
-            email: document.getElementById('editEmail').value,
-            permission: document.getElementById('editPermission').value,
-        };
-
-        try {
-            const response = await fetch(`/api/admin/users/${user._id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedData),
-            });
-
-            if (!response.ok) throw new Error('Failed to edit user');
-
-            await fetchAndRenderUsers(); // อัปเดตตารางผู้ใช้
-            modal.style.display = 'none'; // ปิด modal
-            alert('User edited successfully');
-        } catch (error) {
-            console.error('Error editing user:', error);
-            alert('Failed to edit user. Please try again.');
-        }
-    };
-};
-
-// ฟังก์ชันสำหรับแก้ไขผู้ใช้
-const editUser = (userId) => {
-    const user = allUsers.find(u => u._id === userId); // หาข้อมูลผู้ใช้จาก allUsers
-    if (user) openEditModal(user); // เปิด modal และแสดงข้อมูลผู้ใช้
-};
-
 // ฟังก์ชันสำหรับ filter ข้อมูล
 const filterUsers = () => {
     const searchText = document.getElementById('searchInput').value.toLowerCase();
@@ -140,6 +140,14 @@ const filterUsers = () => {
 
     renderUsers(filteredUsers); // แสดงข้อมูลที่ filter แล้ว
 };
+
+// ฟังก์ชันสำหรับแก้ไขผู้ใช้
+const editUser = (userId) => {
+    const user = allUsers.find(u => u._id === userId); // หาข้อมูลผู้ใช้จาก allUsers
+    if (user) openEditModal(user); // เปิด modal และแสดงข้อมูลผู้ใช้
+};
+
+
 
 // ฟังก์ชันสำหรับเปิด modal เพื่อเพิ่มผู้ใช้
 const openAddUserModal = () => {
@@ -230,3 +238,4 @@ window.onload = () => {
     document.getElementById('permissionFilter').addEventListener('change', filterUsers);
     document.getElementById('logoutButton').addEventListener('click', logout);
 };
+

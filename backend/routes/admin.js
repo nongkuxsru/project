@@ -83,17 +83,24 @@ router.delete('/users/:id', async (req, res) => {
 });
 
 // Edit User by ID
-router.put('/users/:id', async (req, res, next) => {
+router.get('/users/:id', async (req, res) => {
     try {
-        const updatedUser = await User.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true } // เพื่อคืนค่าเอกสารที่อัปเดตแล้ว
-        );
-        if (!updatedUser) return res.status(404).json({ message: 'User not found' });
-        res.json(updatedUser);
+        const user = await User.findById(req.params.id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // ส่งข้อมูลผู้ใช้ทั้งหมดกลับไป
+        res.json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            password: user.password,
+            address: user.address,
+            phone: user.phone,
+            birthday: user.birthday,
+            permission: user.permission,
+        });
     } catch (err) {
-        next(err);
+        res.status(500).json({ message: 'Failed to fetch user', error: err.message });
     }
 });
 
