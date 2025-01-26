@@ -17,16 +17,12 @@ const openEditModal = async (user) => {
         return;
     }
 
-    console.log(`Fetching user data for ID: ${userId}`); // log ตรวจสอบค่า userId
-
     try {
         const response = await fetch(`/api/admin/users/${userId}`);
         if (!response.ok) {
             throw new Error(`Failed to fetch user data: ${response.status}`);
         }
-
         const userData = await response.json(); // แปลง response เป็น JSON
-        console.log('Fetched user data:', userData); // ตรวจสอบข้อมูลที่ดึงมา
 
         // เติมข้อมูลในฟอร์ม
         document.getElementById('editName').value = userData.name || '';
@@ -41,6 +37,42 @@ const openEditModal = async (user) => {
 
         // แสดง modal
         modal.style.display = 'block';
+
+        // จัดการเมื่อฟอร์มถูกส่ง
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+
+            const updatedData = {
+                name: document.getElementById('editName').value,
+                email: document.getElementById('editEmail').value,
+                password: document.getElementById('editPassword').value,
+                address: document.getElementById('editAddress').value,
+                phone: document.getElementById('editPhone').value,
+                birthday: document.getElementById('editBirthday').value,
+                permission: document.getElementById('editPermission').value,
+            };
+
+            try {
+                const saveResponse = await fetch(`/api/admin/users/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedData),
+                });
+
+                if (!saveResponse.ok) {
+                    throw new Error(`Failed to save user data: ${saveResponse.status}`);
+                }
+
+                const result = await saveResponse.json();
+
+                alert('User data updated successfully!');
+                modal.style.display = 'none'; // ปิด modal หลังจากบันทึกสำเร็จ
+                await fetchAndRenderUsers(); // อัปเดตข้อมูลในตารางหรือหน้าเว็บ
+            } catch (saveError) {
+                console.error('Error saving user data:', saveError);
+                alert('Failed to save user data. Please try again.');
+            }
+        };
     } catch (error) {
         console.error('Error fetching user data:', error);
         alert('Failed to fetch user data. Please try again.');

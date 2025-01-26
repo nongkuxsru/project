@@ -104,4 +104,29 @@ router.get('/users/:id', async (req, res) => {
     }
 });
 
+router.put('/users/:id', async (req, res) => {
+    try {
+        const userId = req.params.id; // ดึงค่า ID จาก URL
+        const updatedData = req.body; // ดึงข้อมูลที่ส่งมาจาก Client
+
+        // ค้นหาและอัปเดตข้อมูลในฐานข้อมูล
+        const updatedUser = await User.findByIdAndUpdate(userId, updatedData, {
+            new: true, // ให้คืนค่าข้อมูลที่ถูกอัปเดตกลับมา
+            runValidators: true, // ตรวจสอบ validation ของ schema
+        });
+
+        // หากไม่พบผู้ใช้ ให้ส่ง error กลับ
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // ส่งข้อมูลใหม่กลับไปยัง Client
+        res.json(updatedUser);
+    } catch (error) {
+        console.error('Failed to update user:', error.message);
+        res.status(500).json({ message: 'Failed to update user', error: error.message });
+    }
+});
+
+
 module.exports = router;
