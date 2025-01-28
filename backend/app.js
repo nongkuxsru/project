@@ -8,7 +8,7 @@ const authRouter = require('./routes/auth'); // นำเข้า authRouter
 
 
 const app = express();
-const PORT = 3012;
+const PORT = 5000;
 
 // Middleware เพื่อ parse JSON body
 app.use(express.json());
