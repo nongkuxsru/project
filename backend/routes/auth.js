@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const authController = require('../controllers/authController'); // Import authController
+const authController = require('../models/authController'); // Import authController
 
 // Route สำหรับการเข้าสู่ระบบ
 router.post('/login', authController.loginUser);

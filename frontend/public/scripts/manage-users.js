@@ -16,7 +16,6 @@ const openEditModal = async (user) => {
         console.error('User ID is missing');
         return;
     }
-
     try {
         const response = await fetch(`/api/admin/users/${userId}`);
         if (!response.ok) {
@@ -90,7 +89,6 @@ const openEditModal = async (user) => {
         }
     };
 };
-
 
 // ฟังก์ชันสำหรับดึงข้อมูลผู้ใช้และแสดงผลในตาราง
 const fetchAndRenderUsers = async () => {
@@ -178,8 +176,6 @@ const editUser = (userId) => {
     const user = allUsers.find(u => u._id === userId); // หาข้อมูลผู้ใช้จาก allUsers
     if (user) openEditModal(user); // เปิด modal และแสดงข้อมูลผู้ใช้
 };
-
-
 
 // ฟังก์ชันสำหรับเปิด modal เพื่อเพิ่มผู้ใช้
 const openAddUserModal = () => {
@@ -270,4 +266,3 @@ window.onload = () => {
     document.getElementById('permissionFilter').addEventListener('change', filterUsers);
     document.getElementById('logoutButton').addEventListener('click', logout);
 };
-
