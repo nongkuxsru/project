@@ -249,8 +249,7 @@ const logout = async () => {
     try {
         const response = await fetch('/api/auth/logout', { method: 'POST' });
         if (response.ok) {
-            alert('น้องบ่าวติออกจริงๆใช่ม้าย?');
-            window.location.href = '/';
+            window.location.href = '/'; // Redirect ไปยังหน้า Login หลังจาก Logout สำเร็จ
         } else {
             alert('Logout failed. Please try again.');
         }

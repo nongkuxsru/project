@@ -32,7 +32,10 @@ const fetchStats = async () => {
 const logout = async () => {
     try {
         const response = await fetch('/api/auth/logout', { method: 'POST' });
+        alert('Are you sure you want to logout?');
         if (response.ok) {
+            alert('Logout successful!');
+            localStorage.removeItem('currentUser'); // ลบข้อมูลผู้ใช้ที่เก็บไว้ใน LocalStorage
             window.location.href = '/'; // Redirect ไปยังหน้า Login หลังจาก Logout สำเร็จ
         } else {
             alert('Logout failed. Please try again.');

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/styles/manage-users.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+        <div class="sidebar-header"><h2>Dashboard</h2></div>
+            <ul class="sidebar-menu">
+                <li><a href="/admin" ><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/admin/manage-users.html" class="active"><i class="fas fa-users"></i> Manage Users</a></li>
+                <li><a href="/admin/setting.html"><i class="fas fa-cog"></i> Settings</a></li>
+                <li><a href="/admin/reports.html"><i class="fas fa-chart-bar"></i> Reports</a></li>
+                <li><a href="/logout" id="logoutButton"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header>
+                <nav><ul><li><button id="toggleSidebar"><i class="fas fa-bars"></i></button></li></ul></nav>
+            </header>
+
+            <!-- ส่วนค้นหาและ filter -->
+            <section class="filters">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search by name or email...">
+                    <button id="searchButton"><i class="fas fa-search"></i></button>
+                </div>
+                <div class="filter-box">
+                    <label for="permissionFilter">Filter by Permission:</label>
+                    <select id="permissionFilter">
+                        <option value="all">All</option>
+                        <option value="admin">Admin</option>
+                        <option value="staff">Staff</option>
+                        <option value="user">User</option>
+                    </select>
+                </div>
+            </section>
+        
+            <!-- ส่วนแสดงตารางผู้ใช้ -->
+            <section class="user-table">
+                <h2>All Users</h2><button id="addUserButton">Add User</button><h2></h2>
+                <table id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Permission</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- ข้อมูลผู้ใช้จะถูกเพิ่มโดย JavaScript -->
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Modal สำหรับแก้ไขผู้ใช้ -->
+            <div id="editUserModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>Edit User</h2>
+                    <form id="editUserForm">
+                        <label for="editName">Name:</label>
+                        <input type="text" id="editName" name="name" required>
+                    
+                        <label for="editEmail">Email:</label>
+                        <input type="email" id="editEmail" name="email" required>
+                    
+                        <label for="editPassword">Password:</label>
+                        <input type="password" id="editPassword" name="password" required>
+                    
+                        <label for="editAddress">Address:</label>
+                        <input type="text" id="editAddress" name="address" required>
+                    
+                        <label for="editPhone">Phone:</label>
+                        <input type="text" id="editPhone" name="phone" required>
+                    
+                        <label for="editBirthday">Birthday:</label>
+                        <input type="date" id="editBirthday" name="birthday" required>
+                    
+                        <label for="editPermission">Permission:</label>
+                        <select id="editPermission" name="permission" required>
+                            <option value="admin">admin</option>
+                            <option value="staff">staff</option>
+                            <option value="user">user</option>
+                        </select>
+                        <button type="submit">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+            <!-- Modal สำหรับเพิ่มผู้ใช้ -->
+            <div id="addUserModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>Add New User</h2>
+                    <form id="addUserForm">
+                        <label for="addName">Name:</label>
+                        <input type="text" id="addName" name="name" required>
+                    
+                        <label for="addEmail">Email:</label>
+                        <input type="email" id="addEmail" name="email" required>
+                    
+                        <label for="addPassword">Password:</label>
+                        <input type="password" id="addPassword" name="password" required>
+                    
+                        <label for="addAddress">Address:</label>
+                        <input type="text" id="addAddress" name="address" required>
+                    
+                        <label for="addPhone">Phone:</label>
+                        <input type="text" id="addPhone" name="phone" required>
+                    
+                        <label for="addBirthday">Birthday:</label>
+                        <input type="date" id="addBirthday" name="birthday" required>
+                    
+                        <label for="addPermission">Permission:</label>
+                        <select id="addPermission" name="permission" required>
+                            <option value="admin">admin</option>
+                            <option value="staff">staff</option>
+                            <option value="user">user</option>
+                        </select>
+                    
+                        <button type="submit">Add User</button>
+                    </form>
+                    
+                </div>
+            </div>
+            <!-- ส่วนอื่นๆ ของหน้า Dashboard -->
+        </main>
+    </div>
+    <script src="/scripts/manage-users.js"></script>
+</body>
+</html>

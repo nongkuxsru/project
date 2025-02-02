@@ -46,32 +46,32 @@ app.use(express.static(path.join(__dirname, '../frontend/public')));
 // ใช้ authRouter
 app.use('/api/auth', authRouter); // ใช้ authRouter
 
-
 // ใช้ savingRouter สำหรับเส้นทาง /api
 app.use('/api', savingRouter);
 
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/staff', require('./routes/staff'));
 
 // สร้าง route สำหรับการ render หน้า index
 app.get('/', (req, res) => {
   res.render('index');
 });
 
-// Route สำหรับ serve ไฟล์ HTML
+// เสิร์ฟไฟล์ login.html แทน index.html
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/public/index.html'));
+  res.sendFile(path.join(__dirname, '../frontend/public/login.html'));
 });
 
-app.get('/admin-dashboard.html', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/public/admin-dashboard.html'));
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/admin/admin-dashboard.html'));
 });
 
-app.get('/staff-dashboard.html', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/public/staff-dashboard.html'));
+app.get('/staff', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/staff/staff-dashboard.html'));
 });
 
-app.get('/user-dashboard.html', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/public/user-dashboard.html'));
+app.get('/user', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/user/dashboard.html'));
 });
 
 

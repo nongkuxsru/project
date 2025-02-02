@@ -1,41 +1,56 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // ตรวจสอบว่ามีข้อมูลใน LocalStorage หรือไม่
-  const userData = JSON.parse(localStorage.getItem("currentUser"));
+    // ✅ ดึงข้อมูลจาก LocalStorage
+    const userData = JSON.parse(localStorage.getItem("currentUser"));
 
-  if (!userData) {
-      alert("No user data found. Please log in again.");
-      window.location.href = "/login"; // Redirect ไปหน้า Login ถ้าไม่มีข้อมูลผู้ใช้
-      return;
-  }
+    if (!userData) {
+        alert("No user data found. Please log in again.");
+        window.location.href = "/login"; // Redirect ไปหน้า Login ถ้าไม่มีข้อมูลผู้ใช้
+        return;
+    }
 
-  // บันทึกข้อมูลผู้ใช้ใน LocalStorage (ถ้ายังไม่มี)
-  if (!localStorage.getItem("userData")) {
-      localStorage.setItem("userData", JSON.stringify(userData));
-  }
+    // ✅ แสดงข้อมูลในฟอร์ม
+    populateForm(userData);
 
-  // แสดงข้อมูลในฟอร์ม
-  populateForm(userData);
+    // ✅ Event listener สำหรับอัปเดตข้อมูล
+    document.getElementById("personalInfoForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
 
-  // ฟังก์ชันบันทึกข้อมูลใหม่ลง LocalStorage
-  document.getElementById("personalInfoForm").addEventListener("submit", (event) => {
-      event.preventDefault();
+        // ✅ ดึงข้อมูลจากฟอร์ม
+        const updatedData = {
+            _id: userData._id, // ใช้ _id จาก LocalStorage
+            name: document.getElementById("fullName").value,
+            email: document.getElementById("email").value,
+            address: document.getElementById("address").value,
+            phone: document.getElementById("phone").value,
+            birthday: document.getElementById("birthday").value,
+            permission: userData.permission // ไม่ให้แก้ไข permission
+        };
 
-      // อัปเดตข้อมูล
-      const updatedData = {
-          _id: document.getElementById("userId").value, // ใช้ _id แทน id
-          name: document.getElementById("fullName").value,
-          email: document.getElementById("email").value,
-          address: document.getElementById("address").value,
-          phone: document.getElementById("phone").value,
-          birthday: document.getElementById("birthday").value,
-          permission: document.getElementById("permission").value,
-      };
+        try {
+            // ✅ อัปเดตข้อมูลไปยัง Database ผ่าน API
+            const response = await fetch(`/api/admin/users/${updatedData._id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updatedData),
+            });
 
-      // บันทึกข้อมูลใหม่ลง LocalStorage
-      localStorage.setItem("userData", JSON.stringify(updatedData));
-      alert("User information updated successfully!");
-  });
+            const result = await response.json();
+            if (response.ok) {
+                // ✅ บันทึกข้อมูลใหม่ลง LocalStorage
+                localStorage.setItem("currentUser", JSON.stringify(updatedData));
+
+                alert("User information updated successfully!");
+                window.location.href = "/staff-dashboard.html"; // ส่งกลับไปหน้า Staff Dashboard
+            } else {
+                alert("Error updating data: " + result.error);
+            }
+        } catch (error) {
+            console.error("Update failed:", error);
+            alert("An error occurred while updating user information.");
+        }
+    });
 });
+
 
 // ฟังก์ชันแสดงข้อมูลในฟอร์ม
 function populateForm(userData) {
@@ -60,18 +75,16 @@ function resetForm() {
 
 // ฟังก์ชันสำหรับ Logout
 const logout = async () => {
-  try {
-      const response = await fetch('/api/auth/logout', { method: 'POST' });
-      if (response.ok) {
-          alert('น้องบ่าวติออกจริงๆใช่ม้าย?');
-          window.location.href = '/';
-          
-      } else {
-          alert('Logout failed. Please try again.');
-      }
-  } catch (error) {
-      console.error('Error during logout:', error);
-  }
+    try {
+        const response = await fetch('/api/auth/logout', { method: 'POST' });
+        if (response.ok) {
+            window.location.href = '/'; // Redirect ไปยังหน้า Login หลังจาก Logout สำเร็จ
+        } else {
+            alert('Logout failed. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error during logout:', error);
+    }
 };
 
 // เพิ่ม Event Listener สำหรับปุ่ม Logout

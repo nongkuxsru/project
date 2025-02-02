@@ -17,15 +17,18 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     if (response.ok) {
         alert(result.message);
 
+         // ✅ บันทึกข้อมูลผู้ใช้ลง localStorage
+         localStorage.setItem('currentUser', JSON.stringify(result.user));
+
         // ตรวจสอบสิทธิ์และ redirect ไปยังหน้าที่เหมาะสม
         const { permission } = result.user;
         switch (permission) {
             case 'admin':
                 localStorage.setItem('currentUser', JSON.stringify(result.user));
-                window.location.href = '/admin-dashboard.html'; // หน้า Admin
+                window.location.href = '/admin'; // หน้า Admin
                 break;
             case 'staff':
-                window.location.href = '/staff-dashboard.html'; // หน้า Staff
+                window.location.href = '/staff'; // หน้า Staff
                 break;
             default:
                 window.location.href = '/user-dashboard.html'; // หน้า User
@@ -34,6 +37,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         alert(result.error);
     }
 });
+
 
 const themes = [
     {
@@ -68,14 +72,18 @@ const themes = [
     }
 ];
 
+// 🔹 ตั้งค่าธีม
 const setTheme = (theme) => {
     const root = document.querySelector(":root");
     root.style.setProperty("--background", theme.background);
     root.style.setProperty("--color", theme.color);
     root.style.setProperty("--primary-color", theme.primaryColor);
-    root.style.setProperty("--glass-color", theme.glassColor);
+
+    // ✅ บันทึกธีมที่เลือกลง localStorage
+    localStorage.setItem("selectedTheme", JSON.stringify(theme));
 };
 
+// 🔹 แสดงปุ่มเลือกธีม
 const displayThemeButtons = () => {
     const btnContainer = document.querySelector(".theme-btn-container");
     themes.forEach((theme) => {
@@ -86,5 +94,13 @@ const displayThemeButtons = () => {
         div.addEventListener("click", () => setTheme(theme));
     });
 };
+
+// ✅ โหลดธีมที่เลือกไว้ก่อนหน้า (ถ้ามี)
+document.addEventListener("DOMContentLoaded", () => {
+    const savedTheme = JSON.parse(localStorage.getItem("selectedTheme"));
+    if (savedTheme) {
+        setTheme(savedTheme);
+    }
+});
 
 displayThemeButtons();
