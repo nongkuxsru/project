@@ -1,26 +1,26 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/Users'); // นำเข้าโมเดล Users
+const Saving = require('../models/Saving'); // นำเข้าโมเดลบัญชีการออม
 
 
 // API สำหรับดึงข้อมูลสถิติ
 router.get('/stats', async (req, res) => {
     try {
-        const totalUsers = await User.countDocuments();
-        const activeUsers = await User.countDocuments({ status: 'active' });
-        const totalSavings = await User.aggregate([
-            { $group: { _id: null, total: { $sum: "$savings" } } }
-        ]);
+        const totalUsers = await User.countDocuments(); // นับจำนวนผู้ใช้ทั้งหมด
+        const activeUsers = await User.countDocuments({ status: 'active' }); // นับจำนวนผู้ใช้ที่มีสถานะ active
+        const totalSavings = await Saving.countDocuments(); // นับจำนวนข้อมูลในตาราง savings (แทนการหาผลรวม)
 
         res.json({
             totalUsers,
             activeUsers,
-            totalSavings: totalSavings[0]?.total || 0,
+            totalSavings, // ส่งจำนวนข้อมูลในตาราง savings
         });
     } catch (error) {
         res.status(500).json({ error: 'Error fetching stats' });
     }
 });
+
 
 // API สำหรับดึงข้อมูลกิจกรรมล่าสุด
 router.get('/activity', async (req, res) => {

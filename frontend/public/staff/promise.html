@@ -18,7 +18,8 @@
                 <li><a href="/staff/"><i class="fas fa-home"></i> Home</a></li>
                 <li><a href="/staff/setting.html"><i class="fas fa-cog"></i> Settings</a></li>
                 <li><a href="/staff/manage-users.html"><i class="fas fa-users"></i> Manage Users</a></li>
-                <li><a href="/staff/user-account.html" class="active"><i class="fa-solid fa-money-check-dollar"></i>User Account</a></li>
+                <li><a href="/staff/saving.html"><i class="fa-solid fa-piggy-bank"></i>Saving</a></li>
+                <li><a href="/staff/promise.html" class="active"><i class="fa-solid fa-money-check-dollar"></i>Promise</a></li>
                 <li><a href="/staff/reports.html"><i class="fas fa-chart-bar"></i> Reports</a></li>
                 <li><a href="/logout" id="logoutButton"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
@@ -35,46 +36,30 @@
                 </nav>
             </header>
 
-            <!-- ส่วนค้นหาและ filter
-            <section class="filters">
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Search by name or email...">
-                    <button id="searchButton"><i class="fas fa-search"></i></button>
-                </div>
-                <div class="filter-box">
-                    <label for="permissionFilter">Filter by Permission:</label>
-                    <select id="permissionFilter">
-                        <option value="all">All</option>
-                        <option value="admin">Admin</option>
-                        <option value="staff">Staff</option>
-                        <option value="user">User</option>
-                    </select>
-                </div>
-            </section> -->
-
-            <!-- ส่วนแสดงรายชื่อบัญชีทั้งหมด -->
             <section class="account-list">
-                <h2>All Accounts</h2><button id="addUserButton"><i class="fa-solid fa-user-plus" ></i>Add User</button>
+            <h2>Loan Promise Accounts</h2>
                 <div class="usersTable">
                     <table>
                         <thead>
                             <tr>
-                                <th>Account ID</th>
-                                <th>Member ID</th>
-                                <th>Balance</th>
+                                <th>Promise ID</th>
+                                <th>Saving ID</th>
+                                <th>Loan Amount</th>
                                 <th>Staff ID</th>
-                                <th>Created At</th>
+                                <th>Promise Created At</th>
+                                <th>DueDate</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="accountTableBody">
+                        <tbody id="promiseTableBody">
                             <tr>
-                                <td colspan="6">Loading accounts...</td>
+                                <td colspan="6">Loading loan promises...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </section>
+
 
             <!-- Modal สำหรับเพิ่มผู้ใช้ -->
             <div id="addUserModal" class="modal">
@@ -100,6 +85,6 @@
             </div>
         </main>
     </div>
-    <script src="/scripts/user-account.js"></script>
+    <script src="/staff/scripts/promise.js"></script>
 </body>
 </html>

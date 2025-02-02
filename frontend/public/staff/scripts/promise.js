@@ -54,45 +54,43 @@ const toggleSidebar = () => {
     mainContent.classList.toggle('collapsed');
 };
 
-if (window.location.pathname === '/staff/') {
-    // ฟังก์ชันที่เกี่ยวข้องกับการดึงข้อมูลธุรกรรม
-    fetchTransactions();
-}
-
-
-const fetchAccount = async () => {
+// ฟังก์ชันสำหรับดึงข้อมูลบัญชีสัญญากู้ยืม
+const fetchPromise = async () => {
     try {
-        const response = await fetch('/api/staff/users'); // เรียก API เพื่อดึงข้อมูลบัญชี
+        const response = await fetch('/api/staff/promise'); // เรียก API เพื่อดึงข้อมูลบัญชีสัญญากู้ยืม
         const data = await response.json();
 
         console.log(data); // ดูข้อมูลที่ได้รับจาก API
 
         // อัปเดตข้อมูลบัญชีในหน้าเว็บ
-        const tableBody = document.getElementById('accountTableBody');
+        const tableBody = document.getElementById('promiseTableBody');
         tableBody.innerHTML = ''; // ล้างข้อมูลเก่าทิ้ง
 
         // ตรวจสอบว่ามีข้อมูลบัญชีหรือไม่
         if (data.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="6">No accounts available.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="7">No loan promises available.</td></tr>';
         } else {
             // ทำการแสดงข้อมูลบัญชีในตาราง
             data.forEach(account => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${account._id}</td>
-                    <td>${account.id_member}</td>
-                    <td>${account.balance}</td>
-                    <td>${account.id_staff}</td>
-                    <td>${new Date(account.createdAt).toLocaleDateString()}</td> <!-- แปลงวันที่เป็นรูปแบบที่อ่านง่าย -->
-                    <td><button class="edit-btn" ><i class="fas fa-edit"></i></button></td>
+                    <td>${account._id}</td> <!-- แสดง Account ID -->
+                    <td>${account.id_saving}</td> <!-- แสดง Member ID -->
+                    <td>${account.amount}</td> <!-- แสดงจำนวนเงินกู้ยืม -->
+                    <td>${account.id_saving}</td> <!-- แสดง Staff ID หรืออ้างอิงบัญชีออม -->
+                    <td>${new Date(account.Datepromise).toLocaleDateString()}</td> <!-- แสดงวันที่ Promise -->
+                    <td>${new Date(account.DueDate).toLocaleDateString()}</td> <!-- แสดง Due Date -->
+                    <td><button class="viewDetailsButton"><i class="fas fa-eye"></i> View Details</button></td>
                 `;
                 tableBody.appendChild(row);
             });
+            
+            
         }
     } catch (error) {
-        console.error('Error fetching account data:', error);
-        const tableBody = document.getElementById('accountTableBody');
-        tableBody.innerHTML = '<tr><td colspan="6">Failed to load data.</td></tr>';
+        console.error('Error fetching loan promise data:', error);
+        const tableBody = document.getElementById('promiseTableBody');
+        tableBody.innerHTML = '<tr><td colspan="7">Failed to load data.</td></tr>';
     }
 };
 
@@ -151,16 +149,10 @@ const openAddUserModal = () => {
     };
 };
 
-document.getElementById('addUserButton').addEventListener('click', openAddUserModal);
-
 // เรียกใช้ฟังก์ชันเพื่อดึงข้อมูลเมื่อโหลดหน้าเสร็จ
-document.addEventListener('DOMContentLoaded', fetchAccount);
-
-
+document.addEventListener('DOMContentLoaded', fetchPromise);
 // เรียกใช้งานฟังก์ชันเมื่อโหลดหน้าเว็บ
-document.addEventListener('DOMContentLoaded', fetchTransactions);
-
+document.addEventListener('DOMContentLoaded', fetchUserInfo);
 
 // เพิ่ม Event Listener สำหรับปุ่ม Toggle Sidebar
 document.getElementById('toggleSidebar').addEventListener('click', toggleSidebar);
-

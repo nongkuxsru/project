@@ -966,3 +966,23 @@ button[type="submit"]:hover {
     background-color: #1e7e34; /* สีเขียวเข้มที่สุดเมื่อกด */
     transform: scale(1); /* รีเซ็ตขนาดเมื่อกด */
 }
+
+.viewDetailsButton {
+    background-color: #0056b3; /* สีน้ำเงิน */
+    color: white; /* ตัวอักษรสีขาว */
+    border: none; /* ลบเส้นขอบ */
+    padding: 10px 20px; /* ระยะห่างภายใน */
+    border-radius: 5px; /* มุมมน */
+    font-size: 16px; /* ขนาดตัวอักษร */
+    cursor: pointer; /* แสดงมือเมื่อวางเมาส์ */
+    transition: background-color 0.3s ease, transform 0.2s ease; /* เพิ่มการเปลี่ยนแปลงเมื่อ hover */
+}
+
+.viewDetailsButton:hover {
+    background-color: #00408f; /* เปลี่ยนสีเมื่อ hover */
+    transform: scale(1.05); /* ขยายขนาดปุ่มเล็กน้อย */
+}
+
+.viewDetailsButton i {
+    margin-right: 8px; /* เพิ่มระยะห่างระหว่างไอคอนและข้อความ */
+}
