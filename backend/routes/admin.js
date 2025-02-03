@@ -75,12 +75,15 @@ router.post('/users', async (req, res) => {
 // Delete User by ID
 router.delete('/users/:id', async (req, res) => {
     try {
-        const deletedUser = await User.findByIdAndDelete(req.params.id);
-        if (!deletedUser) return res.status(404).json({ message: 'User not found' });
-        res.json(deletedUser); // ส่งข้อมูลผู้ใช้ที่ถูกลบกลับไป
+        const user = await User.findByIdAndDelete(req.params.id); // ค้นหาและลบผู้ใช้จากฐานข้อมูล
+        if (!user) return res.status(404).json({ message: 'User not found' }); // ถ้าไม่พบผู้ใช้ ส่ง error กลับ
+
+        res.json(user); // ส่งข้อมูลผู้ใช้ที่ถูกลบกลับไป
     } catch (err) {
-        res.status(500).json({ message: 'Server error', error: err.message });
+        console.error('Failed to delete user:', err.message);
+        res.status(500).json({ message: 'Failed to delete user', error: err.message });
     }
+   
 });
 
 // Edit User by ID

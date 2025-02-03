@@ -141,14 +141,15 @@ const deleteUser = async (userId) => {
     if (!confirm('Are you sure you want to delete this user?')) return;
 
     try {
-        const response = await fetch(`api/admin/users/${userId}`, { method: 'DELETE' });
-        const result = await response.json(); // แปลง response เป็น JSON
+        const response = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
 
         if (!response.ok) {
-            // หาก API ส่งข้อความ error กลับมา
-            throw new Error(result.message || 'Failed to delete user');
+            // ตรวจสอบสถานะของ API ก่อนแปลงผลลัพธ์เป็น JSON
+            const errorData = await response.text(); // รับข้อมูลเป็นข้อความ
+            throw new Error(errorData || 'Failed to delete user');
         }
 
+        const result = await response.json(); // แปลง response เป็น JSON
         await fetchAndRenderUsers(); // อัปเดตตารางผู้ใช้หลังจากลบ
         alert('User deleted successfully');
     } catch (error) {
@@ -156,6 +157,7 @@ const deleteUser = async (userId) => {
         alert(error.message || 'Failed to delete user. Please try again.');
     }
 };
+
 
 // ฟังก์ชันสำหรับ filter ข้อมูล
 const filterUsers = () => {
