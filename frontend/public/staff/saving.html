@@ -36,34 +36,17 @@
                 </nav>
             </header>
 
-            <!-- ส่วนค้นหาและ filter
-            <section class="filters">
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Search by name or email...">
-                    <button id="searchButton"><i class="fas fa-search"></i></button>
-                </div>
-                <div class="filter-box">
-                    <label for="permissionFilter">Filter by Permission:</label>
-                    <select id="permissionFilter">
-                        <option value="all">All</option>
-                        <option value="admin">Admin</option>
-                        <option value="staff">Staff</option>
-                        <option value="user">User</option>
-                    </select>
-                </div>
-            </section> -->
-
             <!-- ส่วนแสดงรายชื่อบัญชีทั้งหมด -->
             <section class="account-list">
-                <h2>Saving Account</h2><button id="addUserButton"><i class="fa-solid fa-user-plus" ></i>Add User</button>
+                <h2>Saving Account</h2><button id="addUserButton"><i class="fa-solid fa-user-plus" ></i>Add Account</button>
                 <div class="usersTable">
                     <table>
                         <thead>
                             <tr>
                                 <th>Account ID</th>
-                                <th>Member ID</th>
+                                <th>Member Name</th>
                                 <th>Balance</th>
-                                <th>Staff ID</th>
+                                <th>Staff Name</th>
                                 <th>Created At</th>
                                 <th>Actions</th>
                             </tr>
@@ -81,24 +64,27 @@
             <div id="addUserModal" class="modal">
                 <div class="modal-content">
                     <span class="close">&times;</span>
-                    <h2>Add New User</h2>
+                    <h2>Add New Account</h2>
                     <form id="addUserForm">
                         <label for="addName">Name:</label>
-                        <input type="text" id="addName" name="name" required>
-                        
-                        <label for="addEmail">Email:</label>
-                        <input type="email" id="addEmail" name="email" required>
+                        <select id="addName" name="name" required>
+                            <!-- Option จะถูกเติมโดย JavaScript ที่ดึงข้อมูลจากฐานข้อมูล -->
+                        </select>
+
+                        <label for="selectedUserId">Selected User ID:</label>
+                        <input type="text" id="selectedUserId" name="selectedUserId" readonly />
 
                         <label for="addBalance">Balance:</label>
                         <input type="number" id="addBalance" name="balance" required>
 
                         <label for="addStaffId">Staff ID:</label>
-                        <input type="text" id="addStaffId" name="staffId" required>
+                        <input type="text" id="addStaffId" name="staffId" required readonly>
 
                         <button type="submit">Add User</button>
                     </form>
                 </div>
             </div>
+
         </main>
     </div>
     <script src="/staff/scripts/saving.js"></script>

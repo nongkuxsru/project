@@ -51,6 +51,26 @@ router.post('/saving', async (req, res) => {
     }
 });
 
+// API สำหรับตรวจสอบข้อมูลซ้ำของผู้ใช้ในตาราง Saving
+router.get('/saving/check/:id_member', async (req, res) => {
+    const { id_member } = req.params;
+    try {
+        // ค้นหาผู้ใช้งานในตาราง Saving โดยใช้ id_member
+        const existingSaving = await Saving.findOne({ id_member });
+
+        if (existingSaving) {
+            // ถ้ามีข้อมูลบัญชีการออมที่ตรงกับ id_member
+            return res.json({ exists: true });
+        }
+        // ถ้าไม่มีข้อมูลบัญชีการออมสำหรับ id_member
+        return res.json({ exists: false });
+    } catch (error) {
+        console.error('Error checking duplicate user in Saving table:', error);
+        res.status(500).json({ error: 'Error checking duplicate user in Saving table' });
+    }
+});
+
+
 // API สำหรับดึงข้อมูลสัญญากู้ยืมทั้งหมด
 router.get('/promise', async (req, res) => {
     try {

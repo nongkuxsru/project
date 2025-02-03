@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 localStorage.setItem("currentUser", JSON.stringify(updatedData));
 
                 alert("User information updated successfully!");
-                window.location.href = "/staff-dashboard.html"; // ส่งกลับไปหน้า Staff Dashboard
+                window.location.href = "/staff"; // ส่งกลับไปหน้า Staff Dashboard
             } else {
                 alert("Error updating data: " + result.error);
             }
