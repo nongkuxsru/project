@@ -64,7 +64,6 @@ const fetchAccount = async () => {
         const response = await fetch('/api/staff/saving'); // เรียก API เพื่อดึงข้อมูลบัญชี
         const data = await response.json();
 
-
         // อัปเดตข้อมูลบัญชีในหน้าเว็บ
         const tableBody = document.getElementById('accountTableBody');
         tableBody.innerHTML = ''; // ล้างข้อมูลเก่าทิ้ง
@@ -84,10 +83,18 @@ const fetchAccount = async () => {
                     <td>${account.balance}</td>
                     <td>${staffName}</td>
                     <td>${new Date(account.createdAt).toLocaleDateString()}</td> <!-- แปลงวันที่เป็นรูปแบบที่อ่านง่าย -->
-                    <td><button class="edit-btn"><i class="fas fa-edit"></i></button></td>
+                    <td><button class="edit-btn" data-user-id="${account.id_member}"><i class="fas fa-edit"></i></button></td>
                 `;
                 tableBody.appendChild(row);
             }
+            
+            // เพิ่ม event listener สำหรับปุ่ม edit หลังจากที่เพิ่มข้อมูลบัญชีแล้ว
+            document.querySelectorAll('.edit-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const userId = event.target.closest('button').getAttribute('data-user-id');
+                    openEditModal(userId); // เรียกใช้ openEditModal
+                });
+            });
         }
     } catch (error) {
         console.error('Error fetching account data:', error);
@@ -95,6 +102,7 @@ const fetchAccount = async () => {
         tableBody.innerHTML = '<tr><td colspan="6">Failed to load data.</td></tr>';
     }
 };
+
 
 const fetchUserName = async (userId) => {
     try {
@@ -238,11 +246,97 @@ const openAddUserModal = () => {
     };
 };
 
+const openEditModal = async (userId) => {
+    const modal = document.getElementById('editUserModal');
+    const form = document.getElementById('editUserForm');
+
+    if (!modal || !form) {
+        console.error('Modal or form not found');
+        return;
+    }
+
+    modal.style.display = 'block'; // แสดง modal
+
+    // ดึงข้อมูลผู้ใช้จาก API
+    try {
+        const response = await fetch(`/api/staff/saving/${userId}`);
+        const account = await response.json();
+    
+        if (!response.ok || !account) {
+            throw new Error('Failed to fetch account data');
+        }
+    
+        // แสดงข้อมูลในฟอร์ม
+        document.getElementById('editUserId').value = account._id;
+        document.getElementById('editName').value = await fetchUserName(account.id_member);
+        document.getElementById('editBalance').value = account.balance;
+        document.getElementById('editStaffId').value = await fetchStaffName(account.id_staff);
+    
+    } catch (error) {
+        console.error('Error fetching account data:', error);
+        alert('Failed to load user data for editing');
+        modal.style.display = 'none';
+    }
+    
+
+    // เมื่อฟอร์มถูกส่ง
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+
+        const updatedData = {
+            balance: document.getElementById('editBalance').value,  // แก้ไขเฉพาะยอดเงิน
+        };
+
+        try {
+            // ส่งข้อมูลที่ถูกแก้ไขไปยัง API
+            const response = await fetch(`/api/staff/saving/${userId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to save user data');
+            }
+
+            alert('User data updated successfully!');
+            modal.style.display = 'none';  // ปิด modal
+            await fetchAccount();  // รีเฟรชข้อมูลบัญชี
+        } catch (error) {
+            console.error('Error saving user data:', error);
+            alert('Failed to save user data. Please try again.');
+        }
+    };
+
+    // ปิด modal เมื่อคลิกปุ่ม close (×)
+    document.querySelector('#editUserModal .close').onclick = () => {
+        modal.style.display = 'none';
+    };
+
+    // ปิด modal เมื่อคลิกนอก modal
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    };
+};
+
 
 document.getElementById('addUserButton').addEventListener('click', openAddUserModal);
 
-// เรียกใช้ฟังก์ชันเพื่อดึงข้อมูลเมื่อโหลดหน้าเสร็จ
-document.addEventListener('DOMContentLoaded', fetchAccount);
+// แก้ไขที่นี่
+document.addEventListener('DOMContentLoaded', () => {
+    // เพิ่ม event listener สำหรับปุ่ม "แก้ไข" ภายใน DOMContentLoaded
+    document.querySelectorAll('.edit-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+            const userId = event.target.closest('button').getAttribute('data-user-id');
+            openEditModal(userId); // เรียกใช้ openEditModal
+        });
+    });
+
+    // รีเฟรชข้อมูลบัญชี
+    fetchAccount();
+});
 
 // เพิ่ม Event Listener สำหรับปุ่ม Toggle Sidebar
 document.getElementById('toggleSidebar').addEventListener('click', toggleSidebar);

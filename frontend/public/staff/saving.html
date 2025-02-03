@@ -85,6 +85,31 @@
                 </div>
             </div>
 
+            <!-- Modal for Edit User Information -->
+            <div id="editUserModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>Edit User Information</h2>
+                    <form id="editUserForm">
+                        <input type="hidden" id="editUserId" name="userId" /> <!-- Hidden input for user ID -->
+                        <div>
+                            <label for="editName">Name:</label>
+                            <input type="text" id="editName" name="name" readonly/>
+                        </div>
+                        <div>
+                            <label for="editBalance">Balance:</label>
+                            <input type="number" id="editBalance" name="balance" required />
+                        </div>
+                        <div>
+                            <label for="editStaffId">Staff ID:</label>
+                            <input type="text" id="editStaffId" name="staffId" readonly />
+                        </div>
+                        <button type="submit">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+
+
         </main>
     </div>
     <script src="/staff/scripts/saving.js"></script>

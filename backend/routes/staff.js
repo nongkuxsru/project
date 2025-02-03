@@ -39,6 +39,31 @@ router.get('/saving', async (req, res) => {
     }
 });
 
+// API ดึงข้อมูลบัญชีตาม userId
+router.get('/saving/:userId', async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const saving = await Saving.findOne({ id_member: userId });
+        res.json(saving);
+    } catch (error) {
+        console.error('Error fetching saving:', error);
+        res.status(500).json({ error: 'Error fetching saving' });
+    }
+});
+
+
+// API อัปเดตข้อมูลบัญชีการออม
+router.put('/saving/:userId', async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const saving = await Saving.findOneAndUpdate({ id_member: userId }, req.body, { new: true });
+        res.json(saving);
+    } catch (error) {
+        console.error('Error updating saving:', error);
+        res.status(500).json({ error: 'Error updating saving' });
+    }
+});
+
 // API สำหรับเพิ่มข้อมูลบัญชีการออม
 router.post('/saving', async (req, res) => {
     try {
