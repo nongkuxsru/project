@@ -109,6 +109,32 @@
                 </div>
             </div>
 
+            <div id="transactionModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>Transaction</h2>
+                    <form id="transactionForm">
+                        <input type="hidden" id="transactionUserId">
+                        <label for="transactionName">User Name:</label>
+                        <input type="text" id="transactionName" disabled>
+            
+                        <label for="transactionBalance">Current Balance:</label>
+                        <input type="text" id="transactionBalance" disabled>
+            
+                        <label for="transactionStaffId">Staff Name:</label>
+                        <input type="text" id="transactionStaffId" disabled>
+            
+                        <label for="transactionAmount">Amount:</label>
+                        <input type="number" id="transactionAmount" required>
+            
+                        <label for="transactionType">Transaction Type:</label><br>
+                        <input type="radio" id="deposit" name="transactionType" value="deposit" required> Deposit
+                        <input type="radio" id="withdraw" name="transactionType" value="withdraw" required> Withdraw
+            
+                        <button type="submit">Submit</button>
+                    </form>
+                </div>
+            </div>
 
         </main>
     </div>

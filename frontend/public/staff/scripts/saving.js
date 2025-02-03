@@ -83,7 +83,10 @@ const fetchAccount = async () => {
                     <td>${account.balance}</td>
                     <td>${staffName}</td>
                     <td>${new Date(account.createdAt).toLocaleDateString()}</td> <!-- แปลงวันที่เป็นรูปแบบที่อ่านง่าย -->
-                    <td><button class="edit-btn" data-user-id="${account.id_member}"><i class="fas fa-edit"></i></button></td>
+                    <td>
+                        <button class="deposit-btn" data-user-id="${account.id_member}" onclick="openTransactionModal('${account.id_member}', 'deposit')"><i   i class="fa fa-bank"></i> Action </button>
+                    </td>
+                    
                 `;
                 tableBody.appendChild(row);
             }
@@ -322,6 +325,133 @@ const openEditModal = async (userId) => {
 };
 
 
+const openTransactionModal = async (userId) => {
+    const modal = document.getElementById('transactionModal');
+    const form = document.getElementById('transactionForm');
+
+    if (!modal || !form) {
+        console.error('Modal or form not found');
+        return;
+    }
+
+    modal.style.display = 'block'; // แสดง modal
+
+    // ดึงข้อมูลผู้ใช้จาก API
+    try {
+        const response = await fetch(`/api/staff/saving/${userId}`);
+        const account = await response.json();
+
+        if (!response.ok || !account) {
+            throw new Error('Failed to fetch account data');
+        }
+
+        // แสดงข้อมูลในฟอร์ม
+        document.getElementById('transactionUserId').value = account._id;
+        document.getElementById('transactionName').value = await fetchUserName(account.id_member);
+        document.getElementById('transactionBalance').value = account.balance;
+        document.getElementById('transactionStaffId').value = await fetchStaffName(account.id_staff);
+
+    } catch (error) {
+        console.error('Error fetching account data:', error);
+        alert('Failed to load user data for transaction');
+        modal.style.display = 'none';
+    }
+
+    // เมื่อฟอร์มถูกส่ง
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+
+        const transactionType = document.querySelector('input[name="transactionType"]:checked').value; // ฝากหรือถอน
+        const transactionAmount = parseFloat(document.getElementById('transactionAmount').value); // ปรับให้เป็นเลขทศนิยม
+
+        if (!transactionAmount || transactionAmount <= 0) {
+            alert('Please enter a valid amount.');
+            return;
+        }
+
+        // ดึงยอดเงินปัจจุบันจากฟอร์ม
+        const currentBalance = parseFloat(document.getElementById('transactionBalance').value);
+
+        let newBalance = 0;
+        if (transactionType === 'deposit') {
+            // หากฝาก เงินต้องเพิ่มยอดเข้าไป
+            newBalance = currentBalance + transactionAmount;
+        } else if (transactionType === 'withdraw') {
+            // หากถอน เงินต้องลดยอดออก
+            if (currentBalance < transactionAmount) {
+                alert('Insufficient balance for withdrawal.');
+                return;
+            }
+            newBalance = currentBalance - transactionAmount;
+        }
+
+        // สร้างข้อมูลการทำธุรกรรม
+        const transactionData = {
+            amount: transactionAmount,
+            type: transactionType, // 'deposit' หรือ 'withdraw'
+            newBalance: newBalance, // ยอดเงินใหม่
+        };
+
+        try {
+            // ส่งข้อมูลการทำธุรกรรมไปยัง API เพื่อบันทึกการทำธุรกรรม
+            const transactionResponse = await fetch(`/api/staff/saving/transaction/${userId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(transactionData),
+            });
+
+            if (!transactionResponse.ok) {
+                throw new Error('Failed to process transaction');
+            }
+
+            // ข้อมูลการทำธุรกรรมที่ใช้บันทึกประวัติ
+            const transactionHistory = {
+                user: await fetchUserName(userId),
+                type: transactionType === 'deposit' ? 'Deposit' : 'Withdraw',
+                amount: transactionAmount,
+                status: 'Completed', // ใช้สถานะนี้เป็นตัวอย่าง
+                date: new Date().toISOString(),
+            };
+
+            // ส่งข้อมูลการทำธุรกรรมไปยัง API เพื่อบันทึกประวัติ
+            const historyResponse = await fetch('/api/staff/transactions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(transactionHistory),
+            });
+
+            if (!historyResponse.ok) {
+                console.log(transactionHistory)
+                throw new Error('Failed to save transaction history');
+            }
+
+            alert('Transaction processed and history saved successfully!');
+            modal.style.display = 'none';  // ปิด modal
+            await fetchAccount();  // รีเฟรชข้อมูลบัญชี
+
+            // ล้างฟอร์มหลังการทำธุรกรรม
+            form.reset();
+
+        } catch (error) {
+            console.error('Error processing transaction:', error);
+            alert('Failed to process transaction. Please try again.');
+        }
+    };
+
+    // ปิด modal เมื่อคลิกปุ่ม close (×)
+    document.querySelector('#transactionModal .close').onclick = () => {
+        modal.style.display = 'none';
+    };
+
+    // ปิด modal เมื่อคลิกนอก modal
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    };
+};
+
+
 document.getElementById('addUserButton').addEventListener('click', openAddUserModal);
 
 // แก้ไขที่นี่
@@ -330,7 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.edit-btn').forEach(button => {
         button.addEventListener('click', (event) => {
             const userId = event.target.closest('button').getAttribute('data-user-id');
-            openEditModal(userId); // เรียกใช้ openEditModal
+            openTransactionModal(userId); // เรียกใช้ openEditModal
         });
     });
 
