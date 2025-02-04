@@ -1,30 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>แดชบอร์ดผู้ดูแล</title>
     <link rel="stylesheet" href="/styles/staff-dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.google.com/specimen/IBM+Plex+Sans+Thai">
     <link rel="stylesheet" href="/styles/manage-users.css">
     <link rel="icon" type="image/x-icon" href="/images/logo.png">
-
 </head>
 <body>
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
-        <div class="sidebar-header"><h2>Dashboard</h2></div>
-        <ul class="sidebar-menu">
-            <li><a href="/staff/" ><i class="fas fa-home"></i> Home</a></li>
-            <li><a href="/staff/setting.html"><i class="fas fa-cog"></i> Settings</a></li>
-            <li><a href="/staff/manage-users.html" class="active"><i class="fas fa-users"></i> Manage Users</a></li>
-            <li><a href="/staff/saving.html"><i class="fa-solid fa-piggy-bank"></i>Saving</a></li>
-            <li><a href="/staff/promise.html"><i class="fa-solid fa-money-check-dollar"></i>Promise</a></li>
-            <li><a href="/staff/reports.html"><i class="fas fa-chart-bar"></i> Reports</a></li>
-            <li><a href="/logout" id="logoutButton"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-        </ul>
+            <div class="sidebar-header" style="display: flex; justify-content: center; align-items: center; height: 100px;">
+                <img src="/images/logo-sidebar.png" alt="" width="100" height="100" style="margin: 10px 0;">
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/staff/" ><i class="fas fa-home"></i> หน้าหลัก</a></li>
+                <li><a href="/staff/setting.html"><i class="fas fa-cog"></i> การตั้งค่า</a></li>
+                <li><a href="/staff/manage-users.html" class="active"><i class="fas fa-users"></i> จัดการผู้ใช้</a></li>
+                <li><a href="/staff/saving.html"><i class="fa-solid fa-piggy-bank"></i> การออม</a></li>
+                <li><a href="/staff/promise.html"><i class="fa-solid fa-money-check-dollar"></i> สัญญา</a></li>
+                <li><a href="/staff/reports.html"><i class="fas fa-chart-bar"></i> รายงาน</a></li>
+                <li><a href="/logout" id="logoutButton"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a></li>
+            </ul>
         </aside>
 
         <!-- Main Content -->
@@ -36,30 +37,30 @@
             <!-- ส่วนค้นหาและ filter -->
             <section class="filters">
                 <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Search by name or email...">
+                    <input type="text" id="searchInput" placeholder="ค้นหาตามชื่อหรืออีเมล...">
                     <button id="searchButton"><i class="fas fa-search"></i></button>
                 </div>
                 <div class="filter-box">
-                    <label for="permissionFilter">Filter by Permission:</label>
+                    <label for="permissionFilter">กรองตามสิทธิ์:</label>
                     <select id="permissionFilter">
-                        <option value="all">All</option>
-                        <option value="admin">Admin</option>
-                        <option value="staff">Staff</option>
-                        <option value="user">User</option>
+                        <option value="all">ทั้งหมด</option>
+                        <option value="admin">ผู้ดูแล</option>
+                        <option value="staff">พนักงาน</option>
+                        <option value="user">ผู้ใช้</option>
                     </select>
                 </div>
             </section>
         
             <!-- ส่วนแสดงตารางผู้ใช้ -->
             <section class="account-list">
-                <h2>All Users</h2><button id="addUserButton"><i class="fa-solid fa-user-plus" ></i>Add User</button>
+                <h2>ผู้ใช้ทั้งหมด</h2><button id="addUserButton"><i class="fa-solid fa-user-plus" ></i>เพิ่มผู้ใช้</button>
                 <table id="usersTable">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Permission</th>
-                            <th>Actions</th>
+                            <th>ชื่อ</th>
+                            <th>อีเมล</th>
+                            <th>สิทธิ์</th>
+                            <th>การกระทำ</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -72,33 +73,33 @@
             <div id="editUserModal" class="modal">
                 <div class="modal-content">
                     <span class="close">&times;</span>
-                    <h2>Edit User</h2>
+                    <h2>แก้ไขผู้ใช้</h2>
                     <form id="editUserForm">
-                        <label for="editName">Name:</label>
+                        <label for="editName">ชื่อ:</label>
                         <input type="text" id="editName" name="name" required>
                     
-                        <label for="editEmail">Email:</label>
+                        <label for="editEmail">อีเมล:</label>
                         <input type="email" id="editEmail" name="email" required>
                     
-                        <label for="editPassword">Password:</label>
+                        <label for="editPassword">รหัสผ่าน:</label>
                         <input type="password" id="editPassword" name="password" required>
                     
-                        <label for="editAddress">Address:</label>
+                        <label for="editAddress">ที่อยู่:</label>
                         <input type="text" id="editAddress" name="address" required>
                     
-                        <label for="editPhone">Phone:</label>
+                        <label for="editPhone">โทรศัพท์:</label>
                         <input type="text" id="editPhone" name="phone" required>
                     
-                        <label for="editBirthday">Birthday:</label>
+                        <label for="editBirthday">วันเกิด:</label>
                         <input type="date" id="editBirthday" name="birthday" required>
                     
-                        <label for="editPermission">Permission:</label>
+                        <label for="editPermission">สิทธิ์:</label>
                         <select id="editPermission" name="permission" required>
-                            <option value="admin">admin</option>
-                            <option value="staff">staff</option>
-                            <option value="user">user</option>
+                            <option value="admin">ผู้ดูแล</option>
+                            <option value="staff">พนักงาน</option>
+                            <option value="user">ผู้ใช้</option>
                         </select>
-                        <button type="submit">Save Changes</button>
+                        <button type="submit">บันทึกการเปลี่ยนแปลง</button>
                     </form>
                 </div>
             </div>
@@ -106,39 +107,37 @@
             <div id="addUserModal" class="modal">
                 <div class="modal-content">
                     <span class="close">&times;</span>
-                    <h2>Add New User</h2>
+                    <h2>เพิ่มผู้ใช้ใหม่</h2>
                     <form id="addUserForm">
-                        <label for="addName">Name:</label>
+                        <label for="addName">ชื่อ:</label>
                         <input type="text" id="addName" name="name" required>
                     
-                        <label for="addEmail">Email:</label>
+                        <label for="addEmail">อีเมล:</label>
                         <input type="email" id="addEmail" name="email" required>
                     
-                        <label for="addPassword">Password:</label>
+                        <label for="addPassword">รหัสผ่าน:</label>
                         <input type="password" id="addPassword" name="password" required>
                     
-                        <label for="addAddress">Address:</label>
+                        <label for="addAddress">ที่อยู่:</label>
                         <input type="text" id="addAddress" name="address" required>
                     
-                        <label for="addPhone">Phone:</label>
+                        <label for="addPhone">โทรศัพท์:</label>
                         <input type="text" id="addPhone" name="phone" required>
                     
-                        <label for="addBirthday">Birthday:</label>
+                        <label for="addBirthday">วันเกิด:</label>
                         <input type="date" id="addBirthday" name="birthday" required>
                     
-                        <label for="addPermission">Permission:</label>
+                        <label for="addPermission">สิทธิ์:</label>
                         <select id="addPermission" name="permission" required>
-                            <option value="admin">admin</option>
-                            <option value="staff">staff</option>
-                            <option value="user">user</option>
+                            <option value="admin">ผู้ดูแล</option>
+                            <option value="staff">พนักงาน</option>
+                            <option value="user">ผู้ใช้</option>
                         </select>
                     
-                        <button type="submit">Add User</button>
+                        <button type="submit">เพิ่มผู้ใช้</button>
                     </form>
-                    
                 </div>
             </div>
-            <!-- ส่วนอื่นๆ ของหน้า Dashboard -->
         </main>
     </div>
     <script src="/staff/scripts/manage-users.js"></script>

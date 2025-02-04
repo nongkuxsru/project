@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings</title>
+    <title>การตั้งค่า</title>
     <link rel="stylesheet" href="/styles/setting.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -11,22 +11,22 @@
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2>Dashboard</h2>
+            <div class="sidebar-header" style="display: flex; justify-content: center; align-items: center; height: 100px;">
+                <img src="/images/logo-sidebar.png" alt="" width="100" height="100" style="margin: 10px 0;">
             </div>
             <ul class="sidebar-menu">
-                <li><a href="/admin"><i class="fas fa-home"></i> Home</a></li>
-                <li><a href="/admin/manage-users.html"><i class="fas fa-users"></i> Manage Users</a></li>
-                <li><a href="/admin/setting.html" class="active"><i class="fas fa-cog"></i> Settings</a></li>
-                <li><a href="/admin/reports.html"><i class="fas fa-chart-bar"></i> Reports</a></li>
-                <li><a href="/logout" id="logoutButton"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                <li><a href="/admin"><i class="fas fa-home"></i> หน้าหลัก</a></li>
+                <li><a href="/admin/manage-users.html"><i class="fas fa-users"></i> จัดการผู้ใช้</a></li>
+                <li><a href="/admin/setting.html" class="active"><i class="fas fa-cog"></i> การตั้งค่า</a></li>
+                <li><a href="/admin/reports.html"><i class="fas fa-chart-bar"></i> รายงาน</a></li>
+                <li><a href="/logout" id="logoutButton"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a></li>
             </ul>
         </aside>
 
         <!-- Main Content -->
         <main class="main-content">
             <header>
-                <h1>Settings</h1>
+                <h1>การตั้งค่า</h1>
                 <nav>
                     <ul>
                         <li><button id="toggleSidebar"><i class="fas fa-bars"></i></button></li>
@@ -35,39 +35,39 @@
             </header>
         
             <section class="edit-personal-info">
-                <h2>User Information</h2>
+                <h2>ข้อมูลผู้ใช้</h2>
                 <form id="personalInfoForm">
                     <div class="form-group">
-                        <label for="userId">User ID:</label>
+                        <label for="userId">รหัสผู้ใช้:</label>
                         <input type="text" id="userId" name="userId" readonly>
                     </div>
                     <div class="form-group">
-                        <label for="fullName">Full Name:</label>
+                        <label for="fullName">ชื่อเต็ม:</label>
                         <input type="text" id="fullName" name="fullName" required>
                     </div>
                     <div class="form-group">
-                        <label for="email">Email:</label>
+                        <label for="email">อีเมล:</label>
                         <input type="email" id="email" name="email" required>
                     </div>
                     <div class="form-group">
-                        <label for="address">Address:</label>
+                        <label for="address">ที่อยู่:</label>
                         <input type="text" id="address" name="address" required>
                     </div>
                     <div class="form-group">
-                        <label for="phone">Phone:</label>
+                        <label for="phone">โทรศัพท์:</label>
                         <input type="text" id="phone" name="phone" required>
                     </div>
                     <div class="form-group">
-                        <label for="birthday">Birthday:</label>
+                        <label for="birthday">วันเกิด:</label>
                         <input type="date" id="birthday" name="birthday" required>
                     </div>
                     <div class="form-group">
-                        <label for="permission">Permission:</label>
+                        <label for="permission">สิทธิ์:</label>
                         <input type="text" id="permission" name="permission" readonly>
                     </div>
                     <div class="form-group">
-                        <button type="submit" class="save-button">Save Changes</button>
-                        <button type="button" class="cancel-button" onclick="resetForm()">Cancel</button>
+                        <button type="submit" class="save-button">บันทึกการเปลี่ยนแปลง</button>
+                        <button type="button" class="cancel-button" onclick="resetForm()">ยกเลิก</button>
                     </div>
                 </form>
             </section>
