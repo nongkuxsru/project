@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Dashboard</title>
+    <title>แดชบอร์ดของพนักงาน</title>
     <link rel="stylesheet" href="/styles/user-dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -15,18 +15,17 @@
                 <img src="/images/logo-sidebar.png" alt="" width="100" height="100" style="margin: 10px 0;">
             </div>
             <ul class="sidebar-menu">
-                <li><a href="/user/"><i class="fas fa-home"></i> Home</a></li>
-                <li><a href="/user/setting.html"><i class="fas fa-cog"></i> Settings</a></li>
-                <li><a href="/user/saving.html" class="active"><i class="fa-solid fa-piggy-bank"></i>Saving</a></li>
-                <li><a href="/user/promise.html"><i class="fa-solid fa-money-check-dollar"></i>Promise</a></li>
-                <li><a href="/logout" id="logoutButton"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                <li><a href="/user/"><i class="fas fa-home"></i> หน้าหลัก</a></li>
+                <li><a href="/user/setting.html"><i class="fas fa-cog"></i> การตั้งค่า</a></li>
+                <li><a href="/user/saving.html" class="active"><i class="fa-solid fa-piggy-bank"></i> บัญชีเงินออม</a></li>
+                <li><a href="/user/promise.html"><i class="fa-solid fa-money-check-dollar"></i> บัญชีเงินกู้ยืม</a></li>
+                <li><a href="/logout" id="logoutButton"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a></li>
             </ul>
         </aside>
 
         <!-- Main Content -->
         <main class="main-content">
             <header>
-                <h1>Staff Dashboard</h1>
                 <nav>
                     <ul>
                         <li><button id="toggleSidebar"><i class="fas fa-bars"></i></button></li>
@@ -35,90 +34,13 @@
             </header>
 
             <div class="account-info">
-                <h2>My Savings Account</h2>
+                <h2>บัญชีการออมของฉัน</h2>
                 <div class="account-card">
                     <div class="account-detail">
-                        <p><strong>Balance:</strong> <span id="accountBalance">-</span> THB</p>
-                        <p><strong>Opened On:</strong> <span id="accountCreatedAt">-</span></p>
-                        <p><strong>Managed By:</strong> <span id="accountStaffName">-</span></p>
+                        <p><strong>ยอดคงเหลือ:</strong> <span id="accountBalance">-</span> บาท</p>
+                        <p><strong>เปิดบัญชีเมื่อ:</strong> <span id="accountCreatedAt">-</span></p>
+                        <p><strong>จัดการโดย:</strong> <span id="accountStaffName">-</span></p>
                     </div>
-                </div>
-            </div>
-            
-
-            <!-- Modal สำหรับเพิ่มผู้ใช้ -->
-            <div id="addUserModal" class="modal">
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <h2>Add New Account</h2>
-                    <form id="addUserForm">
-                        <label for="addName">Name:</label>
-                        <select id="addName" name="name" required>
-                            <!-- Option จะถูกเติมโดย JavaScript ที่ดึงข้อมูลจากฐานข้อมูล -->
-                        </select>
-
-                        <label for="selectedUserId">Selected User ID:</label>
-                        <input type="text" id="selectedUserId" name="selectedUserId" readonly />
-
-                        <label for="addBalance">Balance:</label>
-                        <input type="number" id="addBalance" name="balance" required>
-
-                        <label for="addStaffId">Staff ID:</label>
-                        <input type="text" id="addStaffId" name="staffId" required readonly>
-
-                        <button type="submit">Add User</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Modal for Edit User Information -->
-            <div id="editUserModal" class="modal">
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <h2>Edit User Information</h2>
-                    <form id="editUserForm">
-                        <input type="hidden" id="editUserId" name="userId" /> <!-- Hidden input for user ID -->
-                        <div>
-                            <label for="editName">Name:</label>
-                            <input type="text" id="editName" name="name" readonly/>
-                        </div>
-                        <div>
-                            <label for="editBalance">Balance:</label>
-                            <input type="number" id="editBalance" name="balance" required />
-                        </div>
-                        <div>
-                            <label for="editStaffId">Staff ID:</label>
-                            <input type="text" id="editStaffId" name="staffId" readonly />
-                        </div>
-                        <button type="submit">Save Changes</button>
-                    </form>
-                </div>
-            </div>
-
-            <div id="transactionModal" class="modal">
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <h2>Transaction</h2>
-                    <form id="transactionForm">
-                        <input type="hidden" id="transactionUserId">
-                        <label for="transactionName">User Name:</label>
-                        <input type="text" id="transactionName" disabled>
-            
-                        <label for="transactionBalance">Current Balance:</label>
-                        <input type="text" id="transactionBalance" disabled>
-            
-                        <label for="transactionStaffId">Staff Name:</label>
-                        <input type="text" id="transactionStaffId" disabled>
-            
-                        <label for="transactionAmount">Amount:</label>
-                        <input type="number" id="transactionAmount" required>
-            
-                        <label for="transactionType">Transaction Type:</label><br>
-                        <input type="radio" id="deposit" name="transactionType" value="deposit" required> Deposit
-                        <input type="radio" id="withdraw" name="transactionType" value="withdraw" required> Withdraw
-            
-                        <button type="submit">Submit</button>
-                    </form>
                 </div>
             </div>
 

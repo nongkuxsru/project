@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แดชบอร์ดผู้ใช้</title>
-    <link rel="icon" type="image/x-icon" href="/images/logo.png">
+    <title>แดชบอร์ดของพนักงาน</title>
     <link rel="stylesheet" href="/styles/user-dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="https://fonts.google.com/specimen/IBM+Plex+Sans+Thai">
 </head>
 <body>
     <div class="dashboard-container">
@@ -17,10 +15,10 @@
                 <img src="/images/logo-sidebar.png" alt="" width="100" height="100" style="margin: 10px 0;">
             </div>
             <ul class="sidebar-menu">
-                <li><a href="/user/" class="active"><i class="fas fa-home"></i> หน้าหลัก</a></li>
+                <li><a href="/user/"><i class="fas fa-home"></i> หน้าหลัก</a></li>
                 <li><a href="/user/setting.html"><i class="fas fa-cog"></i> การตั้งค่า</a></li>
                 <li><a href="/user/saving.html"><i class="fa-solid fa-piggy-bank"></i> บัญชีเงินออม</a></li>
-                <li><a href="/user/promise.html"><i class="fa-solid fa-money-check-dollar"></i> บัญชีเงินกู้ยืม</a></li>
+                <li><a href="/user/promise.html" class="active"><i class="fa-solid fa-money-check-dollar"></i> บัญชีเงินกู้ยืม</a></li>
                 <li><a href="/logout" id="logoutButton"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a></li>
             </ul>
         </aside>
@@ -35,18 +33,21 @@
                 </nav>
             </header>
 
-            <!-- ส่วนแสดงข่าวสารของระบบ -->
-            <section class="system-news">
-                <h2>ข่าวสารของระบบ</h2>
-                <div class="news-container">
-                    <ul id="newsList">
-                        <li>กำลังโหลดข่าวสาร...</li>
-                    </ul>
+            <div class="promise-account-info">
+                <h2>บัญชีเงินกู้ยืมของฉัน</h2>
+                <div class="promise-account-card">
+                    <div class="promise-account-detail">
+                        <p><strong>ยอดเงินกู้คงเหลือ:</strong> <span id="promiseBalance">-</span> บาท</p>
+                        <p><strong>วันที่กู้ยืม:</strong> <span id="promiseCreatedAt">-</span></p>
+                        <p><strong>เจ้าหน้าที่ที่จัดการ:</strong> <span id="promiseStaffName">-</span></p>
+                        <p><strong>อัตราดอกเบี้ย:</strong> <span id="promiseInterestRate">-</span> %</p>
+                        <p><strong>วันที่ครบกำหนดชำระ:</strong> <span id="promiseDueDate">-</span></p>
+                    </div>
                 </div>
-            </section>
+            </div>
 
         </main>
     </div>
-    <script src="/user/scripts/user-dashboard.js"></script>
+    <script src="/user/scripts/promise.js"></script>
 </body>
 </html>

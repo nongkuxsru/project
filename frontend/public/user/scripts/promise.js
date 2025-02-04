@@ -14,35 +14,6 @@ const getUserIdFromLocalStorage = () => {
     }
 };
 
-// ฟังก์ชันดึงข้อมูลบัญชีเฉพาะของผู้ใช้ที่ล็อกอิน
-const fetchUserAccount = async () => {
-    const userId = getUserIdFromLocalStorage();
-    if (!userId) {
-        document.getElementById('accountContainer').innerHTML = '<p class="error">User not found. Please login again.</p>';
-        return;
-    }
-
-    try {
-        const response = await fetch(`/api/staff/saving/${userId}`);
-        if (!response.ok) throw new Error('Failed to fetch account data');
-
-        const account = await response.json();
-        console.log(account); // ดูข้อมูลที่ได้จาก API
-
-        if (account && account.balance != null && account.createdAt) {
-            // อัปเดตข้อมูลบัญชีใน UI
-            document.getElementById('accountBalance').textContent = account.balance.toFixed(2);
-            document.getElementById('accountCreatedAt').textContent = new Date(account.createdAt).toLocaleDateString();
-            document.getElementById('accountStaffName').textContent = await fetchUserName(account.id_staff);
-        } else {
-            document.getElementById('accountContainer').innerHTML = '<p class="error">Account data is incomplete.</p>';
-        }
-    } catch (error) {
-        console.error('Error fetching user account:', error);
-        document.getElementById('accountContainer').innerHTML = '<p class="error">Failed to load account data.</p>';
-    }
-};
-
 // ฟังก์ชันสำหรับ Logout
 const logout = async () => {
     try {
@@ -87,9 +58,40 @@ const fetchUserName = async (userId) => {
     }
 };
 
+const fetchPromiseAccount = async () => {
+    const userId = getUserIdFromLocalStorage();
+    if (!userId) {
+        document.getElementById('promiseAccountContainer').innerHTML = '<p class="error">User not found. Please login again.</p>';
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/staff/promise/${userId}`);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch promise account data with status: ${response.status}`);
+        }
+
+        const promiseData = await response.json();
+
+        if (promiseData && promiseData.amount != null && promiseData.Datepromise && promiseData.DueDate) {
+            // อัปเดตข้อมูลบัญชีเงินกู้ยืมใน UI
+            document.getElementById('promiseBalance').textContent = promiseData.amount.toFixed(2) || 'N/A';
+            document.getElementById('promiseCreatedAt').textContent = new Date(promiseData.Datepromise).toLocaleDateString() || 'N/A';
+            document.getElementById('promiseDueDate').textContent = new Date(promiseData.DueDate).toLocaleDateString() || 'N/A';
+        } else {
+            console.error('Promise data is incomplete');
+            document.getElementById('promiseAccountContainer').innerHTML = '<p class="error">Promise account data is incomplete.</p>';
+        }
+    } catch (error) {
+        document.getElementById('promiseAccountContainer').innerHTML = '<p class="error">Failed to load promise account data.</p>';
+    }
+};
+// เมื่อ DOM ถูกโหลดแล้ว เรียกใช้ฟังก์ชัน
+document.addEventListener('DOMContentLoaded', fetchPromiseAccount);
+
 // ฟังก์ชันเรียกใช้เมื่อต้องการโหลดข้อมูลบัญชี
 document.addEventListener('DOMContentLoaded', () => {
-    fetchUserAccount();
+    fetchPromiseAccount();
 });
 
 // เพิ่ม Event Listener สำหรับปุ่ม Logout

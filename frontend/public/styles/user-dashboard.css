@@ -1056,3 +1056,131 @@ button[type="submit"]:hover {
     color: red;
 }
 
+/* การตกแต่งสำหรับบัญชีการออม */
+.account-info {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 600px;
+    margin: 0 auto;
+    margin-top: 30px;
+    text-align: center;
+}
+
+.account-info h2 {
+    color: #2c3e50;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.account-card {
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 20px;
+    display: inline-block;
+    width: 100%;
+    max-width: 300px;
+    margin-top: 20px;
+}
+
+.account-detail {
+    font-size: 16px;
+    color: #34495e;
+}
+
+.account-detail p {
+    margin: 10px 0;
+}
+
+.account-detail strong {
+    color: #2980b9;
+}
+
+/* การตกแต่งสำหรับข้อมูลที่สำคัญ */
+.account-detail p span {
+    font-weight: bold;
+    color: #27ae60;
+}
+
+/* การจัดรูปแบบให้มีระยะห่างที่สวยงาม */
+.account-info .account-card p:last-child {
+    margin-bottom: 0;
+}
+
+/* เพิ่มสีพื้นหลังเบา ๆ สำหรับแต่ละข้อมูล */
+.account-detail p:nth-child(odd) {
+    background-color: #ecf0f1;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+/* เมื่อวางเมาส์บนพื้นที่ต่างๆ */
+.account-info .account-card:hover {
+    background-color: #f0f8ff;
+    cursor: pointer;
+    transform: scale(1.02);
+    transition: all 0.3s ease-in-out;
+}
+
+
+/* การตกแต่งสำหรับบัญชีเงินกู้ยืม */
+.promise-account-info {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.promise-account-info h2 {
+    text-align: center;
+    color: #2c3e50;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.promise-account-card {
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.promise-account-detail p {
+    font-size: 16px;
+    color: #34495e;
+    margin: 10px 0;
+}
+
+.promise-account-detail p strong {
+    color: #2980b9;
+}
+
+/* การตกแต่งสำหรับข้อมูลที่สำคัญ */
+.promise-account-detail p span {
+    font-weight: bold;
+    color: #27ae60;
+}
+
+/* การจัดรูปแบบให้มีระยะห่างที่สวยงาม */
+.promise-account-info .promise-account-card p:last-child {
+    margin-bottom: 0;
+}
+
+/* เพิ่มสีพื้นหลังเบา ๆ สำหรับแต่ละข้อมูล */
+.promise-account-detail p:nth-child(odd) {
+    background-color: #ecf0f1;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+/* เมื่อวางเมาส์บนพื้นที่ต่างๆ */
+.promise-account-info .promise-account-card:hover {
+    background-color: #f0f8ff;
+    cursor: pointer;
+    transform: scale(1.02);
+    transition: all 0.3s ease-in-out;
+}
