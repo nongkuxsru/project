@@ -107,7 +107,6 @@ const fetchAccount = async () => {
     }
 };
 
-
 const fetchUserName = async (userId) => {
     try {
         const response = await fetch(`/api/admin/users/${userId}`); // เรียก API เพื่อดึงข้อมูลผู้ใช้
@@ -162,6 +161,7 @@ const openAddUserModal = () => {
                     option.textContent = user.name;
                     nameSelect.appendChild(option);
                 });
+                selectedUserIdInput.value = (users.length > 0) ? users[0]._id : '';  // กำหนดค่าเริ่มต้น
             } else {
                 console.error('Failed to fetch users');
             }
@@ -176,10 +176,6 @@ const openAddUserModal = () => {
         selectedUserIdInput.value = event.target.value;
     });
     
-    nameSelect.addEventListener('click', (event) => {
-        selectedUserIdInput.value = event.target.value;
-    });
-
     // ปิด modal เมื่อคลิกปุ่ม close หรือคลิกนอก modal
     document.querySelector('#addUserModal .close').onclick = () => modal.style.display = 'none';
     window.onclick = (event) => { if (event.target === modal) modal.style.display = 'none'; };
@@ -218,16 +214,13 @@ const openAddUserModal = () => {
             alert('Please select a valid name.');
             return;
         }
-
         // ตรวจสอบข้อมูลซ้ำ
         const isDuplicate = await checkDuplicateUser(id_member);
         if (isDuplicate) {
             alert('This user already exists in the system.');
             return;
         }
-
         const newUser = { id_member, balance, id_staff };
-
         try {
             const response = await fetch('/api/staff/saving', {
                 method: 'POST',
@@ -267,7 +260,6 @@ const openEditModal = async (userId) => {
         if (!response.ok || !account) {
             throw new Error('Failed to fetch account data');
         }
-
         document.getElementById('editUserId').value = account._id;
         document.getElementById('editName').value = await fetchUserName(account.id_member);
         document.getElementById('editBalance').value = formatNumber(account.balance);
@@ -432,7 +424,6 @@ const openTransactionModal = async (userId) => {
     };
 };
 
-
 document.getElementById('addUserButton').addEventListener('click', openAddUserModal);
 
 // แก้ไขที่นี่
@@ -444,7 +435,6 @@ document.addEventListener('DOMContentLoaded', () => {
             openTransactionModal(userId); // เรียกใช้ openEditModal
         });
     });
-
     // รีเฟรชข้อมูลบัญชี
     fetchAccount();
 });
