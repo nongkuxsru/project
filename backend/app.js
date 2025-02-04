@@ -1,11 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const { readdirSync, read } = require('fs');
-const syncSavings = require('./routes/saving'); // Import Middleware ที่สร้าง
 const path = require('path');
 const savingRouter = require('./routes/saving'); // นำเข้า savingRouter
 const authRouter = require('./routes/auth'); // นำเข้า authRouter
-
 
 const app = express();
 const PORT = 5000;
@@ -30,34 +28,21 @@ mongoose
     console.error('Database connection error:', err);
   });
 
-//Dynamically load routes
-// readdirSync('./routes').forEach((routeFile) => {
-//   app.use('/api', require(`./routes/${routeFile}`));
-// });
 
-// สร้าง route สำหรับการ render หน้า index
-// readdirSync('./routes').forEach((routeFile) => {
-//   app.use(require(`./routes/${routeFile}`));
-// });
 
-// Serve static files จากโฟลเดอร์ frontend/public
-app.use(express.static(path.join(__dirname, '../frontend/public')));
 
-// ใช้ authRouter
-app.use('/api/auth', authRouter); // ใช้ authRouter
-
-// ใช้ savingRouter สำหรับเส้นทาง /api
-app.use('/api', savingRouter);
-
+app.use('/api/auth', require('./routes/auth')); // ใช้ authRouter
+app.use('/api/saving', require('./routes/saving'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/staff', require('./routes/staff'));
+app.use('/api/user', require('./routes/user'));
+app.use("/api/news", require("./routes/news"));
 
 // สร้าง route สำหรับการ render หน้า index
 app.get('/', (req, res) => {
   res.render('index');
 });
 
-// เสิร์ฟไฟล์ login.html แทน index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/public/login.html'));
 });
@@ -71,7 +56,7 @@ app.get('/staff', (req, res) => {
 });
 
 app.get('/user', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/public/user/dashboard.html'));
+  res.sendFile(path.join(__dirname, '../frontend/public/user/user-dashboard.html'));
 });
 
 

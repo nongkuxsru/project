@@ -1,0 +1,78 @@
+@import "admin-dashboard.css";
+@import "manage-users.css";
+
+/* setting.css */
+.edit-personal-info {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.form-group textarea {
+    resize: vertical;
+}
+
+.save-button,
+.cancel-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.save-button {
+    background-color: #28a745;
+    color: white;
+}
+
+.cancel-button {
+    background-color: #dc3545;
+    color: white;
+    margin-left: 10px;
+}
+
+.save-button:hover {
+    background-color: #218838;
+}
+
+.cancel-button:hover {
+    background-color: #c82333;
+}
+
+/* สไตล์สำหรับช่อง User ID */
+#userId {
+    background-color: #f0f0f0; /* สีพื้นหลังทึบ */
+    border: 1px solid #ccc; /* เส้นขอบ */
+    padding: 8px; /* ช่องว่างภายใน */
+    border-radius: 4px; /* มุมโค้ง */
+    font-size: 16px; /* ขนาดตัวอักษร */
+    color: #333; /* สีตัวอักษร */
+    cursor: not-allowed; /* เปลี่ยนเคอร์เซอร์เป็นสัญลักษณ์ "ไม่允許" */
+}
+
+/* สไตล์เมื่อช่องถูกโฟกัส (optional) */
+#userId:focus {
+    outline: none; /* ลบเส้นขอบเมื่อโฟกัส */
+    border-color: #999; /* เปลี่ยนสีเส้นขอบเมื่อโฟกัส */
+}

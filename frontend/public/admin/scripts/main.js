@@ -31,7 +31,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
                 window.location.href = '/staff'; // หน้า Staff
                 break;
             default:
-                window.location.href = '/user-dashboard.html'; // หน้า User
+                window.location.href = '/user'; // หน้า User
         }
     } else {
         alert(result.error);
