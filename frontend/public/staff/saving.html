@@ -3,141 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แดชบอร์ดพนักงาน</title>
-    <link rel="stylesheet" href="/styles/staff-dashboard.css">
+    <title>การตั้งค่า</title>
+    <link rel="stylesheet" href="/styles/setting.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1B8F4C', // สีเขียวสดที่โดดเด่น
+                        secondary: '#264C3B', // สีเขียวเข้มที่ให้ความรู้สึกมั่นคง
+                        accent: '#D9D92E', // สีเหลืองทองที่โดดเด่น
+                        background: '#F1F8F4', // พื้นหลังสีเขียวอ่อน
+                        foreground: '#FFFFFF' // สีขาวสำหรับองค์ประกอบ
+                    },
+                    fontFamily: {
+                        sans: ['IBM Plex Sans Thai', 'sans-serif'], // ฟอนต์ที่อ่านง่าย
+                        heading: ['Poppins', 'sans-serif'] // ฟอนต์สำหรับหัวข้อ
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body>
-    <div class="dashboard-container">
+<body class="bg-background text-secondary font-sans">
+    <div class="flex h-screen">
         <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header" style="display: flex; justify-content: center; align-items: center; height: 100px;">
-                <img src="/images/logo-sidebar.png" alt="" width="100" height="100" style="margin: 10px 0;">
+        <aside class="w-64 bg-gradient-to-b from-primary to-green-700 text-white flex flex-col shadow-xl rounded-r-lg transition-all duration-300">
+            <div class="flex justify-center items-center h-24 border-b border-white/20">
+                <img src="/images/logo-sidebar.png" alt="" class="w-20 h-20">
             </div>
-            <ul class="sidebar-menu">
-                <li><a href="/staff/"><i class="fas fa-home"></i> หน้าหลัก</a></li>
-                <li><a href="/staff/setting.html"><i class="fas fa-cog"></i> การตั้งค่า</a></li>
-                <li><a href="/staff/manage-users.html"><i class="fas fa-users"></i> จัดการผู้ใช้</a></li>
-                <li><a href="/staff/saving.html" class="active"><i class="fa-solid fa-piggy-bank"></i> การออม</a></li>
-                <li><a href="/staff/promise.html"><i class="fa-solid fa-money-check-dollar"></i> สัญญา</a></li>
-                <li><a href="/staff/reports.html"><i class="fas fa-chart-bar"></i> รายงาน</a></li>
-                <li><a href="/logout" id="logoutButton"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a></li>
+            <ul class="space-y-4 p-4">
+                <li>
+                    <a href="/staff/" class="flex items-center space-x-3 text-gray-300 hover:text-gray-700 transition duration-200 p-3 rounded-lg hover:bg-green-600">
+                        <i class="fas fa-home"></i><span>หน้าหลัก</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/staff/setting.html" class="flex items-center space-x-3 text-gray-300 hover:text-gray-700 transition duration-200 p-3 rounded-lg hover:bg-green-600">
+                        <i class="fas fa-cog"></i><span>การตั้งค่า</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/staff/manage-users.html" class="flex items-center space-x-3 text-gray-300 hover:text-gray-700 transition duration-200 p-3 rounded-lg hover:bg-green-600">
+                        <i class="fas fa-users"></i><span>จัดการผู้ใช้</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/staff/saving.html" class="flex items-center space-x-3 text-gray-300 hover:text-gray-700 transition duration-200 p-3 rounded-lg hover:bg-green-600">
+                        <i class="fa-solid fa-piggy-bank"></i><span>การออม</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/staff/promise.html" class="flex items-center space-x-3 text-gray-300 hover:text-gray-700 transition duration-200 p-3 rounded-lg hover:bg-green-600">
+                        <i class="fa-solid fa-money-check-dollar"></i><span>สัญญา</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/staff/reports.html" class="flex items-center space-x-3 text-gray-300 hover:text-gray-700 transition duration-200 p-3 rounded-lg hover:bg-green-600">
+                        <i class="fas fa-chart-bar"></i><span>รายงาน</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/logout" id="logoutButton" class="flex items-center space-x-3 text-red-500 hover:text-red-400 transition duration-200 p-3 rounded-lg hover:bg-green-600">
+                        <i class="fas fa-sign-out-alt"></i><span>ออกจากระบบ</span>
+                    </a>
+                </li>
             </ul>
         </aside>
 
         <!-- Main Content -->
-        <main class="main-content">
-            <header>
-                <h1>แดชบอร์ดพนักงาน</h1>
-                <nav>
-                    <ul>
-                        <li><button id="toggleSidebar"><i class="fas fa-bars"></i></button></li>
-                    </ul>
-                </nav>
+        <main class="flex-1 p-8">
+            <header class="flex justify-between items-center mb-6">
+                <button id="toggleSidebar" class="text-secondary hover:text-gray-600 transition duration-200 text-lg"><i class="fas fa-bars"></i></button>
             </header>
 
-            <!-- ส่วนแสดงรายชื่อบัญชีทั้งหมด -->
-            <section class="account-list">
-                <h2>บัญชีการออม</h2><button id="addUserButton"><i class="fa-solid fa-user-plus" ></i>เพิ่มบัญชี</button>
-                <div class="usersTable">
-                    <table>
+            <!-- Account List Section -->
+            <section class="bg-white p-6 shadow-lg rounded-lg w-full max-w-5xl mx-auto border-2 border-green-500">
+                <h2 class="text-2xl font-bold text-primary text-center">บัญชีการออม</h2>
+                <button id="addUserButton" class="bg-primary text-white py-2 px-4 rounded-lg mt-4 hover:bg-green-600">
+                    <i class="fa-solid fa-user-plus"></i> เพิ่มบัญชี
+                </button>
+                <div class="usersTable mt-6">
+                    <table class="w-full table-auto">
                         <thead>
                             <tr>
-                                <th>หมายเลขบัญชี</th>
-                                <th>ชื่อสมาชิก</th>
-                                <th>ยอดคงเหลือ</th>
-                                <th>ชื่อพนักงาน</th>
-                                <th>วันที่สร้าง</th>
-                                <th>การกระทำ</th>
+                                <th class="border px-4 py-2">หมายเลขบัญชี</th>
+                                <th class="border px-4 py-2">ชื่อสมาชิก</th>
+                                <th class="border px-4 py-2">ยอดคงเหลือ</th>
+                                <th class="border px-4 py-2">ชื่อพนักงาน</th>
+                                <th class="border px-4 py-2">วันที่สร้าง</th>
+                                <th class="border px-4 py-2">การกระทำ</th>
                             </tr>
                         </thead>
                         <tbody id="accountTableBody">
                             <tr>
-                                <td colspan="6">กำลังโหลดบัญชี...</td>
+                                <td colspan="6" class="text-center py-4">กำลังโหลดบัญชี...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- Modal สำหรับเพิ่มบัญชี -->
+            <!-- Add Account Modal -->
             <div id="addUserModal" class="modal">
                 <div class="modal-content">
                     <span class="close">&times;</span>
-                    <h2>เพิ่มบัญชีใหม่</h2>
-                    <form id="addUserForm">
-                        <label for="addName">ชื่อ:</label>
-                        <select id="addName" name="name" required>
-                            <!-- Option จะถูกเติมโดย JavaScript ที่ดึงข้อมูลจากฐานข้อมูล -->
+                    <h2 class="text-primary">เพิ่มบัญชีใหม่</h2>
+                    <form id="addUserForm" class="space-y-4">
+                        <label for="addName" class="block text-secondary">ชื่อ:</label>
+                        <select id="addName" name="name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            <!-- Option will be filled by JavaScript from database -->
                         </select>
 
-                        <label for="selectedUserId">หมายเลขผู้ใช้ที่เลือก:</label>
-                        <input type="text" id="selectedUserId" name="selectedUserId" readonly />
+                        <label for="selectedUserId" class="block text-secondary">หมายเลขผู้ใช้ที่เลือก:</label>
+                        <input type="text" id="selectedUserId" name="selectedUserId" readonly class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
 
-                        <label for="addBalance">ยอดคงเหลือ:</label>
-                        <input type="number" id="addBalance" name="balance" required>
+                        <label for="addBalance" class="block text-secondary">ยอดคงเหลือ:</label>
+                        <input type="number" id="addBalance" name="balance" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
 
-                        <label for="addStaffId">หมายเลขพนักงาน:</label>
-                        <input type="text" id="addStaffId" name="staffId" required readonly>
+                        <label for="addStaffId" class="block text-secondary">หมายเลขพนักงาน:</label>
+                        <input type="text" id="addStaffId" name="staffId" required readonly class="w-full px-4 py-2 border border-gray-300 rounded-lg">
 
-                        <button type="submit">เพิ่มบัญชี</button>
+                        <button type="submit" class="bg-primary text-white py-2 px-6 rounded-lg mt-4 hover:bg-green-600">เพิ่มบัญชี</button>
                     </form>
                 </div>
             </div>
 
-            <!-- Modal สำหรับแก้ไขข้อมูลผู้ใช้ -->
+            <!-- Edit User Modal -->
             <div id="editUserModal" class="modal">
                 <div class="modal-content">
                     <span class="close">&times;</span>
-                    <h2>แก้ไขข้อมูลผู้ใช้</h2>
-                    <form id="editUserForm">
-                        <input type="hidden" id="editUserId" name="userId" /> <!-- Hidden input for user ID -->
+                    <h2 class="text-primary">แก้ไขข้อมูลผู้ใช้</h2>
+                    <form id="editUserForm" class="space-y-4">
+                        <input type="hidden" id="editUserId" name="userId" />
                         <div>
-                            <label for="editName">ชื่อ:</label>
-                            <input type="text" id="editName" name="name" readonly/>
+                            <label for="editName" class="block text-secondary">ชื่อ:</label>
+                            <input type="text" id="editName" name="name" readonly class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
                         </div>
                         <div>
-                            <label for="editBalance">ยอดคงเหลือ:</label>
-                            <input type="number" id="editBalance" name="balance" required />
+                            <label for="editBalance" class="block text-secondary">ยอดคงเหลือ:</label>
+                            <input type="number" id="editBalance" name="balance" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
                         </div>
                         <div>
-                            <label for="editStaffId">หมายเลขพนักงาน:</label>
-                            <input type="text" id="editStaffId" name="staffId" readonly />
+                            <label for="editStaffId" class="block text-secondary">หมายเลขพนักงาน:</label>
+                            <input type="text" id="editStaffId" name="staffId" readonly class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
                         </div>
-                        <button type="submit">บันทึกการเปลี่ยนแปลง</button>
+                        <button type="submit" class="bg-primary text-white py-2 px-6 rounded-lg mt-4 hover:bg-green-600">บันทึกการเปลี่ยนแปลง</button>
                     </form>
                 </div>
             </div>
 
+            <!-- Transaction Modal -->
             <div id="transactionModal" class="modal">
                 <div class="modal-content">
                     <span class="close">&times;</span>
-                    <h2>ธุรกรรม</h2>
-                    <form id="transactionForm">
+                    <h2 class="text-primary">ธุรกรรม</h2>
+                    <form id="transactionForm" class="space-y-4">
                         <input type="hidden" id="transactionUserId">
-                        <label for="transactionName">ชื่อผู้ใช้:</label>
-                        <input type="text" id="transactionName" disabled>
-            
-                        <label for="transactionBalance">ยอดคงเหลือปัจจุบัน:</label>
-                        <input type="text" id="transactionBalance" disabled>
-            
-                        <label for="transactionStaffId">ชื่อพนักงาน:</label>
-                        <input type="text" id="transactionStaffId" disabled>
-            
-                        <label for="transactionAmount">จำนวนเงิน:</label>
-                        <input type="number" id="transactionAmount" required>
-            
-                        <label for="transactionType">ประเภทการทำธุรกรรม:</label><br>
+                        <label for="transactionName" class="block text-secondary">ชื่อผู้ใช้:</label>
+                        <input type="text" id="transactionName" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+
+                        <label for="transactionBalance" class="block text-secondary">ยอดคงเหลือปัจจุบัน:</label>
+                        <input type="text" id="transactionBalance" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+
+                        <label for="transactionStaffId" class="block text-secondary">ชื่อพนักงาน:</label>
+                        <input type="text" id="transactionStaffId" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+
+                        <label for="transactionAmount" class="block text-secondary">จำนวนเงิน:</label>
+                        <input type="number" id="transactionAmount" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+
+                        <label for="transactionType" class="block text-secondary">ประเภทการทำธุรกรรม:</label><br>
                         <input type="radio" id="deposit" name="transactionType" value="deposit" required> ฝากเงิน
                         <input type="radio" id="withdraw" name="transactionType" value="withdraw" required> ถอนเงิน
-            
-                        <button type="submit">ยืนยัน</button>
+
+                        <button type="submit" class="bg-primary text-white py-2 px-6 rounded-lg mt-4 hover:bg-green-600">ยืนยัน</button>
                     </form>
                 </div>
             </div>
-
         </main>
     </div>
+
     <script src="/staff/scripts/saving.js"></script>
 </body>
+
 </html>

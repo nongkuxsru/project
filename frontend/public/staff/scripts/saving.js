@@ -90,7 +90,9 @@ const fetchAccount = async () => {
                     <td>${staffName}</td>
                     <td>${convertToBuddhistYear(account.createdAt)}</td>
                     <td>
-                        <button class="deposit-btn" data-user-id="${account.id_member}" onclick="openTransactionModal('${account.id_member}', 'deposit')">
+                        <button class="deposit-btn bg-primary text-white py-2 px-4 rounded-lg shadow-md hover:bg-green-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50" 
+                                data-user-id="${account.id_member}" 
+                                onclick="openTransactionModal('${account.id_member}', 'deposit')">
                             <i class="fa fa-bank"></i> Action
                         </button>
                     </td>
