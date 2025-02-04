@@ -59,45 +59,44 @@ const toggleSidebar = () => {
     mainContent.classList.toggle('collapsed');
 };
 
+const convertToBuddhistYear = (dateString) => {
+    const date = new Date(dateString);
+    const buddhistYear = date.getFullYear() + 543;
+    return `${date.getDate()}/${date.getMonth() + 1}/${buddhistYear}`;
+};
+
+const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('th-TH', { minimumFractionDigits: 0 }).format(amount);
+};
+
 const fetchAccount = async () => {
     try {
-        const response = await fetch('/api/staff/saving'); // เรียก API เพื่อดึงข้อมูลบัญชี
+        const response = await fetch('/api/staff/saving');
         const data = await response.json();
-
-        // อัปเดตข้อมูลบัญชีในหน้าเว็บ
         const tableBody = document.getElementById('accountTableBody');
-        tableBody.innerHTML = ''; // ล้างข้อมูลเก่าทิ้ง
+        tableBody.innerHTML = '';
 
-        // ตรวจสอบว่ามีข้อมูลบัญชีหรือไม่
         if (data.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="6">No accounts available.</td></tr>';
         } else {
-            // ทำการแสดงข้อมูลบัญชีในตาราง
             for (const account of data) {
-                const userName = await fetchUserName(account.id_member); // ดึงชื่อผู้ใช้
-                const staffName = await fetchUserName(account.id_staff); // ดึงชื่อผู้ใช้
+                const userName = await fetchUserName(account.id_member);
+                const staffName = await fetchUserName(account.id_staff);
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${account._id}</td>
-                    <td>${userName}</td> <!-- แสดงชื่อผู้ใช้แทน id_member -->
-                    <td>${account.balance}</td>
+                    <td>${userName}</td>
+                    <td>${formatCurrency(account.balance)}</td>
                     <td>${staffName}</td>
-                    <td>${new Date(account.createdAt).toLocaleDateString()}</td> <!-- แปลงวันที่เป็นรูปแบบที่อ่านง่าย -->
+                    <td>${convertToBuddhistYear(account.createdAt)}</td>
                     <td>
-                        <button class="deposit-btn" data-user-id="${account.id_member}" onclick="openTransactionModal('${account.id_member}', 'deposit')"><i   i class="fa fa-bank"></i> Action </button>
+                        <button class="deposit-btn" data-user-id="${account.id_member}" onclick="openTransactionModal('${account.id_member}', 'deposit')">
+                            <i class="fa fa-bank"></i> Action
+                        </button>
                     </td>
-                    
                 `;
                 tableBody.appendChild(row);
             }
-            
-            // เพิ่ม event listener สำหรับปุ่ม edit หลังจากที่เพิ่มข้อมูลบัญชีแล้ว
-            document.querySelectorAll('.edit-btn').forEach(button => {
-                button.addEventListener('click', (event) => {
-                    const userId = event.target.closest('button').getAttribute('data-user-id');
-                    openEditModal(userId); // เรียกใช้ openEditModal
-                });
-            });
         }
     } catch (error) {
         console.error('Error fetching account data:', error);
@@ -258,72 +257,52 @@ const openEditModal = async (userId) => {
         return;
     }
 
-    modal.style.display = 'block'; // แสดง modal
-
-    // ดึงข้อมูลผู้ใช้จาก API
+    modal.style.display = 'block';
     try {
         const response = await fetch(`/api/staff/saving/${userId}`);
         const account = await response.json();
-    
+
         if (!response.ok || !account) {
             throw new Error('Failed to fetch account data');
         }
-    
-        // แสดงข้อมูลในฟอร์ม
+
         document.getElementById('editUserId').value = account._id;
         document.getElementById('editName').value = await fetchUserName(account.id_member);
-        document.getElementById('editBalance').value = account.balance;
-        document.getElementById('editStaffId').value = await fetchStaffName(account.id_staff);
-    
+        document.getElementById('editBalance').value = formatNumber(account.balance);
+        document.getElementById('editStaffId').value = await fetchUserName(account.id_staff);
     } catch (error) {
         console.error('Error fetching account data:', error);
         alert('Failed to load user data for editing');
         modal.style.display = 'none';
     }
-    
 
-    // เมื่อฟอร์มถูกส่ง
     form.onsubmit = async (e) => {
         e.preventDefault();
+        const balance = parseFloat(document.getElementById('editBalance').value.replace(/,/g, ''));
 
-        const updatedData = {
-            balance: document.getElementById('editBalance').value,  // แก้ไขเฉพาะยอดเงิน
-        };
+        if (isNaN(balance) || balance < 0) {
+            alert('Please enter a valid balance.');
+            return;
+        }
 
         try {
-            // ส่งข้อมูลที่ถูกแก้ไขไปยัง API
             const response = await fetch(`/api/staff/saving/${userId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedData),
+                body: JSON.stringify({ balance }),
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to save user data');
-            }
+            if (!response.ok) throw new Error('Failed to save user data');
 
             alert('User data updated successfully!');
-            modal.style.display = 'none';  // ปิด modal
-            await fetchAccount();  // รีเฟรชข้อมูลบัญชี
+            modal.style.display = 'none';
+            fetchAccount();
         } catch (error) {
             console.error('Error saving user data:', error);
             alert('Failed to save user data. Please try again.');
         }
     };
-
-    // ปิด modal เมื่อคลิกปุ่ม close (×)
-    document.querySelector('#editUserModal .close').onclick = () => {
-        modal.style.display = 'none';
-    };
-
-    // ปิด modal เมื่อคลิกนอก modal
-    window.onclick = (event) => {
-        if (event.target === modal) {
-            modal.style.display = 'none';
-        }
-    };
 };
-
 
 const openTransactionModal = async (userId) => {
     const modal = document.getElementById('transactionModal');

@@ -10,36 +10,47 @@ const openEditModal = async (user) => {
         return;
     }
 
-    // ตรวจสอบว่า user object มีค่า _id
     const userId = user._id;
     if (!userId) {
         console.error('User ID is missing');
         return;
     }
+
     try {
         const response = await fetch(`/api/admin/users/${userId}`);
         if (!response.ok) {
             throw new Error(`Failed to fetch user data: ${response.status}`);
         }
-        const userData = await response.json(); // แปลง response เป็น JSON
+        const userData = await response.json();
 
-        // เติมข้อมูลในฟอร์ม
+        const convertToBE = (dateString) => {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            const yearBE = date.getFullYear() + 543;
+            return `${yearBE}-${("0" + (date.getMonth() + 1)).slice(-2)}-${("0" + date.getDate()).slice(-2)}`;
+        };
+
         document.getElementById('editName').value = userData.name || '';
         document.getElementById('editEmail').value = userData.email || '';
         document.getElementById('editPassword').value = userData.password || '';
         document.getElementById('editAddress').value = userData.address || '';
         document.getElementById('editPhone').value = userData.phone || '';
         document.getElementById('editBirthday').value = userData.birthday
-            ? new Date(userData.birthday).toISOString().split('T')[0]
+            ? convertToBE(userData.birthday)
             : '';
         document.getElementById('editPermission').value = userData.permission || 'User';
 
-        // แสดง modal
         modal.style.display = 'block';
 
-        // จัดการเมื่อฟอร์มถูกส่ง
         form.onsubmit = async (e) => {
             e.preventDefault();
+
+            const convertToAD = (dateString) => {
+                if (!dateString) return '';
+                const dateParts = dateString.split('-');
+                const yearAD = parseInt(dateParts[0]) - 543;
+                return `${yearAD}-${dateParts[1]}-${dateParts[2]}`;
+            };
 
             const updatedData = {
                 name: document.getElementById('editName').value,
@@ -47,7 +58,7 @@ const openEditModal = async (user) => {
                 password: document.getElementById('editPassword').value,
                 address: document.getElementById('editAddress').value,
                 phone: document.getElementById('editPhone').value,
-                birthday: document.getElementById('editBirthday').value,
+                birthday: convertToAD(document.getElementById('editBirthday').value),
                 permission: document.getElementById('editPermission').value,
             };
 
@@ -65,8 +76,8 @@ const openEditModal = async (user) => {
                 const result = await saveResponse.json();
 
                 alert('User data updated successfully!');
-                modal.style.display = 'none'; // ปิด modal หลังจากบันทึกสำเร็จ
-                await fetchAndRenderUsers(); // อัปเดตข้อมูลในตารางหรือหน้าเว็บ
+                modal.style.display = 'none';
+                await fetchAndRenderUsers();
             } catch (saveError) {
                 console.error('Error saving user data:', saveError);
                 alert('Failed to save user data. Please try again.');
@@ -77,18 +88,17 @@ const openEditModal = async (user) => {
         alert('Failed to fetch user data. Please try again.');
     }
 
-    // ปิด modal เมื่อคลิกปุ่ม close (×)
     document.querySelector('#editUserModal .close').onclick = () => {
         modal.style.display = 'none';
     };
 
-    // ปิด modal เมื่อคลิกนอก modal
     window.onclick = (event) => {
         if (event.target === modal) {
             modal.style.display = 'none';
         }
     };
 };
+
 
 // ฟังก์ชันสำหรับดึงข้อมูลผู้ใช้และแสดงผลในตาราง
 const fetchAndRenderUsers = async () => {
@@ -180,12 +190,29 @@ const editUser = (userId) => {
 };
 
 // ฟังก์ชันสำหรับเปิด modal เพื่อเพิ่มผู้ใช้
+// ฟังก์ชันสำหรับเปิด modal เพื่อเพิ่มผู้ใช้
 const openAddUserModal = () => {
     const modal = document.getElementById('addUserModal');
     const form = document.getElementById('addUserForm');
 
     // แสดง modal
     modal.style.display = 'block';
+
+    // ฟังก์ชันแปลงปี ค.ศ. เป็นปี พ.ศ.
+    const convertToBE = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const yearBE = date.getFullYear() + 543;
+        return `${yearBE}-${("0" + (date.getMonth() + 1)).slice(-2)}-${("0" + date.getDate()).slice(-2)}`;
+    };
+
+    // ฟังก์ชันแปลงปี พ.ศ. เป็นปี ค.ศ.
+    const convertToAD = (dateString) => {
+        if (!dateString) return '';
+        const dateParts = dateString.split('-');
+        const yearAD = parseInt(dateParts[0]) - 543;
+        return `${yearAD}-${dateParts[1]}-${dateParts[2]}`;
+    };
 
     // ปิด modal เมื่อคลิกปุ่ม close (×)
     document.querySelector('#addUserModal .close').onclick = () => {
@@ -203,13 +230,14 @@ const openAddUserModal = () => {
     form.onsubmit = async (e) => {
         e.preventDefault();
 
+        // รับข้อมูลจากฟอร์มและแปลงปีวันเกิดจาก พ.ศ. เป็น ค.ศ.
         const newUser = {
             name: document.getElementById('addName').value,
             email: document.getElementById('addEmail').value,
             password: document.getElementById('addPassword').value,
             address: document.getElementById('addAddress').value,
             phone: document.getElementById('addPhone').value,
-            birthday: document.getElementById('addBirthday').value,
+            birthday: convertToAD(document.getElementById('addBirthday').value), // แปลงเป็นปี ค.ศ.
             permission: document.getElementById('addPermission').value,
         };
 
@@ -242,6 +270,7 @@ const openAddUserModal = () => {
         }
     };
 };
+
 
 // เพิ่ม event listener ให้กับปุ่ม Add User
 document.getElementById('addUserButton').addEventListener('click', openAddUserModal);

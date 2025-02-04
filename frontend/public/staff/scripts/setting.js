@@ -15,14 +15,14 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("personalInfoForm").addEventListener("submit", async (event) => {
         event.preventDefault();
 
-        // ✅ ดึงข้อมูลจากฟอร์ม
+        // ✅ ดึงข้อมูลจากฟอร์มและแปลงปีจาก พ.ศ. เป็น ค.ศ.
         const updatedData = {
             _id: userData._id, // ใช้ _id จาก LocalStorage
             name: document.getElementById("fullName").value,
             email: document.getElementById("email").value,
             address: document.getElementById("address").value,
             phone: document.getElementById("phone").value,
-            birthday: document.getElementById("birthday").value,
+            birthday: convertToAD(document.getElementById("birthday").value), // แปลงเป็นปี ค.ศ.
             permission: userData.permission // ไม่ให้แก้ไข permission
         };
 
@@ -51,26 +51,41 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+// ฟังก์ชันแปลงปี พ.ศ. เป็นปี ค.ศ.
+function convertToAD(dateString) {
+    if (!dateString) return "";
+    const dateParts = dateString.split('-');
+    const yearAD = parseInt(dateParts[0]) - 543;
+    return `${yearAD}-${dateParts[1]}-${dateParts[2]}`;
+}
+
+// ฟังก์ชันแปลงปี ค.ศ. เป็นปี พ.ศ.
+function convertToBE(dateString) {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const yearBE = date.getFullYear() + 543;
+    return `${yearBE}-${("0" + (date.getMonth() + 1)).slice(-2)}-${("0" + date.getDate()).slice(-2)}`;
+}
 
 // ฟังก์ชันแสดงข้อมูลในฟอร์ม
 function populateForm(userData) {
-  document.getElementById("userId").value = userData._id || ""; // ใช้ _id แทน id
-  document.getElementById("fullName").value = userData.name || "";
-  document.getElementById("email").value = userData.email || "";
-  document.getElementById("address").value = userData.address || "";
-  document.getElementById("phone").value = userData.phone || "";
-  document.getElementById("birthday").value = userData.birthday ? userData.birthday.split('T')[0] : ""; // แปลงรูปแบบวันที่
-  document.getElementById("permission").value = userData.permission || "";
+    document.getElementById("userId").value = userData._id || ""; // ใช้ _id แทน id
+    document.getElementById("fullName").value = userData.name || "";
+    document.getElementById("email").value = userData.email || "";
+    document.getElementById("address").value = userData.address || "";
+    document.getElementById("phone").value = userData.phone || "";
+    document.getElementById("birthday").value = userData.birthday ? convertToBE(userData.birthday.split('T')[0]) : ""; // แปลงเป็นปี พ.ศ.
+    document.getElementById("permission").value = userData.permission || "";
 }
 
 // ฟังก์ชันรีเซ็ตฟอร์ม
 function resetForm() {
-  const userData = JSON.parse(localStorage.getItem("userData"));
-  if (userData) {
-      populateForm(userData); // นำข้อมูลเดิมกลับมาแสดงในฟอร์ม
-  } else {
-      alert("No user data found to reset.");
-  }
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    if (userData) {
+        populateForm(userData); // นำข้อมูลเดิมกลับมาแสดงในฟอร์ม
+    } else {
+        alert("No user data found to reset.");
+    }
 }
 
 // ฟังก์ชันสำหรับ Logout

@@ -16,6 +16,7 @@ const openEditModal = async (user) => {
         console.error('User ID is missing');
         return;
     }
+
     try {
         const response = await fetch(`/api/admin/users/${userId}`);
         if (!response.ok) {
@@ -23,15 +24,21 @@ const openEditModal = async (user) => {
         }
         const userData = await response.json(); // แปลง response เป็น JSON
 
+        // แปลงวันเกิดจาก ค.ศ. เป็น พ.ศ.
+        let birthday = '';
+        if (userData.birthday) {
+            const birthdayDate = new Date(userData.birthday);
+            const buddhistYear = birthdayDate.getFullYear() + 543; // แปลงปี ค.ศ. เป็น พ.ศ.
+            birthday = `${buddhistYear}-${(birthdayDate.getMonth() + 1).toString().padStart(2, '0')}-${birthdayDate.getDate().toString().padStart(2, '0')}`;
+        }
+
         // เติมข้อมูลในฟอร์ม
         document.getElementById('editName').value = userData.name || '';
         document.getElementById('editEmail').value = userData.email || '';
         document.getElementById('editPassword').value = userData.password || '';
         document.getElementById('editAddress').value = userData.address || '';
         document.getElementById('editPhone').value = userData.phone || '';
-        document.getElementById('editBirthday').value = userData.birthday
-            ? new Date(userData.birthday).toISOString().split('T')[0]
-            : '';
+        document.getElementById('editBirthday').value = birthday || ''; // ใช้วันเกิดในรูปแบบ พ.ศ.
         document.getElementById('editPermission').value = userData.permission || 'User';
 
         // แสดง modal
@@ -41,13 +48,19 @@ const openEditModal = async (user) => {
         form.onsubmit = async (e) => {
             e.preventDefault();
 
+            // แปลงวันเกิดจาก พ.ศ. ไป ค.ศ. ก่อนส่งข้อมูล
+            const birthdayInput = document.getElementById('editBirthday').value;
+            const birthdayDate = new Date(birthdayInput);
+            const gregorianYear = birthdayDate.getFullYear() - 543; // แปลงจากปี พ.ศ. เป็น ค.ศ.
+            const formattedBirthday = `${gregorianYear}-${(birthdayDate.getMonth() + 1).toString().padStart(2, '0')}-${birthdayDate.getDate().toString().padStart(2, '0')}`;
+
             const updatedData = {
                 name: document.getElementById('editName').value,
                 email: document.getElementById('editEmail').value,
                 password: document.getElementById('editPassword').value,
                 address: document.getElementById('editAddress').value,
                 phone: document.getElementById('editPhone').value,
-                birthday: document.getElementById('editBirthday').value,
+                birthday: formattedBirthday, // ส่งข้อมูลวันเกิดในรูปแบบ ค.ศ.
                 permission: document.getElementById('editPermission').value,
             };
 
@@ -90,6 +103,7 @@ const openEditModal = async (user) => {
     };
 };
 
+
 // ฟังก์ชันสำหรับดึงข้อมูลผู้ใช้และแสดงผลในตาราง
 const fetchAndRenderUsers = async () => {
     try {
@@ -112,6 +126,16 @@ const renderUsers = (users) => {
         row.insertCell().textContent = user.email;
         row.insertCell().textContent = user.permission;
 
+        // แปลงวันเกิดจาก ค.ศ. เป็น พ.ศ.
+        let birthday = '';
+        if (user.birthday) {
+            const birthdayDate = new Date(user.birthday);
+            const buddhistYear = birthdayDate.getFullYear() + 543; // แปลงปี ค.ศ. เป็น พ.ศ.
+            birthday = `${buddhistYear}-${(birthdayDate.getMonth() + 1).toString().padStart(2, '0')}-${birthdayDate.getDate().toString().padStart(2, '0')}`;
+        }
+
+        row.insertCell().textContent = birthday || ''; // แสดงวันเกิดในตาราง
+
         // เพิ่มปุ่ม Actions โดยใช้ HTML
         const actionsCell = row.insertCell();
         actionsCell.className = 'actions';
@@ -124,6 +148,7 @@ const renderUsers = (users) => {
     // เพิ่ม event listener ให้กับปุ่ม Actions
     addActionButtonListeners();
 };
+
 
 // ฟังก์ชันสำหรับเพิ่ม event listener ให้กับปุ่ม Actions
 const addActionButtonListeners = () => {
