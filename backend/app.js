@@ -28,9 +28,6 @@ mongoose
     console.error('Database connection error:', err);
   });
 
-
-
-
 app.use('/api/auth', require('./routes/auth')); // ใช้ authRouter
 app.use('/api/saving', require('./routes/saving'));
 app.use('/api/admin', require('./routes/admin'));
@@ -38,13 +35,8 @@ app.use('/api/staff', require('./routes/staff'));
 app.use('/api/user', require('./routes/user'));
 app.use("/api/news", require("./routes/news"));
 
-// สร้าง route สำหรับการ render หน้า index
 app.get('/', (req, res) => {
-  res.render('index');
-});
-
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/public/login.html'));
+  res.sendFile(path.join(__dirname, '../frontend/public/poster.html'));
 });
 
 app.get('/admin', (req, res) => {
