@@ -337,7 +337,7 @@ const openTransactionModal = async (userId) => {
         const transactionData = {
             amount: transactionAmount,
             type: transactionType, // 'deposit' หรือ 'withdraw'
-            newBalance: newBalance, // ยอดเงินใหม่
+            balance : newBalance, // ยอดเงินใหม่
         };
 
         try {
@@ -374,6 +374,7 @@ const openTransactionModal = async (userId) => {
             }
 
             alert('Transaction processed and history saved successfully!');
+            console.log(transactionData);
             modal.style.display = 'none';  // ปิด modal
             await fetchAccount();  // รีเฟรชข้อมูลบัญชี
 
