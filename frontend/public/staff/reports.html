@@ -1,35 +1,36 @@
 <!DOCTYPE html>
 <html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>การตั้งค่า</title>
-    <link rel="stylesheet" href="/styles/setting.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#1B8F4C', // สีเขียวสดที่โดดเด่น
-                        secondary: '#264C3B', // สีเขียวเข้มที่ให้ความรู้สึกมั่นคง
-                        accent: '#D9D92E', // สีเหลืองทองที่โดดเด่น
-                        background: '#F1F8F4', // พื้นหลังสีเขียวอ่อน
-                        foreground: '#FFFFFF' // สีขาวสำหรับองค์ประกอบ
-                    },
-                    fontFamily: {
-                        sans: ['IBM Plex Sans Thai', 'sans-serif'], // ฟอนต์ที่อ่านง่าย
-                        heading: ['Poppins', 'sans-serif'] // ฟอนต์สำหรับหัวข้อ
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>การตั้งค่า</title>
+        <link rel="stylesheet" href="/styles/setting.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: '#1B8F4C', // สีเขียวสดที่โดดเด่น
+                            secondary: '#264C3B', // สีเขียวเข้มที่ให้ความรู้สึกมั่นคง
+                            accent: '#D9D92E', // สีเหลืองทองที่โดดเด่น
+                            background: '#F1F8F4', // พื้นหลังสีเขียวอ่อน
+                            foreground: '#FFFFFF' // สีขาวสำหรับองค์ประกอบ
+                        },
+                        fontFamily: {
+                            sans: ['IBM Plex Sans Thai', 'sans-serif'], // ฟอนต์ที่อ่านง่าย
+                            heading: ['Poppins', 'sans-serif'] // ฟอนต์สำหรับหัวข้อ
+                        }
                     }
                 }
             }
-        }
-    </script>
-</head>
-<body>
+        </script>
+    </head>
+<body class="bg-background text-secondary font-sans">
     <div class="dashboard-container">
+        <!-- Sidebar -->
         <!-- Sidebar -->
         <aside class="w-64 bg-gradient-to-b from-primary to-green-700 text-white flex flex-col shadow-xl rounded-r-lg transition-all duration-300">
             <div class="flex justify-center items-center h-24 border-b border-white/20">
@@ -111,6 +112,6 @@
             
         </main>
     </div>
-    <script src="/staff/scripts/promise.js"></script>
+    <script src="/staff/scripts/report.js"></script>
 </body>
 </html>

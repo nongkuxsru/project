@@ -1,6 +1,5 @@
 // เรียกใช้ฟังก์ชันเมื่อหน้าเว็บโหลดเสร็จ
 window.onload = () => {
-    fetchUserInfo(); // ดึงข้อมูลผู้ใช้
 
     // เพิ่ม Event Listener สำหรับปุ่ม Logout
     document.getElementById('logoutButton').addEventListener('click', logout);
@@ -156,8 +155,6 @@ const logout = async () => {
 
 // เรียกใช้ฟังก์ชันเพื่อดึงข้อมูลเมื่อโหลดหน้าเสร็จ
 document.addEventListener('DOMContentLoaded', fetchPromise);
-// เรียกใช้งานฟังก์ชันเมื่อโหลดหน้าเว็บ
-document.addEventListener('DOMContentLoaded', fetchUserInfo);
 
 // เพิ่ม Event Listener สำหรับปุ่ม Toggle Sidebar
 document.getElementById('toggleSidebar').addEventListener('click', toggleSidebar);

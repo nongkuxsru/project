@@ -2,8 +2,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const { readdirSync, read } = require('fs');
 const path = require('path');
-const savingRouter = require('./routes/saving'); // นำเข้า savingRouter
-const authRouter = require('./routes/auth'); // นำเข้า authRouter
 
 const app = express();
 const PORT = 5000;

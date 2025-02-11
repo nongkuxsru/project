@@ -279,9 +279,6 @@ const openAddUserModal = () => {
     };
 };
 
-
-// เพิ่ม event listener ให้กับปุ่ม Add User
-document.getElementById('addUserButton').addEventListener('click', openAddUserModal);
 document.addEventListener("DOMContentLoaded", function() {
     // ดึงข้อมูลผู้ใช้จาก localStorage
     const user = JSON.parse(localStorage.getItem('currentUser'));
@@ -327,3 +324,5 @@ const logout = async () => {
     }
 };
 
+// เพิ่ม event listener ให้กับปุ่ม Add User
+document.getElementById('addUserButton').addEventListener('click', openAddUserModal);
