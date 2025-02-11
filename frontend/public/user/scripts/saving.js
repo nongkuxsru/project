@@ -27,7 +27,6 @@ const fetchUserAccount = async () => {
         if (!response.ok) throw new Error('Failed to fetch account data');
 
         const account = await response.json();
-        console.log(account); // ดูข้อมูลที่ได้จาก API
 
         if (account && account.balance != null && account.createdAt) {
             // อัปเดตข้อมูลบัญชีใน UI
@@ -63,6 +62,55 @@ const fetchUserName = async (userId) => {
         return 'Unknown';
     }
 };
+
+document.addEventListener("DOMContentLoaded", function() {
+    const storedUserName = localStorage.getItem('currentUser');
+    const localStorageId = JSON.parse(storedUserName)._id;
+
+    // ดึงข้อมูลประวัติการทำรายการจาก API
+    fetch('/api/staff/transactions')
+        .then(response => response.json())
+        .then(data => {
+            const filteredTransactions = data.filter(transaction => String(transaction.user) === localStorageId);
+                populateTransactionTable(filteredTransactions);
+            })
+        .catch(error => {
+            console.error("Error fetching transactions:", error);
+        });
+});
+
+// ฟังก์ชั่นในการแสดงข้อมูลในตาราง
+function populateTransactionTable(transactions) {
+    const tableBody = document.querySelector("#transactionTable tbody");
+    tableBody.innerHTML = ""; // ล้างข้อมูลเดิม
+
+    transactions.forEach(transaction => {
+        const row = document.createElement("tr");
+
+        const dateCell = document.createElement("td");
+        dateCell.classList.add("px-4", "py-2", "text-sm", "text-gray-700", "border-b", "border-green-200");
+        dateCell.textContent = transaction.date;
+
+        const typeCell = document.createElement("td");
+        typeCell.classList.add("px-4", "py-2", "text-sm", "text-gray-700", "border-b", "border-green-200");
+        typeCell.textContent = transaction.type;
+
+        const amountCell = document.createElement("td");
+        amountCell.classList.add("px-4", "py-2", "text-sm", "text-gray-700", "border-b", "border-green-200");
+        amountCell.textContent = `${transaction.amount} บาท`;
+
+        const statusCell = document.createElement("td");
+        statusCell.classList.add("px-4", "py-2", "text-sm", "text-gray-700", "border-b", "border-green-200");
+        statusCell.textContent = transaction.status;
+
+        row.appendChild(dateCell);
+        row.appendChild(typeCell);
+        row.appendChild(amountCell);
+        row.appendChild(statusCell);
+
+        tableBody.appendChild(row);
+    });
+}
 
 document.addEventListener("DOMContentLoaded", function() {
     // ดึงข้อมูลผู้ใช้จาก localStorage

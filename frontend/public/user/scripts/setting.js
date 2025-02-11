@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!userData) {
         alert("No user data found. Please log in again.");
-        window.location.href = "/login"; // Redirect ไปหน้า Login ถ้าไม่มีข้อมูลผู้ใช้
+        window.location.href = "/"; // Redirect ไปหน้า Login ถ้าไม่มีข้อมูลผู้ใช้
         return;
     }
 
@@ -15,14 +15,14 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("personalInfoForm").addEventListener("submit", async (event) => {
         event.preventDefault();
 
-        // ✅ ดึงข้อมูลจากฟอร์ม
+        // ✅ ดึงข้อมูลจากฟอร์มและแปลงปีจาก พ.ศ. เป็น ค.ศ.
         const updatedData = {
             _id: userData._id, // ใช้ _id จาก LocalStorage
             name: document.getElementById("fullName").value,
             email: document.getElementById("email").value,
             address: document.getElementById("address").value,
             phone: document.getElementById("phone").value,
-            birthday: document.getElementById("birthday").value,
+            birthday: (document.getElementById("birthday").value), // แปลงเป็นปี ค.ศ.
             permission: userData.permission // ไม่ให้แก้ไข permission
         };
 
@@ -39,8 +39,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 // ✅ บันทึกข้อมูลใหม่ลง LocalStorage
                 localStorage.setItem("currentUser", JSON.stringify(updatedData));
 
+                console.log("User data updated successfully.");
+
+                // ✅ อัปเดต Transaction พร้อมกัน
+                await updateUserTransactions(updatedData.name);
+
                 alert("User information updated successfully!");
-                window.location.href = "/user"; // ส่งกลับไปหน้า Staff Dashboard
+                // window.location.href = "/user"; 
             } else {
                 alert("Error updating data: " + result.error);
             }
@@ -49,8 +54,27 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("An error occurred while updating user information.");
         }
     });
-});
 
+    // ✅ ฟังก์ชันสำหรับอัปเดต Transaction
+    async function updateUserTransactions(userName) {
+        console.log(`Updating transactions for user: ${userName}`);
+        try {
+            const response = await fetch(`/api/staff/transactions/${userName}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ updated: true }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to update transactions.");
+            }
+
+            console.log(`Transactions updated successfully for user: ${userName}`);
+        } catch (error) {
+            console.error("Error updating transactions:", error);
+        }
+    }
+});
 
 // ฟังก์ชันแสดงข้อมูลในฟอร์ม
 function populateForm(userData) {

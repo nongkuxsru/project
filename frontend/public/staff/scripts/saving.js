@@ -354,7 +354,7 @@ const openTransactionModal = async (userId) => {
 
             // ข้อมูลการทำธุรกรรมที่ใช้บันทึกประวัติ
             const transactionHistory = {
-                user: await fetchUserName(userId),
+                user: userId,
                 type: transactionType === 'deposit' ? 'Deposit' : 'Withdraw',
                 amount: transactionAmount,
                 status: 'Completed', // ใช้สถานะนี้เป็นตัวอย่าง

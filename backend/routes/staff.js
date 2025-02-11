@@ -28,6 +28,18 @@ router.post('/transactions', async (req, res) => {
     }
 });
 
+// กำหนดเส้นทาง API สำหรับแก้ไขข้อมูลธุรกรรม
+router.put('/transactions/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const transaction = await Transaction.findByIdAndUpdate(id, req.body, { new: true });
+        res.json(transaction);
+    } catch (error) {
+        console.error('Error updating transaction:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
 // API สำหรับดึงข้อมูลบัญชีการออมทั้งหมด
 router.get('/saving', async (req, res) => {
     try {
