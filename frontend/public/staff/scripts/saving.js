@@ -342,7 +342,7 @@ const openTransactionModal = async (userId) => {
 
         try {
             // ส่งข้อมูลการทำธุรกรรมไปยัง API เพื่อบันทึกการทำธุรกรรม
-            const transactionResponse = await fetch(`/api/staff/saving/transaction/${userId}`, {
+            const transactionResponse = await fetch(`/api/staff/saving/${userId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(transactionData),
