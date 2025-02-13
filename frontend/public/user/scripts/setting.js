@@ -40,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 localStorage.setItem("currentUser", JSON.stringify(updatedData));
 
                 console.log("User data updated successfully.");
+                window.location.href = "/user"; // Redirect ไปหน้า User Dashboard
 
                 // ✅ อัปเดต Transaction พร้อมกัน
                 await updateUserTransactions(updatedData.name);
