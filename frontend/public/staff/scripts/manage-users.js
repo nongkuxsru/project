@@ -14,20 +14,20 @@ const openEditModal = async (user) => {
     const form = document.getElementById('editUserForm');
 
     if (!modal || !form) {
-        console.error('Modal or form not found');
+        console.error('Modal หรือฟอร์มหาไม่พบ');
         return;
     }
 
     const userId = user._id;
     if (!userId) {
-        console.error('User ID is missing');
+        console.error('ไม่พบรหัสผู้ใช้');
         return;
     }
 
     try {
         const response = await fetch(`/api/admin/users/${userId}`);
         if (!response.ok) {
-            throw new Error(`Failed to fetch user data: ${response.status}`);
+            throw new Error(`ไม่สามารถดึงข้อมูลผู้ใช้ได้: ${response.status}`);
         }
         const userData = await response.json();
 
@@ -78,22 +78,35 @@ const openEditModal = async (user) => {
                 });
 
                 if (!saveResponse.ok) {
-                    throw new Error(`Failed to save user data: ${saveResponse.status}`);
+                    throw new Error(`ไม่สามารถบันทึกข้อมูลผู้ใช้ได้: ${saveResponse.status}`);
                 }
 
                 const result = await saveResponse.json();
 
-                alert('User data updated successfully!');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'แก้ไขข้อมูลสำเร็จ',
+                    text: 'ข้อมูลผู้ใช้ถูกบันทึกเรียบร้อยแล้ว',
+                });
+
                 modal.style.display = 'none';
                 await fetchAndRenderUsers();
             } catch (saveError) {
-                console.error('Error saving user data:', saveError);
-                alert('Failed to save user data. Please try again.');
+                console.error('เกิดข้อผิดพลาดในการบันทึกข้อมูลผู้ใช้:', saveError);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: 'ไม่สามารถบันทึกข้อมูลผู้ใช้ได้ กรุณาลองใหม่',
+                });
             }
         };
     } catch (error) {
-        console.error('Error fetching user data:', error);
-        alert('Failed to fetch user data. Please try again.');
+        console.error('เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
+            text: 'ไม่สามารถดึงข้อมูลผู้ใช้ได้ กรุณาลองใหม่',
+        });
     }
 
     document.querySelector('#editUserModal .close').onclick = () => {
@@ -107,6 +120,11 @@ const openEditModal = async (user) => {
     };
 };
 
+// ฟังก์ชันสำหรับแก้ไขผู้ใช้
+const editUser = (userId) => {
+    const user = allUsers.find(u => u._id === userId); // หาข้อมูลผู้ใช้จาก allUsers
+    if (user) openEditModal(user); // เปิด modal และแสดงข้อมูลผู้ใช้
+};
 
 // ฟังก์ชันสำหรับดึงข้อมูลผู้ใช้และแสดงผลในตาราง
 const fetchAndRenderUsers = async () => {
@@ -156,23 +174,49 @@ const addActionButtonListeners = () => {
 
 // ฟังก์ชันสำหรับลบผู้ใช้
 const deleteUser = async (userId) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
+    const confirmDelete = await Swal.fire({
+        title: 'ยืนยันการลบผู้ใช้',
+        text: 'คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้? การกระทำนี้ไม่สามารถย้อนกลับได้',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'ลบ',
+        cancelButtonText: 'ยกเลิก',
+    });
+
+    if (!confirmDelete.isConfirmed) return;
 
     try {
         const response = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
 
         if (!response.ok) {
-            // ตรวจสอบสถานะของ API ก่อนแปลงผลลัพธ์เป็น JSON
             const errorData = await response.text(); // รับข้อมูลเป็นข้อความ
-            throw new Error(errorData || 'Failed to delete user');
+            throw new Error(errorData || 'ไม่สามารถลบผู้ใช้ได้');
         }
 
-        const result = await response.json(); // แปลง response เป็น JSON
+         // ลบข้อมูลบัญชีออมทรัพย์ของผู้ใช้นี้
+         const savingResponse = await fetch(`/api/staff/saving/${userId}`, { method: 'DELETE' });
+
+         if (!savingResponse.ok) {
+             const errorData = await savingResponse.text();
+             throw new Error(errorData || 'ไม่สามารถลบข้อมูลบัญชีออมทรัพย์ได้');
+         }
+
         await fetchAndRenderUsers(); // อัปเดตตารางผู้ใช้หลังจากลบ
-        alert('User deleted successfully');
+
+        Swal.fire({
+            icon: 'success',
+            title: 'ลบผู้ใช้สำเร็จ',
+            text: 'ผู้ใช้ถูกลบออกจากระบบเรียบร้อยแล้ว',
+        });
     } catch (error) {
         console.error('Error deleting user:', error);
-        alert(error.message || 'Failed to delete user. Please try again.');
+        Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
+            text: error.message || 'ไม่สามารถลบผู้ใช้ได้ กรุณาลองใหม่',
+        });
     }
 };
 
@@ -189,12 +233,6 @@ const filterUsers = () => {
     });
 
     renderUsers(filteredUsers); // แสดงข้อมูลที่ filter แล้ว
-};
-
-// ฟังก์ชันสำหรับแก้ไขผู้ใช้
-const editUser = (userId) => {
-    const user = allUsers.find(u => u._id === userId); // หาข้อมูลผู้ใช้จาก allUsers
-    if (user) openEditModal(user); // เปิด modal และแสดงข้อมูลผู้ใช้
 };
 
 // ฟังก์ชันสำหรับเปิด modal เพื่อเพิ่มผู้ใช้
@@ -257,11 +295,11 @@ const openAddUserModal = () => {
             console.log('User created:', result); // ✅ ตรวจสอบข้อมูลที่ได้จาก API
     
             if (!response.ok) {
-                throw new Error(result.message || 'Failed to add user');
+                throw new Error(result.message || 'ไม่สามารถเพิ่มผู้ใช้ได้');
             }
     
             if (!result._id) {
-                throw new Error('User ID not found in response');
+                throw new Error('ไม่พบ User ID ในการตอบกลับจาก API');
             }
     
             // ✅ ใช้ _id ในการสร้างบัญชี Saving
@@ -269,10 +307,18 @@ const openAddUserModal = () => {
     
             await fetchAndRenderUsers();
             modal.style.display = 'none';
-            alert('User added successfully');
+            Swal.fire({
+                icon: 'success',
+                title: 'เพิ่มผู้ใช้สำเร็จ',
+                text: 'ผู้ใช้ได้ถูกเพิ่มเข้ามาแล้ว',
+            });
         } catch (error) {
             console.error('Error adding user:', error);
-            alert(error.message || 'Failed to add user. Please try again.');
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: error.message || 'ไม่สามารถเพิ่มผู้ใช้ได้ กรุณาลองใหม่',
+            });
         }
     };
 };
@@ -316,8 +362,6 @@ const createSavingAccount = async (userId) => {
     }
 };
 
-
-
 document.addEventListener("DOMContentLoaded", function() {
     // ดึงข้อมูลผู้ใช้จาก localStorage
     const user = JSON.parse(localStorage.getItem('currentUser'));
@@ -339,7 +383,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
-// ฟังก์ชันสำหรับ Logout
 const logout = async () => {
     try {
         const response = await fetch('/api/auth/logout', {
@@ -352,14 +395,30 @@ const logout = async () => {
             localStorage.removeItem("currentUser");
             localStorage.removeItem("selectedTheme");
 
-            alert("Logout successful! Redirecting to login page...");
+             // แสดงข้อความด้วย SweetAlert2
+            await Swal.fire({
+                icon: 'success',
+                title: 'Logout successful!',
+                text: 'You have been logged out. Redirecting to login page...',
+                timer: 1000, // ตั้งเวลาแสดง 2 วินาที
+                showConfirmButton: false,
+            });
+
             window.location.href = "/";
         } else {
-            alert("Logout failed. Please try again.");
+            await Swal.fire({
+                icon: 'error',
+                title: 'Logout failed!',
+                text: 'Please try again.',
+            });
         }
     } catch (error) {
         console.error("Error during logout:", error);
-        alert("An error occurred while logging out.");
+        await Swal.fire({
+            icon: 'error',
+            title: 'An error occurred',
+            text: 'There was an error while logging out.',
+        });
     }
 };
 

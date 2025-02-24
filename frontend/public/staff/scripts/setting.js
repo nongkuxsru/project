@@ -3,8 +3,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const userData = JSON.parse(localStorage.getItem("currentUser"));
 
     if (!userData) {
-        alert("No user data found. Please log in again.");
-        window.location.href = "/login"; // Redirect ไปหน้า Login ถ้าไม่มีข้อมูลผู้ใช้
+        // ใช้ SweetAlert2 แสดงข้อความเมื่อไม่มีข้อมูลผู้ใช้
+        Swal.fire({
+            icon: 'error',
+            title: 'No user data found',
+            text: 'Please log in again.',
+        }).then(() => {
+            window.location.href = "/login"; // Redirect ไปหน้า Login ถ้าไม่มีข้อมูลผู้ใช้
+        });
         return;
     }
 
@@ -39,14 +45,32 @@ document.addEventListener("DOMContentLoaded", () => {
                 // ✅ บันทึกข้อมูลใหม่ลง LocalStorage
                 localStorage.setItem("currentUser", JSON.stringify(updatedData));
 
-                alert("User information updated successfully!");
+                // ใช้ SweetAlert2 แสดงข้อความเมื่ออัปเดตสำเร็จ
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'อัพเดทข้อมูลผู้ใช้เสร็จสิ้น !',
+                    text: 'กำลังเปลี่ยนเส้นทางไปยังแดชบอร์ด...',
+                    timer: 2000, // ตั้งเวลาแสดง 2 วินาที
+                    showConfirmButton: false,
+                });
+
                 window.location.href = "/staff"; // ส่งกลับไปหน้า Staff Dashboard
             } else {
-                alert("Error updating data: " + result.error);
+                // ใช้ SweetAlert2 แสดงข้อความเมื่อเกิดข้อผิดพลาด
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'อัพเดทข้อมูลผู้ใช้ไม่สำเร็จ !',
+                    text: result.error,
+                });
             }
         } catch (error) {
             console.error("Update failed:", error);
-            alert("An error occurred while updating user information.");
+            // ใช้ SweetAlert2 แสดงข้อความเมื่อเกิดข้อผิดพลาดในการอัปเดต
+            await Swal.fire({
+                icon: 'error',
+                title: 'An error occurred',
+                text: 'มีข้อผิดพลาดในการอัปเดตข้อมูลผู้ใช้',
+            });
         }
     });
 });
@@ -109,7 +133,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
-// ฟังก์ชันสำหรับ Logout
 const logout = async () => {
     try {
         const response = await fetch('/api/auth/logout', {
@@ -122,14 +145,30 @@ const logout = async () => {
             localStorage.removeItem("currentUser");
             localStorage.removeItem("selectedTheme");
 
-            alert("Logout successful! Redirecting to login page...");
+             // แสดงข้อความด้วย SweetAlert2
+            await Swal.fire({
+                icon: 'success',
+                title: 'Logout successful!',
+                text: 'You have been logged out. Redirecting to login page...',
+                timer: 1000, // ตั้งเวลาแสดง 2 วินาที
+                showConfirmButton: false,
+            });
+
             window.location.href = "/";
         } else {
-            alert("Logout failed. Please try again.");
+            await Swal.fire({
+                icon: 'error',
+                title: 'Logout failed!',
+                text: 'Please try again.',
+            });
         }
     } catch (error) {
         console.error("Error during logout:", error);
-        alert("An error occurred while logging out.");
+        await Swal.fire({
+            icon: 'error',
+            title: 'An error occurred',
+            text: 'There was an error while logging out.',
+        });
     }
 };
 

@@ -127,6 +127,17 @@ router.get('/saving/check/:id_member', async (req, res) => {
     }
 });
 
+// API สำหรับลบข้อมูลบัญชีการออม
+router.delete('/saving/:userId', async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const saving = await Saving.findOneAndDelete({ id_member: userId });
+        res.json(saving);
+    } catch (error) {
+        console.error('Error deleting saving:', error);
+        res.status(500).json({ error: 'Error deleting saving' });
+    }
+});
 
 // API สำหรับดึงข้อมูลสัญญากู้ยืมทั้งหมด
 router.get('/promise', async (req, res) => {

@@ -25,7 +25,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
-// ฟังก์ชันสำหรับ Logout
 const logout = async () => {
     try {
         const response = await fetch('/api/auth/logout', {
@@ -38,13 +37,29 @@ const logout = async () => {
             localStorage.removeItem("currentUser");
             localStorage.removeItem("selectedTheme");
 
-            alert("Logout successful! Redirecting to login page...");
+             // แสดงข้อความด้วย SweetAlert2
+            await Swal.fire({
+                icon: 'success',
+                title: 'Logout successful!',
+                text: 'You have been logged out. Redirecting to login page...',
+                timer: 1000, // ตั้งเวลาแสดง 2 วินาที
+                showConfirmButton: false,
+            });
+
             window.location.href = "/";
         } else {
-            alert("Logout failed. Please try again.");
+            await Swal.fire({
+                icon: 'error',
+                title: 'Logout failed!',
+                text: 'Please try again.',
+            });
         }
     } catch (error) {
         console.error("Error during logout:", error);
-        alert("An error occurred while logging out.");
+        await Swal.fire({
+            icon: 'error',
+            title: 'An error occurred',
+            text: 'There was an error while logging out.',
+        });
     }
 };

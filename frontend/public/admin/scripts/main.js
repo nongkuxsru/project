@@ -11,14 +11,20 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
     });
-    
 
     const result = await response.json();
     if (response.ok) {
-        alert(result.message);
+        // ใช้ SweetAlert2 แสดงข้อความสำเร็จ
+        await Swal.fire({
+            icon: 'success',
+            title: 'Login Successful!',
+            text: result.message,
+            timer: 2000, // ตั้งเวลาแสดง 2 วินาที
+            showConfirmButton: false,  // ไม่แสดงปุ่ม "OK"
+        });
 
-         // ✅ บันทึกข้อมูลผู้ใช้ลง localStorage
-         localStorage.setItem('currentUser', JSON.stringify(result.user));
+        // ✅ บันทึกข้อมูลผู้ใช้ลง localStorage
+        localStorage.setItem('currentUser', JSON.stringify(result.user));
 
         // ตรวจสอบสิทธิ์และ redirect ไปยังหน้าที่เหมาะสม
         const { permission } = result.user;
@@ -34,7 +40,12 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
                 window.location.href = '/user'; // หน้า User
         }
     } else {
-        alert(result.error);
+        // ใช้ SweetAlert2 แสดงข้อความข้อผิดพลาด
+        await Swal.fire({
+            icon: 'error',
+            title: 'Login Failed!',
+            text: result.error,
+        });
     }
 });
 

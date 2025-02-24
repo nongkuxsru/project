@@ -68,7 +68,14 @@ const fetchAccount = async () => {
                         <button class="deposit-btn bg-primary text-white py-2 px-4 rounded-lg shadow-md hover:bg-green-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50" 
                                 data-user-id="${account.id_member}" 
                                 onclick="openTransactionModal('${account.id_member}', 'deposit')">
-                            <i class="fa fa-bank"></i> Action
+                            <i class="fa fa-bank"></i> ทำรายการ
+                        </button>
+                    </td>
+                    <td>
+                        <button class="delete-btn bg-red-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-red-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-opacity-50"
+                                data-user-id="${account.id_member}"
+                                onclick="deleteAccount('${account.id_member}', 'withdraw')">
+                            <i class="fa fa-bank"></i> ลบบัญชี
                         </button>
                     </td>
                 `;
@@ -110,20 +117,20 @@ const fetchStaffName = async (userId) => {
     }
 };
 
-const generateAccountId = () => {
-    return Math.floor(1000000000 + Math.random() * 9000000000); // สุ่มเลข 10 หลัก
-};
-
 const openAddUserModal = () => {
     const modal = document.getElementById('addUserModal');
     const form = document.getElementById('addUserForm');
     const nameSelect = document.getElementById('addName');
     const selectedUserIdInput = document.getElementById('selectedUserId');
 
-    modal.style.display = 'block';  // แสดง modal
+    modal.style.display = 'block'; // แสดง modal
 
-     // สุ่มหมายเลขบัญชีใหม่ทุกครั้งที่เปิดฟอร์ม
-     document.getElementById('addAccountId').value = generateAccountId();
+    generateAccountId = () => {
+        return Math.floor(1000000000 + Math.random() * 9000000000); // สุ่มเลขบัญชี 10 หลัก
+    };
+
+    // สุ่มหมายเลขบัญชีใหม่ทุกครั้งที่เปิดฟอร์ม
+    document.getElementById('addAccountId').value = generateAccountId();
 
     // เติมค่า Staff ID ลงในฟอร์มโดยอัตโนมัติ
     const staffId = getStaffIdFromLocalStorage();
@@ -136,14 +143,14 @@ const openAddUserModal = () => {
             const users = await response.json();
 
             if (response.ok && Array.isArray(users)) {
-                nameSelect.innerHTML = '';  // ลบ option เก่าทั้งหมด
+                nameSelect.innerHTML = ''; // ลบ option เก่าทั้งหมด
                 users.forEach(user => {
                     const option = document.createElement('option');
                     option.value = user._id;
                     option.textContent = user.name;
                     nameSelect.appendChild(option);
                 });
-                selectedUserIdInput.value = (users.length > 0) ? users[0]._id : '';  // กำหนดค่าเริ่มต้น
+                selectedUserIdInput.value = users.length > 0 ? users[0]._id : ''; // กำหนดค่าเริ่มต้น
             } else {
                 console.error('Failed to fetch users');
             }
@@ -157,38 +164,43 @@ const openAddUserModal = () => {
     nameSelect.addEventListener('change', (event) => {
         selectedUserIdInput.value = event.target.value;
     });
-    
+
     // ปิด modal เมื่อคลิกปุ่ม close หรือคลิกนอก modal
     document.querySelector('#addUserModal .close').onclick = () => modal.style.display = 'none';
     window.onclick = (event) => { if (event.target === modal) modal.style.display = 'none'; };
 
     // ฟังก์ชันสำหรับการล้างฟอร์ม
     const resetForm = () => {
-        form.reset();  // ล้างค่าฟอร์ม
-        selectedUserIdInput.value = '';  // ล้างค่า userId
+        form.reset(); // ล้างค่าฟอร์ม
+        selectedUserIdInput.value = ''; // ล้างค่า userId
     };
 
-     // ฟังก์ชันตรวจสอบข้อมูลซ้ำ
+    // ฟังก์ชันตรวจสอบข้อมูลซ้ำ
     const checkDuplicateUser = async (id_member) => {
         try {
             const response = await fetch(`/api/staff/saving/check/${id_member}`);
             const result = await response.json();
 
             if (response.ok && result.exists) {
-                const confirmAdd = confirm("ผู้ใช้นี้มีบัญชีอยู่แล้ว ต้องการเพิ่มบัญชีใหม่หรือไม่?");
-                if (!confirmAdd) {
-                    window.location.href = '/staff/saving.html';
-                    return false;
-                }
-                return true;  // ถ้าเลือก "OK" ให้ดำเนินการต่อ
+                const confirmAdd = await Swal.fire({
+                    title: 'ผู้ใช้นี้มีบัญชีอยู่แล้ว!',
+                    text: 'ต้องการเพิ่มบัญชีใหม่หรือไม่?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'ใช่, เพิ่มบัญชีใหม่',
+                    cancelButtonText: 'ยกเลิก',
+                });
+
+                return confirmAdd.isConfirmed; // ถ้าผู้ใช้กด "OK" ให้ดำเนินการต่อ
             }
-            return true;  // ถ้าไม่มีบัญชี ให้ดำเนินการต่อได้
+            return true; // ถ้าไม่มีบัญชี ให้ดำเนินการต่อได้
         } catch (error) {
             console.error('Error checking for duplicate user:', error);
             return false;
         }
     };
-
 
     // ส่งฟอร์ม
     form.onsubmit = async (e) => {
@@ -200,7 +212,11 @@ const openAddUserModal = () => {
         const id_staff = document.getElementById('addStaffId').value;
 
         if (!id_member) {
-            alert('Please select a valid name.');
+            Swal.fire({
+                icon: 'error',
+                title: 'กรุณาเลือกชื่อผู้ใช้ที่ถูกต้อง',
+                text: 'คุณต้องเลือกชื่อผู้ใช้ก่อนดำเนินการต่อ',
+            });
             return;
         }
 
@@ -221,69 +237,23 @@ const openAddUserModal = () => {
             const result = await response.json();
             if (!response.ok) throw new Error(result.message || 'Failed to add user');
 
-            console.log('User added successfully');
-            await fetchAccount();  // รีเฟรชข้อมูลบัญชี
+            await fetchAccount(); // รีเฟรชข้อมูลบัญชี
             modal.style.display = 'none';
-            alert('User added successfully');
-            resetForm();  // ล้างฟอร์มหลังการบันทึก
-        } catch (error) {
-            console.error('Error adding user:', error);
-            alert(error.message || 'Failed to add user. Please try again.');
-        }
-    };
-};
 
-const openEditModal = async (userId) => {
-    const modal = document.getElementById('editUserModal');
-    const form = document.getElementById('editUserForm');
-
-    if (!modal || !form) {
-        console.error('Modal or form not found');
-        return;
-    }
-
-    modal.style.display = 'block';
-    try {
-        const response = await fetch(`/api/staff/saving/${userId}`);
-        const account = await response.json();
-
-        if (!response.ok || !account) {
-            throw new Error('Failed to fetch account data');
-        }
-        document.getElementById('editUserId').value = account._id;
-        document.getElementById('editName').value = await fetchUserName(account.id_member);
-        document.getElementById('editBalance').value = formatNumber(account.balance);
-        document.getElementById('editStaffId').value = await fetchUserName(account.id_staff);
-    } catch (error) {
-        console.error('Error fetching account data:', error);
-        alert('Failed to load user data for editing');
-        modal.style.display = 'none';
-    }
-
-    form.onsubmit = async (e) => {
-        e.preventDefault();
-        const balance = parseFloat(document.getElementById('editBalance').value.replace(/,/g, ''));
-
-        if (isNaN(balance) || balance < 0) {
-            alert('Please enter a valid balance.');
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/staff/saving/${userId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ balance }),
+            Swal.fire({
+                icon: 'success',
+                title: 'เพิ่มผู้ใช้สำเร็จ!',
+                text: 'บัญชีใหม่ถูกสร้างเรียบร้อยแล้ว',
             });
 
-            if (!response.ok) throw new Error('Failed to save user data');
-
-            alert('User data updated successfully!');
-            modal.style.display = 'none';
-            fetchAccount();
+            resetForm(); // ล้างฟอร์มหลังการบันทึก
         } catch (error) {
-            console.error('Error saving user data:', error);
-            alert('Failed to save user data. Please try again.');
+            console.error('Error adding user:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด!',
+                text: error.message || 'ไม่สามารถเพิ่มบัญชีได้ กรุณาลองใหม่',
+            });
         }
     };
 };
@@ -313,12 +283,16 @@ const openTransactionModal = async (userId) => {
         document.getElementById('transactionUserId').value = account._id;
         document.getElementById('transactionName').value = await fetchUserName(account.id_member);
         document.getElementById('transactionBalance').value = account.balance;
-        document.getElementById('transactionStaffId').value = await fetchStaffName(account.id_staff);
 
     } catch (error) {
         console.error('Error fetching account data:', error);
-        alert('Failed to load user data for transaction');
+        Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด!',
+            text: 'ไม่สามารถโหลดข้อมูลบัญชีได้',
+        });
         modal.style.display = 'none';
+        return;
     }
 
     // เมื่อฟอร์มถูกส่ง
@@ -329,7 +303,11 @@ const openTransactionModal = async (userId) => {
         const transactionAmount = parseFloat(document.getElementById('transactionAmount').value); // ปรับให้เป็นเลขทศนิยม
 
         if (!transactionAmount || transactionAmount <= 0) {
-            alert('Please enter a valid amount.');
+            Swal.fire({
+                icon: 'warning',
+                title: 'ข้อมูลไม่ถูกต้อง',
+                text: 'กรุณากรอกจำนวนเงินที่ถูกต้อง',
+            });
             return;
         }
 
@@ -338,22 +316,41 @@ const openTransactionModal = async (userId) => {
 
         let newBalance = 0;
         if (transactionType === 'deposit') {
-            // หากฝาก เงินต้องเพิ่มยอดเข้าไป
             newBalance = currentBalance + transactionAmount;
         } else if (transactionType === 'withdraw') {
-            // หากถอน เงินต้องลดยอดออก
             if (currentBalance < transactionAmount) {
-                alert('Insufficient balance for withdrawal.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'ยอดเงินไม่พอ',
+                    text: 'ไม่สามารถถอนเงินเกินยอดเงินที่มีได้',
+                });
                 return;
             }
             newBalance = currentBalance - transactionAmount;
+        }
+
+        // ยืนยันก่อนทำธุรกรรม
+        const confirmTransaction = await Swal.fire({
+            title: 'ยืนยันการทำธุรกรรม?',
+            text: `คุณต้องการ ${transactionType === 'deposit' ? 'ฝาก' : 'ถอน'} เงินจำนวน ${transactionAmount} หรือไม่?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'ใช่, ดำเนินการ!',
+            cancelButtonText: 'ยกเลิก',
+        });
+
+        if (!confirmTransaction.isConfirmed) {
+            console.log('❌ ผู้ใช้ยกเลิกการทำธุรกรรม');
+            return;
         }
 
         // สร้างข้อมูลการทำธุรกรรม
         const transactionData = {
             amount: transactionAmount,
             type: transactionType, // 'deposit' หรือ 'withdraw'
-            balance : newBalance, // ยอดเงินใหม่
+            balance: newBalance, // ยอดเงินใหม่
         };
 
         try {
@@ -385,21 +382,26 @@ const openTransactionModal = async (userId) => {
             });
 
             if (!historyResponse.ok) {
-                console.log(transactionHistory)
                 throw new Error('Failed to save transaction history');
             }
 
-            alert('Transaction processed and history saved successfully!');
-            console.log(transactionData);
+            Swal.fire({
+                icon: 'success',
+                title: 'ทำรายการสำเร็จ!',
+                text: 'ธุรกรรมของคุณได้รับการบันทึกแล้ว',
+            });
+
             modal.style.display = 'none';  // ปิด modal
             await fetchAccount();  // รีเฟรชข้อมูลบัญชี
-
-            // ล้างฟอร์มหลังการทำธุรกรรม
-            form.reset();
+            form.reset();  // ล้างฟอร์มหลังการทำธุรกรรม
 
         } catch (error) {
             console.error('Error processing transaction:', error);
-            alert('Failed to process transaction. Please try again.');
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด!',
+                text: 'ไม่สามารถทำธุรกรรมได้ กรุณาลองใหม่อีกครั้ง',
+            });
         }
     };
 
@@ -414,6 +416,51 @@ const openTransactionModal = async (userId) => {
             modal.style.display = 'none';
         }
     };
+};
+
+
+const deleteAccount = async (userId) => {
+    const confirmDelete = await Swal.fire({
+        title: 'คุณแน่ใจหรือไม่?',
+        text: 'บัญชีนี้จะถูกลบถาวรและไม่สามารถกู้คืนได้!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'ใช่, ลบเลย!',
+        cancelButtonText: 'ยกเลิก',
+    });
+
+    if (!confirmDelete.isConfirmed) {
+        console.log('❌ User cancelled the deletion.');
+        return; // ยกเลิกการลบถ้าผู้ใช้ไม่ยืนยัน
+    }
+
+    try {
+        const response = await fetch(`/api/staff/saving/${userId}`, {
+            method: 'DELETE',
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to delete account');
+        }
+
+        await Swal.fire({
+            icon: 'success',
+            title: 'ลบสำเร็จ!',
+            text: 'บัญชีถูกลบเรียบร้อยแล้ว',
+        });
+
+        // เรียกใช้ฟังก์ชันรีเฟรชข้อมูลบัญชี
+        await fetchAccount();
+    } catch (error) {
+        console.error('Error deleting account:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด!',
+            text: 'ไม่สามารถลบบัญชีได้ กรุณาลองใหม่อีกครั้ง',
+        });
+    }
 };
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -437,7 +484,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
-// ฟังก์ชันสำหรับ Logout
 const logout = async () => {
     try {
         const response = await fetch('/api/auth/logout', {
@@ -450,20 +496,35 @@ const logout = async () => {
             localStorage.removeItem("currentUser");
             localStorage.removeItem("selectedTheme");
 
-            alert("Logout successful! Redirecting to login page...");
+             // แสดงข้อความด้วย SweetAlert2
+            await Swal.fire({
+                icon: 'success',
+                title: 'Logout successful!',
+                text: 'You have been logged out. Redirecting to login page...',
+                timer: 1000, // ตั้งเวลาแสดง 2 วินาที
+                showConfirmButton: false,
+            });
+
             window.location.href = "/";
         } else {
-            alert("Logout failed. Please try again.");
+            await Swal.fire({
+                icon: 'error',
+                title: 'Logout failed!',
+                text: 'Please try again.',
+            });
         }
     } catch (error) {
         console.error("Error during logout:", error);
-        alert("An error occurred while logging out.");
+        await Swal.fire({
+            icon: 'error',
+            title: 'An error occurred',
+            text: 'There was an error while logging out.',
+        });
     }
 };
 
 document.getElementById('addUserButton').addEventListener('click', openAddUserModal);
 
-// แก้ไขที่นี่
 document.addEventListener('DOMContentLoaded', () => {
     // เพิ่ม event listener สำหรับปุ่ม "แก้ไข" ภายใน DOMContentLoaded
     document.querySelectorAll('.edit-btn').forEach(button => {
@@ -476,5 +537,4 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchAccount();
 });
 
-// เพิ่ม Event Listener สำหรับปุ่ม Toggle Sidebar
 document.getElementById('toggleSidebar').addEventListener('click', toggleSidebar);
