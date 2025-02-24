@@ -59,7 +59,7 @@ const fetchAccount = async () => {
                 const staffName = await fetchUserName(account.id_staff);
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${account._id}</td>
+                    <td>${account.id_account}</td>
                     <td>${userName}</td>
                     <td>${formatCurrency(account.balance)}</td>
                     <td>${staffName}</td>
@@ -177,7 +177,7 @@ const openAddUserModal = () => {
             if (response.ok && result.exists) {
                 const confirmAdd = confirm("ผู้ใช้นี้มีบัญชีอยู่แล้ว ต้องการเพิ่มบัญชีใหม่หรือไม่?");
                 if (!confirmAdd) {
-                    window.location.href = '/staff/saving.html';  // เปลี่ยน /new-page เป็น URL ที่คุณต้องการให้ไป
+                    window.location.href = '/staff/saving.html';
                     return false;
                 }
                 return true;  // ถ้าเลือก "OK" ให้ดำเนินการต่อ
