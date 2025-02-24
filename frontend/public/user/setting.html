@@ -3,14 +3,13 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/png" sizes="16x16" href="../images/logo.png"/>
         <title>ระบบฝาก – ถอนเงินสหกรณ์ออมทรัพย์หมู่บ้าน ตําบล ตะกุกเหนือ</title>
-        <link rel="icon" type="image/x-icon" href="/images/logo.png">
         <link rel="stylesheet" href="/styles/setting.css">
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
         <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
         <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script>
             tailwind.config = {
                 theme: {
@@ -31,7 +30,8 @@
             }
         </script>
     </head>
-<body class="bg-green-50 font-sans text-gray-800">
+
+<body class="bg-background text-secondary font-sans">
     <div class="flex h-screen">
         <!-- Sidebar -->
         <aside class="w-64 bg-gradient-to-b from-primary to-green-700 text-white flex flex-col shadow-xl rounded-r-lg transition-all duration-300">
@@ -60,13 +60,12 @@
                     </a>
                 </li>
                 <li>
-                    <a href="/logout" id="logoutButton" class="flex items-center space-x-3 text-red-500 hover:text-red-400 transition duration-200 p-3 rounded-lg hover:bg-green-600">
+                    <a id="logoutButton" class="flex items-center space-x-3 text-red-500 hover:text-red-400 transition duration-200 p-3 rounded-lg hover:bg-green-600">
                         <i class="fas fa-sign-out-alt"></i><span>ออกจากระบบ</span>
                     </a>
                 </li>
             </ul>
         </aside>
-        
 
         <!-- Main Content -->
         <main class="flex-1 p-8">

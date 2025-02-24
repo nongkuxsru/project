@@ -3,8 +3,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const userData = JSON.parse(localStorage.getItem("currentUser"));
 
     if (!userData) {
-        alert("No user data found. Please log in again.");
-        window.location.href = "/"; // Redirect ไปหน้า Login ถ้าไม่มีข้อมูลผู้ใช้
+        Swal.fire({
+            icon: 'error',
+            title: 'No user data found',
+            text: 'Please log in again.',
+        }).then(() => {
+            window.location.href = "/"; // Redirect ไปหน้า Login ถ้าไม่มีข้อมูลผู้ใช้
+        });
         return;
     }
 
@@ -39,20 +44,30 @@ document.addEventListener("DOMContentLoaded", () => {
                 // ✅ บันทึกข้อมูลใหม่ลง LocalStorage
                 localStorage.setItem("currentUser", JSON.stringify(updatedData));
 
-                console.log("User data updated successfully.");
-                window.location.href = "/user"; // Redirect ไปหน้า User Dashboard
+                Swal.fire({
+                    icon: 'success',
+                    title: 'User information updated successfully!',
+                    text: 'Redirecting to user dashboard...',
+                }).then(() => {
+                    window.location.href = "/user"; // Redirect ไปหน้า User Dashboard
+                });
 
                 // ✅ อัปเดต Transaction พร้อมกัน
                 await updateUserTransactions(updatedData.name);
-
-                alert("User information updated successfully!");
-                // window.location.href = "/user"; 
             } else {
-                alert("Error updating data: " + result.error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error updating data',
+                    text: result.error,
+                });
             }
         } catch (error) {
             console.error("Update failed:", error);
-            alert("An error occurred while updating user information.");
+            Swal.fire({
+                icon: 'error',
+                title: 'An error occurred',
+                text: 'Unable to update user information. Please try again later.',
+            });
         }
     });
 
@@ -76,6 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 });
+
 
 // ฟังก์ชันแสดงข้อมูลในฟอร์ม
 function populateForm(userData) {
@@ -119,7 +135,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
-// ฟังก์ชันสำหรับ Logout
 const logout = async () => {
     try {
         const response = await fetch('/api/auth/logout', {
@@ -132,14 +147,30 @@ const logout = async () => {
             localStorage.removeItem("currentUser");
             localStorage.removeItem("selectedTheme");
 
-            alert("Logout successful! Redirecting to login page...");
+             // แสดงข้อความด้วย SweetAlert2
+            await Swal.fire({
+                icon: 'success',
+                title: 'Logout successful!',
+                text: 'You have been logged out. Redirecting to login page...',
+                timer: 1000, // ตั้งเวลาแสดง 2 วินาที
+                showConfirmButton: false,
+            });
+
             window.location.href = "/";
         } else {
-            alert("Logout failed. Please try again.");
+            await Swal.fire({
+                icon: 'error',
+                title: 'Logout failed!',
+                text: 'Please try again.',
+            });
         }
     } catch (error) {
         console.error("Error during logout:", error);
-        alert("An error occurred while logging out.");
+        await Swal.fire({
+            icon: 'error',
+            title: 'An error occurred',
+            text: 'There was an error while logging out.',
+        });
     }
 };
 
