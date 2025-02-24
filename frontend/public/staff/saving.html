@@ -124,6 +124,9 @@
                     <span class="close">&times;</span>
                     <h2 class="text-primary">เพิ่มบัญชีใหม่</h2>
                     <form id="addUserForm" class="space-y-4">
+                        <label for="addAccountId" class="block text-secondary">หมายเลขบัญชี:</label>
+                        <input type="text" id="addAccountId" name="accountId" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+
                         <label for="addName" class="block text-secondary">ชื่อ:</label>
                         <select id="addName" name="name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
                             <!-- Option will be filled by JavaScript from database -->
@@ -174,6 +177,10 @@
                     <h2 class="text-primary">ธุรกรรม</h2>
                     <form id="transactionForm" class="space-y-4">
                         <input type="hidden" id="transactionUserId">
+
+                        <label for="transactionAccountId">เลขที่บัญชี</label>
+                        <input type="text" id="transactionAccountId" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+
                         <label for="transactionName" class="block text-secondary">ชื่อผู้ใช้:</label>
                         <input type="text" id="transactionName" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
 

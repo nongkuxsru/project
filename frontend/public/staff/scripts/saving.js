@@ -110,6 +110,10 @@ const fetchStaffName = async (userId) => {
     }
 };
 
+const generateAccountId = () => {
+    return Math.floor(1000000000 + Math.random() * 9000000000); // สุ่มเลข 10 หลัก
+};
+
 const openAddUserModal = () => {
     const modal = document.getElementById('addUserModal');
     const form = document.getElementById('addUserForm');
@@ -117,6 +121,9 @@ const openAddUserModal = () => {
     const selectedUserIdInput = document.getElementById('selectedUserId');
 
     modal.style.display = 'block';  // แสดง modal
+
+     // สุ่มหมายเลขบัญชีใหม่ทุกครั้งที่เปิดฟอร์ม
+     document.getElementById('addAccountId').value = generateAccountId();
 
     // เติมค่า Staff ID ลงในฟอร์มโดยอัตโนมัติ
     const staffId = getStaffIdFromLocalStorage();
@@ -181,6 +188,7 @@ const openAddUserModal = () => {
     form.onsubmit = async (e) => {
         e.preventDefault();
 
+        const id_account = document.getElementById('addAccountId').value;
         const id_member = selectedUserIdInput.value;
         const balance = document.getElementById('addBalance').value;
         const id_staff = document.getElementById('addStaffId').value;
@@ -195,7 +203,7 @@ const openAddUserModal = () => {
             alert('This user already exists in the system.');
             return;
         }
-        const newUser = { id_member, balance, id_staff };
+        const newUser = { id_account, id_member, balance, id_staff };
         try {
             const response = await fetch('/api/staff/saving', {
                 method: 'POST',
@@ -294,6 +302,7 @@ const openTransactionModal = async (userId) => {
         }
 
         // แสดงข้อมูลในฟอร์ม
+        document.getElementById('transactionAccountId').value = account.id_account;
         document.getElementById('transactionUserId').value = account._id;
         document.getElementById('transactionName').value = await fetchUserName(account.id_member);
         document.getElementById('transactionBalance').value = account.balance;

@@ -198,7 +198,6 @@ const editUser = (userId) => {
 };
 
 // ฟังก์ชันสำหรับเปิด modal เพื่อเพิ่มผู้ใช้
-// ฟังก์ชันสำหรับเปิด modal เพื่อเพิ่มผู้ใช้
 const openAddUserModal = () => {
     const modal = document.getElementById('addUserModal');
     const form = document.getElementById('addUserForm');
@@ -234,43 +233,42 @@ const openAddUserModal = () => {
         }
     };
 
-    // จัดการการส่งฟอร์ม
     form.onsubmit = async (e) => {
         e.preventDefault();
-
-        // รับข้อมูลจากฟอร์มและแปลงปีวันเกิดจาก พ.ศ. เป็น ค.ศ.
+    
         const newUser = {
             name: document.getElementById('addName').value,
             email: document.getElementById('addEmail').value,
             password: document.getElementById('addPassword').value,
             address: document.getElementById('addAddress').value,
             phone: document.getElementById('addPhone').value,
-            birthday: convertToAD(document.getElementById('addBirthday').value), // แปลงเป็นปี ค.ศ.
+            birthday: convertToAD(document.getElementById('addBirthday').value),
             permission: document.getElementById('addPermission').value,
         };
-
+    
         try {
             const response = await fetch('/api/admin/users', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newUser),
             });
-
-            // ตรวจสอบว่า response เป็น JSON หรือไม่
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                const text = await response.text(); // อ่าน response เป็นข้อความ
-                throw new Error(`Expected JSON, but got: ${text}`);
-            }
-
-            const result = await response.json(); // แปลง response เป็น JSON
-
+    
+            const result = await response.json();
+            console.log('User created:', result); // ✅ ตรวจสอบข้อมูลที่ได้จาก API
+    
             if (!response.ok) {
                 throw new Error(result.message || 'Failed to add user');
             }
-
-            await fetchAndRenderUsers(); // อัปเดตตารางผู้ใช้
-            modal.style.display = 'none'; // ปิด modal
+    
+            if (!result._id) {
+                throw new Error('User ID not found in response');
+            }
+    
+            // ✅ ใช้ _id ในการสร้างบัญชี Saving
+            await createSavingAccount(result._id);
+    
+            await fetchAndRenderUsers();
+            modal.style.display = 'none';
             alert('User added successfully');
         } catch (error) {
             console.error('Error adding user:', error);
@@ -278,6 +276,47 @@ const openAddUserModal = () => {
         }
     };
 };
+
+const createSavingAccount = async (userId) => {
+    if (!userId) {
+        console.error('❌ createSavingAccount: userId is missing');
+        return;
+    }
+
+    console.log('✅ Creating saving account for userId:', userId);
+
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+
+    const newSavingAccount = {
+        id_account: Math.floor(1000000000 + Math.random() * 9000000000).toString(),
+        id_member: userId,
+        balance: 0,
+        id_staff: user && user._id ? user._id : 'unknown_staff_id',
+    };
+
+    try {
+        console.log('Sending data:', newSavingAccount);
+
+        const response = await fetch('/api/staff/saving', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newSavingAccount),
+        });
+
+        const result = await response.json();
+        console.log('Saving account response:', result);
+
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to create saving account');
+        }
+
+        console.log('✅ Saving account created successfully');
+    } catch (error) {
+        console.error('❌ Error creating saving account:', error);
+    }
+};
+
+
 
 document.addEventListener("DOMContentLoaded", function() {
     // ดึงข้อมูลผู้ใช้จาก localStorage
