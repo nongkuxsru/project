@@ -169,20 +169,26 @@ const openAddUserModal = () => {
     };
 
      // ฟังก์ชันตรวจสอบข้อมูลซ้ำ
-     const checkDuplicateUser = async (id_member) => {
+    const checkDuplicateUser = async (id_member) => {
         try {
             const response = await fetch(`/api/staff/saving/check/${id_member}`);
             const result = await response.json();
 
             if (response.ok && result.exists) {
-                return true;  // ถ้ามีผู้ใช้นั้นอยู่แล้ว
+                const confirmAdd = confirm("ผู้ใช้นี้มีบัญชีอยู่แล้ว ต้องการเพิ่มบัญชีใหม่หรือไม่?");
+                if (!confirmAdd) {
+                    window.location.href = '/staff/saving.html';  // เปลี่ยน /new-page เป็น URL ที่คุณต้องการให้ไป
+                    return false;
+                }
+                return true;  // ถ้าเลือก "OK" ให้ดำเนินการต่อ
             }
-            return false;  // ถ้าไม่มีผู้ใช้นั้น
+            return true;  // ถ้าไม่มีบัญชี ให้ดำเนินการต่อได้
         } catch (error) {
             console.error('Error checking for duplicate user:', error);
             return false;
         }
     };
+
 
     // ส่งฟอร์ม
     form.onsubmit = async (e) => {
@@ -197,12 +203,13 @@ const openAddUserModal = () => {
             alert('Please select a valid name.');
             return;
         }
-        // ตรวจสอบข้อมูลซ้ำ
-        const isDuplicate = await checkDuplicateUser(id_member);
-        if (isDuplicate) {
-            alert('This user already exists in the system.');
-            return;
+
+        const canProceed = await checkDuplicateUser(id_member);
+        if (!canProceed) {
+            console.log('❌ User cancelled the account creation.');
+            return; // ยกเลิกการสร้างบัญชีถ้าผู้ใช้ไม่ยืนยัน
         }
+
         const newUser = { id_account, id_member, balance, id_staff };
         try {
             const response = await fetch('/api/staff/saving', {
