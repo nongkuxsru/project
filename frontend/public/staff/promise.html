@@ -111,7 +111,6 @@
                                 <th class="border px-4 py-2">หมายเลขสัญญา</th>
                                 <th class="border px-4 py-2">หมายเลขบัญชีออมทรัพย์</th>
                                 <th class="border px-4 py-2">จำนวนเงินกู้</th>
-                                <th class="border px-4 py-2">หมายเลขพนักงาน</th>
                                 <th class="border px-4 py-2">วันที่สร้างสัญญา</th>
                                 <th class="border px-4 py-2">วันที่ครบกำหนด</th>
                                 <th class="border px-4 py-2">การกระทำ</th>
@@ -136,7 +135,7 @@
                     <form id="createPromiseForm">
                         <div class="form-group">
                             <label for="memberId">รหัสสมาชิก:</label>
-                            <input type="text" id="memberId" required>
+                            <input type="text" id="memberId" readonly required>
                         </div>
                         
                         <div class="form-group">
@@ -148,7 +147,7 @@
 
                         <div class="form-group">
                             <label for="savingBalance">ยอดเงินในบัญชีออมทรัพย์:</label>
-                            <input type="number" id="savingBalance" readonly class="border-b-4 border-gray-300 mb-4">
+                            <input type="number" id="savingBalance" readonly class="border-b-4 border-gray-300 mb-4 bg-gray-100">
                         </div>
 
                         <div class="flex gap-4">
@@ -183,6 +182,34 @@
                             <button type="button" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300" id="cancelPromise">ยกเลิก</button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- Modal รายละเอียดสัญญา -->
+            <div id="promiseDetailsModal" class="modal">
+                <div class="modal-content max-w-2xl w-full bg-white rounded-lg shadow-xl">
+                    <div class="modal-header bg-primary text-white p-4 rounded-t-lg flex justify-between items-center">
+                        <h2 class="text-xl font-bold">รายละเอียดสัญญาเงินกู้</h2>
+                        <button class="close hover:text-gray-300 transition-colors">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <div id="promiseDetailsContent" class="p-6 space-y-4">
+                        <!-- เนื้อหาจะถูกเพิ่มด้วย JavaScript -->
+                        <div class="animate-pulse">
+                            <div class="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                            <div class="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+                            <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-gray-50 p-4 rounded-b-lg flex justify-end space-x-3">
+                        <button class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors" onclick="closePromiseDetails()">
+                            ปิด
+                        </button>
+                        <button class="bg-primary hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors" onclick="printPromiseDetails()">
+                            <i class="fas fa-print mr-2"></i>พิมพ์สัญญา
+                        </button>
+                    </div>
                 </div>
             </div>
         </main>

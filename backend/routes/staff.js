@@ -181,26 +181,10 @@ router.get('/promise/check/:id_member', async (req, res) => {
     }
 });
 
-router.get('/promise/:userId', async (req, res) => {
-    const { userId } = req.params;
-    console.log('Received userId:', userId); // เพิ่มการตรวจสอบ userId
-    
+router.get('/promise/:id', async (req, res) => {
+    const { id } = req.params;
     try {
-        // ขั้นที่ 1: ค้นหา Saving ตาม userId
-        const saving = await Saving.findOne({ id_member: userId });
-
-        if (!saving) {
-            return res.status(404).json({ error: 'Saving account not found for the given userId' });
-        }
-
-        // ขั้นที่ 2: ค้นหาข้อมูล Promise โดยใช้ id_saving จาก Saving
-        const promise = await Promise.findOne({ id_saving: saving._id });
-
-        if (!promise) {
-            return res.status(404).json({ error: 'Promise not found for the given userId' });
-        }
-
-        // ส่งข้อมูล Promise กลับไป
+        const promise = await Promise.findById(id);
         res.json(promise);
     } catch (error) {
         console.error('Error fetching promise:', error);

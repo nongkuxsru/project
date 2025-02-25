@@ -3,9 +3,8 @@ const User = require('./Users'); // เรียกใช้งานโมเ�
 const Saving = require('./Saving'); // เรียกใช้งานโมเดล Saving
 
 const promiseSchema = new mongoose.Schema({
-    id_saving:{ // อ้างอิงไปยัง Saving
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Saving',
+    id_saving: { // อ้างอิงไปยัง Saving
+        type: String,  // เปลี่ยนจาก ObjectId เป็น String
         required: true
     },
     Datepromise: { // วันที่ทำสัญญา

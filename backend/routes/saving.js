@@ -4,65 +4,15 @@ const mongoose = require('mongoose');
 const Saving = require('../models/Saving'); // ใช้โมเดล Saving
 const User = require('../models/Users'); // ใช้โมเดล User เพื่ออ้างอิง id_member และ id_staff
 
-async function syncSavings() {
-    try {
-        // ดึงข้อมูลผู้ใช้ทั้งหมดจาก User collection
-        const users = await User.find();
-
-        for (const user of users) {
-            // ตรวจสอบว่าผู้ใช้นั้นมีบัญชี Saving อยู่แล้วหรือไม่
-            const existingSaving = await Saving.findOne({ id_member: user._id });
-
-            if (!existingSaving) {
-                // หากไม่มีบัญชี Saving ให้สร้างบัญชีใหม่
-                if (user.permission === 'user') {
-                    await Saving.create({
-                        id_member: user._id,
-                        balance: 0,
-                        id_staff: null // กำหนดค่าเป็น null หรือ ID staff ที่ต้องการ
-                    });
-                    console.log(`Saving account created for user: ${user.name}`);
-                }
-            } else {
-                // หากมีบัญชีอยู่แล้ว ให้แสดงข้อความ (สามารถอัปเดตข้อมูลในบัญชีได้ตามต้องการ)
-                console.log(`Saving account already exists for user: ${user.name}`);
-            }
-        }
-        console.log('Saving accounts synchronized successfully!');
-    } catch (error) {
-        console.error('Error syncing savings:', error);
-    }
-}
-
-// ฟังก์ชันสำหรับดึงชื่อผู้ใช้จากฐานข้อมูล
-const getUserName = async (userId) => {
-    const user = await Saving.findOne({ userId }); // ค้นหาผู้ใช้จาก userId
-    return user ? user.name : null;
-};
-
-// ฟังก์ชันสำหรับบันทึกข้อมูลการออมทรัพย์
-const saveSavings = async (req, res) => {
-    try {
-        const { userId, amount } = req.body;
-
-        // ดึงชื่อผู้ใช้จากฐานข้อมูล
-        const name = await getUserName(userId);
-        if (!name) {
-            return res.status(404).json({ error: 'User not found!' });
-        }
-
-        // สร้างข้อมูลใหม่
-        const newSaving = new Saving({ name, userId, amount });
-        await newSaving.save(); // บันทึกลง MongoDB
-
-        res.status(201).json({ message: 'Data saved successfully!', data: newSaving });
-    } catch (error) {
-        res.status(500).json({ error: 'Error saving data!', details: error.message });
-    }
-};
-
 // Route สำหรับบันทึกข้อมูลการออมทรัพย์
-router.post('/savings', saveSavings);
+router.post('/savings', async (req, res, next) => {
+    try {
+        const newSaving = await Saving.create(req.body);
+        res.status(201).json(newSaving);
+    } catch (err) {
+        next(err);
+    }
+});
 
 // Get all Savings
 router.get('/savings', async (req, res, next) => {

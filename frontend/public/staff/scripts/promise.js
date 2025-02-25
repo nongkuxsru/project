@@ -1,5 +1,9 @@
 // =============================================
-// Utility Functions
+// Constants and Configurations
+// =============================================
+
+// =============================================
+// Core Utility Functions
 // =============================================
 
 // ฟังก์ชันดึงชื่อผู้ใช้จาก API
@@ -24,7 +28,7 @@ const toggleSidebar = () => {
 };
 
 // =============================================
-// Promise Management Functions
+// Data Management Functions
 // =============================================
 
 // ฟังก์ชันสำหรับดึงข้อมูลบัญชีสัญญากู้ยืม
@@ -47,12 +51,15 @@ const fetchPromise = async () => {
                 <td>${account._id}</td>
                 <td>${account.id_saving}</td>
                 <td>${account.amount}</td>
-                <td>${account.id_saving}</td>
                 <td>${new Date(account.Datepromise).toLocaleDateString()}</td>
                 <td>${new Date(account.DueDate).toLocaleDateString()}</td>
-                <td><button onclick="openPromiseDetailsModal('${account._id}')" class="viewDetailsButton">
-                    <i class="fas fa-eye"></i> View Details
-                </button></td>
+                <td>
+                    <button onclick="openPromiseDetailsModal('${account._id}')" 
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-none focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
+                        <i class="fas fa-eye"></i>
+                        <span class="font-ibm-plex-thai">ดูรายละเอียด</span>
+                    </button>
+                </td>
             `;
             tableBody.appendChild(row);
         });
@@ -61,6 +68,87 @@ const fetchPromise = async () => {
         const tableBody = document.getElementById('promiseTableBody');
         tableBody.innerHTML = '<tr><td colspan="7">Failed to load data.</td></tr>';
     }
+};
+
+// =============================================
+// Form Handling Functions
+// =============================================
+
+// ฟังก์ชันตรวจสอบและดึงข้อมูลจากฟอร์ม
+const validateAndGetFormData = () => {
+    const memberSelect = document.getElementById('memberName');
+    const selectedOption = memberSelect.options[memberSelect.selectedIndex];
+    const memberId = selectedOption?.value;
+    const savingBalance = parseFloat(selectedOption?.dataset.balance || '0');
+    const loanAmount = parseFloat(document.getElementById('loanAmount').value);
+    const promiseDate = document.getElementById('promiseDate').value;
+    const dueDate = document.getElementById('dueDate').value;
+
+    // ตรวจสอบข้อมูลที่จำเป็น
+    if (!memberId) {
+        throw new Error('กรุณาเลือกสมาชิก');
+    }
+    if (!loanAmount || isNaN(loanAmount) || loanAmount <= 0) {
+        throw new Error('กรุณาระบุจำนวนเงินที่ถูกต้อง');
+    }
+    if (!promiseDate) {
+        throw new Error('กรุณาระบุวันที่ทำสัญญา');
+    }
+    if (!dueDate) {
+        throw new Error('กรุณาระบุวันครบกำหนด');
+    }
+    if (loanAmount > savingBalance) {
+        throw new Error('จำนวนเงินที่ขอกู้เกินกว่ายอดเงินในบัญชีออมทรัพย์');
+    }
+    if (new Date(dueDate) <= new Date(promiseDate)) {
+        throw new Error('วันครบกำหนดต้องมากกว่าวันที่ทำสัญญา');
+    }
+
+    return {
+        id_saving: memberId,
+        amount: loanAmount,
+        Datepromise: promiseDate,
+        DueDate: dueDate
+    };
+};
+
+// ฟังก์ชันจัดการการส่งฟอร์มสร้างสัญญา
+const handleCreatePromiseForm = (form, modal) => {
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const formData = validateAndGetFormData();
+            await createNewPromise(formData);
+            await handleSuccessfulCreation(modal, form);
+        } catch (error) {
+            handlePromiseCreationError(error);
+        }
+    };
+};
+
+// ฟังก์ชันจัดการเมื่อสร้างสัญญาสำเร็จ
+const handleSuccessfulCreation = async (modal, form) => {
+    console.log('สร้างสัญญาสำเร็จ - กำลังรีเฟรชข้อมูล');
+    await Swal.fire({
+        icon: 'success',
+        title: 'สร้างสัญญาเงินกู้สำเร็จ',
+        text: 'ระบบได้บันทึกข้อมูลสัญญาเรียบร้อยแล้ว',
+        timer: 2000,
+        showConfirmButton: false
+    });
+    await fetchPromise();
+    modal.style.display = 'none';
+    form.reset();
+};
+
+// ฟังก์ชันจัดการข้อผิดพลาดในการสร้างสัญญา
+const handlePromiseCreationError = (error) => {
+    console.error('Error creating loan promise:', error);
+    Swal.fire({
+        icon: 'error',
+        title: 'เกิดข้อผิดพลาด',
+        text: error.message || 'ไม่สามารถสร้างสัญญาเงินกู้ได้ กรุณาลองใหม่อีกครั้ง'
+    });
 };
 
 // =============================================
@@ -76,25 +164,28 @@ const openPromiseDetailsModal = async (promiseId) => {
         const modal = document.getElementById('promiseDetailsModal');
         const modalContent = document.getElementById('promiseDetailsContent');
         
+        if (!modal || !modalContent) {
+            throw new Error('Modal elements not found in the document');
+        }
+
         modalContent.innerHTML = `
-            <h2>รายละเอียดสัญญากู้ยืม</h2>
             <p><strong>รหัสสัญญา:</strong> ${promiseDetails._id}</p>
             <p><strong>รหัสสมาชิก:</strong> ${promiseDetails.id_saving}</p>
             <p><strong>จำนวนเงิน:</strong> ${promiseDetails.amount} บาท</p>
             <p><strong>วันที่ทำสัญญา:</strong> ${new Date(promiseDetails.Datepromise).toLocaleDateString()}</p>
             <p><strong>วันครบกำหนด:</strong> ${new Date(promiseDetails.DueDate).toLocaleDateString()}</p>
-            <button onclick="closePromiseDetailsModal()" class="closeButton">ปิด</button>
+            <button onclick="closePromiseDetailsModal()" class="closeButton"></button>
         `;
 
         modal.style.display = 'block';
     } catch (error) {
         console.error('Error fetching promise details:', error);
-        alert('ไม่สามารถดึงข้อมูลรายละเอียดสัญญาได้');
+        alert('ไม่สามารถดึงข้อมูลรายละเอียดสัญญาได้: ' + error.message);
     }
 };
 
 // ฟังก์ชันสำหรับปิด modal
-const closePromiseDetailsModal = () => {
+const closePromiseDetails = () => {
     const modal = document.getElementById('promiseDetailsModal');
     modal.style.display = 'none';
 };
@@ -153,18 +244,12 @@ const openCreatePromiseModal = async () => {
     }
 };
 
-// ฟังก์ชันจัดการการส่งฟอร์มสร้างสัญญา
-const handleCreatePromiseForm = (form, modal) => {
-    form.onsubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const formData = validateAndGetFormData();
-            await createNewPromise(formData);
-            await handleSuccessfulCreation(modal, form);
-        } catch (error) {
-            handlePromiseCreationError(error);
-        }
-    };
+// ฟังก์ชันสำหรับปิด modal
+const closeModal = () => {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.style.display = 'none';
+    });
 };
 
 // ฟังก์ชันสำหรับยกเลิกการสร้างสัญญา
@@ -188,79 +273,55 @@ const cancelPromiseCreation = () => {
     });
 };
 
-// ปรับปรุง Event Listeners
-document.addEventListener('DOMContentLoaded', () => {
-    // ... existing code ...
+// =============================================
+// Print Functions
+// =============================================
+
+// ฟังก์ชันสำหรับพิมพ์รายละเอียดสัญญา
+const printPromiseDetails = () => {
+    const content = document.getElementById('promiseDetailsContent');
+    const printWindow = window.open('', '', 'width=800,height=600');
     
-    // เพิ่ม Event Listener สำหรับปุ่มยกเลิก
-    document.getElementById('cancelPromise').addEventListener('click', cancelPromiseCreation);
-});
-
-// ... existing code ...
-
-// =============================================
-// Form Handling Helper Functions
-// =============================================
-
-// ฟังก์ชันตรวจสอบและดึงข้อมูลจากฟอร์ม
-const validateAndGetFormData = () => {
-    const memberId = document.getElementById('memberId').value;
-    const savingBalance = parseFloat(document.getElementById('savingBalance').value);
-    const loanAmount = parseFloat(document.getElementById('loanAmount').value);
-    const savingStatus = document.getElementById('savingStatus').value;
-
-    if (savingStatus !== 'active') {
-        throw new Error('บัญชีออมทรัพย์ไม่อยู่ในสถานะที่ใช้งานได้');
-    }
-
-    if (loanAmount > savingBalance) {
-        throw new Error('จำนวนเงินที่ขอกู้เกินกว่ายอดเงินในบัญชีออมทรัพย์');
-    }
-
-    return {
-        id_saving: memberId,
-        amount: loanAmount,
-        Datepromise: document.getElementById('promiseDate').value,
-        DueDate: document.getElementById('dueDate').value
-    };
-};
-
-// ฟังก์ชันสร้างสัญญาใหม่
-const createNewPromise = async (promiseData) => {
-    const response = await fetch('/api/staff/promise', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(promiseData)
-    });
-
-    if (!response.ok) {
-        throw new Error('Failed to create loan promise');
-    }
-};
-
-// ฟังก์ชันจัดการเมื่อสร้างสัญญาสำเร็จ
-const handleSuccessfulCreation = async (modal, form) => {
-    await Swal.fire({
-        icon: 'success',
-        title: 'สร้างสัญญาเงินกู้สำเร็จ',
-        text: 'ระบบได้บันทึกข้อมูลสัญญาเรียบร้อยแล้ว',
-        timer: 2000,
-        showConfirmButton: false
-    });
-    await fetchPromise();
-    modal.style.display = 'none';
-    form.reset();
-};
-
-// ฟังก์ชันจัดการข้อผิดพลาดในการสร้างสัญญา
-const handlePromiseCreationError = (error) => {
-    console.error('Error creating loan promise:', error);
-    Swal.fire({
-        icon: 'error',
-        title: 'เกิดข้อผิดพลาด',
-        text: error.message || 'ไม่สามารถสร้างสัญญาเงินกู้ได้ กรุณาลองใหม่อีกครั้ง'
-    });
-};
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>พิมพ์สัญญาเงินกู้</title>
+                <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
+                <style>
+                    body {
+                        font-family: 'IBM Plex Sans Thai', sans-serif;
+                        padding: 20px;
+                        line-height: 1.6;
+                    }
+                    .header {
+                        text-align: center;
+                        margin-bottom: 30px;
+                    }
+                    .content {
+                        margin: 20px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>สัญญาเงินกู้</h1>
+                </div>
+                <div class="content">
+                    ${content.innerHTML}
+                </div>
+            </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    
+    // รอให้เนื้อหาโหลดเสร็จก่อนสั่งพิมพ์
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 250);
+}
 
 // =============================================
 // Authentication Functions
@@ -339,16 +400,6 @@ window.onclick = (event) => {
     }
 };
 
-// ... existing code ...
-
-// ฟังก์ชันสำหรับปิด modal
-const closeModal = () => {
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal => {
-        modal.style.display = 'none';
-    });
-};
-
 // เพิ่ม Event Listener สำหรับการคลิกพื้นที่ว่างเพื่อปิด modal
 window.onclick = (event) => {
     const modals = document.querySelectorAll('.modal');
@@ -369,4 +420,32 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// ... existing code ...
+// =============================================
+// Export (if needed)
+// =============================================
+
+// ฟังก์ชันสำหรับสร้างสัญญาเงินกู้ใหม่
+const createNewPromise = async (formData) => {
+    try {
+        console.log('ข้อมูลที่ส่งไป API:', formData);
+        const response = await fetch('/api/staff/promise', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+        console.log('ข้อมูลที่ได้รับจาก API:', data);
+
+        if (!response.ok) {
+            throw new Error(data.message || 'ไม่สามารถสร้างสัญญาเงินกู้ได้');
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Error in createNewPromise:', error);
+        throw new Error(error.message || 'เกิดข้อผิดพลาดในการสร้างสัญญาเงินกู้');
+    }
+};
