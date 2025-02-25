@@ -1,3 +1,74 @@
+document.addEventListener('DOMContentLoaded', () => {
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+});
+
+// Sidebar Functions
+const toggleSidebar = () => {
+    try {
+        const aside = document.querySelector('aside');
+        const main = document.querySelector('main');
+        
+        if (!aside || !main) {
+            console.error('ไม่พบ aside หรือ main elements');
+            return;
+        }
+
+        aside.classList.toggle('w-64');
+        aside.classList.toggle('w-20');
+        
+        const textElements = aside.querySelectorAll('span');
+        textElements.forEach(span => {
+            span.classList.toggle('hidden');
+        });
+
+        const isCollapsed = !aside.classList.contains('w-64');
+        localStorage.setItem('sidebarState', isCollapsed);
+    } catch (error) {
+        console.error('เกิดข้อผิดพลาดในการ toggle sidebar:', error);
+    }
+};
+
+const initializeSidebar = () => {
+    try {
+        const aside = document.querySelector('aside');
+        if (!aside) return;
+
+        const isCollapsed = localStorage.getItem('sidebarState') === 'true';
+        
+        if (isCollapsed) {
+            aside.classList.remove('w-64');
+            aside.classList.add('w-20');
+            
+            const textElements = aside.querySelectorAll('span');
+            textElements.forEach(span => {
+                span.classList.add('hidden');
+            });
+        }
+    } catch (error) {
+        console.error('เกิดข้อผิดพลาดในการเริ่มต้น sidebar:', error);
+    }
+};
+
+// Sidebar Observer
+const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        if (mutation.addedNodes.length) {
+            const aside = document.querySelector('aside');
+            const toggleButton = document.getElementById('toggleSidebar');
+            
+            if (aside && toggleButton && !toggleButton.hasListener) {
+                toggleButton.addEventListener('click', toggleSidebar);
+                toggleButton.hasListener = true;
+                initializeSidebar();
+                observer.disconnect();
+            }
+        }
+    });
+});
+
 document.addEventListener("DOMContentLoaded", () => {
     // ✅ ดึงข้อมูลจาก LocalStorage
     const userData = JSON.parse(localStorage.getItem("currentUser"));
@@ -113,24 +184,37 @@ function resetForm() {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-    // ดึงข้อมูลผู้ใช้จาก localStorage
+    // ดึงข้อมูลผู้ใช้และแสดงผลตามปกติ
     const user = JSON.parse(localStorage.getItem('currentUser'));
 
     if (user) {
-        // หากข้อมูลผู้ใช้มีการล็อกอินมาแล้ว
         const userName = user.name || 'ผู้ใช้ไม่ระบุ';
-        const userAvatar = user.avatar || userName.charAt(0).toUpperCase(); // ใช้อักษรตัวแรกจากชื่อผู้ใช้เป็นอวาตาร์
-       
-        // แสดงชื่อผู้ใช้
+        const userAvatar = user.avatar || userName.charAt(0).toUpperCase();
         document.getElementById('userName').textContent = 'ยินดีต้อนรับ ' + userName;
-        
-        // แสดงอวาตาร์
         document.getElementById('userAvatar').textContent = userAvatar;
     } else {
-        // หากไม่มีข้อมูลผู้ใช้ใน localStorage
         document.getElementById('userName').textContent = 'ไม่พบข้อมูลผู้ใช้';
         document.getElementById('userAvatar').textContent = 'N/A';
     }
+
+    // ใช้ MutationObserver เพื่อตรวจจับเมื่อ sidebar ถูกโหลด
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.addedNodes.length) {
+                const logoutButton = document.getElementById("logoutButton");
+                if (logoutButton) {
+                    logoutButton.addEventListener("click", logout);
+                    observer.disconnect(); // หยุดการ observe เมื่อเจอปุ่มแล้ว
+                }
+            }
+        });
+    });
+
+    // เริ่มการ observe
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
 });
 
 const logout = async () => {
@@ -171,6 +255,3 @@ const logout = async () => {
         });
     }
 };
-
-// เพิ่ม Event Listener สำหรับปุ่ม Logout
-document.getElementById("logoutButton").addEventListener("click", logout);

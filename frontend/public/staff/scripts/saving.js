@@ -1,3 +1,75 @@
+document.addEventListener('DOMContentLoaded', () => {
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+});
+
+// Sidebar Functions
+const toggleSidebar = () => {
+    try {
+        const aside = document.querySelector('aside');
+        const main = document.querySelector('main');
+        
+        if (!aside || !main) {
+            console.error('ไม่พบ aside หรือ main elements');
+            return;
+        }
+
+        aside.classList.toggle('w-64');
+        aside.classList.toggle('w-20');
+        
+        const textElements = aside.querySelectorAll('span');
+        textElements.forEach(span => {
+            span.classList.toggle('hidden');
+        });
+
+        const isCollapsed = !aside.classList.contains('w-64');
+        localStorage.setItem('sidebarState', isCollapsed);
+    } catch (error) {
+        console.error('เกิดข้อผิดพลาดในการ toggle sidebar:', error);
+    }
+};
+
+const initializeSidebar = () => {
+    try {
+        const aside = document.querySelector('aside');
+        if (!aside) return;
+
+        const isCollapsed = localStorage.getItem('sidebarState') === 'true';
+        
+        if (isCollapsed) {
+            aside.classList.remove('w-64');
+            aside.classList.add('w-20');
+            
+            const textElements = aside.querySelectorAll('span');
+            textElements.forEach(span => {
+                span.classList.add('hidden');
+            });
+        }
+    } catch (error) {
+        console.error('เกิดข้อผิดพลาดในการเริ่มต้น sidebar:', error);
+    }
+};
+
+// Sidebar Observer
+const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        if (mutation.addedNodes.length) {
+            const aside = document.querySelector('aside');
+            const toggleButton = document.getElementById('toggleSidebar');
+            
+            if (aside && toggleButton && !toggleButton.hasListener) {
+                toggleButton.addEventListener('click', toggleSidebar);
+                toggleButton.hasListener = true;
+                initializeSidebar();
+                observer.disconnect();
+            }
+        }
+    });
+});
+
+
 const getStaffIdFromLocalStorage = () => {
     const staffData = localStorage.getItem('currentUser');
     if (!staffData) {
@@ -24,14 +96,6 @@ window.onload = () => {
 
     // เพิ่ม Event Listener สำหรับปุ่ม Logout
     document.getElementById('logoutButton').addEventListener('click', logout);
-};
-
-// ฟังก์ชันสำหรับ Toggle Sidebar
-const toggleSidebar = () => {
-    const sidebar = document.querySelector('.sidebar');
-    const mainContent = document.querySelector('.main-content');
-    sidebar.classList.toggle('collapsed');
-    mainContent.classList.toggle('collapsed');
 };
 
 const convertToBuddhistYear = (dateString) => {

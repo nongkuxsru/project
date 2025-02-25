@@ -1,18 +1,83 @@
-// เรียกใช้ฟังก์ชันเมื่อหน้าเว็บโหลดเสร็จ
+// Event Listeners
 window.onload = () => {
-    // เพิ่ม Event Listener สำหรับปุ่ม Logout
     document.getElementById('logoutButton').addEventListener('click', logout);
 };
 
-// ฟังก์ชันสำหรับ Toggle Sidebar
+document.addEventListener('DOMContentLoaded', () => {
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+    
+    fetchTransactions();
+    initializeUserInfo();
+});
+
+// Sidebar Functions
 const toggleSidebar = () => {
-    const sidebar = document.querySelector('.sidebar');
-    const mainContent = document.querySelector('.main-content');
-    sidebar.classList.toggle('collapsed');
-    mainContent.classList.toggle('collapsed');
+    try {
+        const aside = document.querySelector('aside');
+        const main = document.querySelector('main');
+        
+        if (!aside || !main) {
+            console.error('ไม่พบ aside หรือ main elements');
+            return;
+        }
+
+        aside.classList.toggle('w-64');
+        aside.classList.toggle('w-20');
+        
+        const textElements = aside.querySelectorAll('span');
+        textElements.forEach(span => {
+            span.classList.toggle('hidden');
+        });
+
+        const isCollapsed = !aside.classList.contains('w-64');
+        localStorage.setItem('sidebarState', isCollapsed);
+    } catch (error) {
+        console.error('เกิดข้อผิดพลาดในการ toggle sidebar:', error);
+    }
 };
 
-// ฟังก์ชันสำหรับดึงข้อมูลธุรกรรม
+const initializeSidebar = () => {
+    try {
+        const aside = document.querySelector('aside');
+        if (!aside) return;
+
+        const isCollapsed = localStorage.getItem('sidebarState') === 'true';
+        
+        if (isCollapsed) {
+            aside.classList.remove('w-64');
+            aside.classList.add('w-20');
+            
+            const textElements = aside.querySelectorAll('span');
+            textElements.forEach(span => {
+                span.classList.add('hidden');
+            });
+        }
+    } catch (error) {
+        console.error('เกิดข้อผิดพลาดในการเริ่มต้น sidebar:', error);
+    }
+};
+
+// Sidebar Observer
+const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        if (mutation.addedNodes.length) {
+            const aside = document.querySelector('aside');
+            const toggleButton = document.getElementById('toggleSidebar');
+            
+            if (aside && toggleButton && !toggleButton.hasListener) {
+                toggleButton.addEventListener('click', toggleSidebar);
+                toggleButton.hasListener = true;
+                initializeSidebar();
+                observer.disconnect();
+            }
+        }
+    });
+});
+
+// Data Fetching Functions
 const fetchTransactions = async () => {
     try {
         const response = await fetch('/api/staff/transactions');
@@ -38,30 +103,25 @@ const fetchTransactions = async () => {
         });
     } catch (error) {
         console.error('Error fetching transactions:', error);
-        alert('Error fetching transactions: ' + error.message); // แสดงข้อความแสดงข้อผิดพลาด
+        alert('Error fetching transactions: ' + error.message);
     }
 };
 
-document.addEventListener("DOMContentLoaded", function() {
-    // ดึงข้อมูลผู้ใช้จาก localStorage
+// User Management Functions
+const initializeUserInfo = () => {
     const user = JSON.parse(localStorage.getItem('currentUser'));
 
     if (user) {
-        // หากข้อมูลผู้ใช้มีการล็อกอินมาแล้ว
         const userName = user.name || 'ผู้ใช้ไม่ระบุ';
-        const userAvatar = user.avatar || userName.charAt(0).toUpperCase(); // ใช้อักษรตัวแรกจากชื่อผู้ใช้เป็นอวาตาร์
+        const userAvatar = user.avatar || userName.charAt(0).toUpperCase();
        
-        // แสดงชื่อผู้ใช้
         document.getElementById('userName').textContent = 'ยินดีต้อนรับ ' + userName;
-        
-        // แสดงอวาตาร์
         document.getElementById('userAvatar').textContent = userAvatar;
     } else {
-        // หากไม่มีข้อมูลผู้ใช้ใน localStorage
         document.getElementById('userName').textContent = 'ไม่พบข้อมูลผู้ใช้';
         document.getElementById('userAvatar').textContent = 'N/A';
     }
-});
+};
 
 const logout = async () => {
     try {
@@ -71,16 +131,14 @@ const logout = async () => {
         });
 
         if (response.ok) {
-            // ลบข้อมูลจาก LocalStorage
             localStorage.removeItem("currentUser");
             localStorage.removeItem("selectedTheme");
 
-             // แสดงข้อความด้วย SweetAlert2
             await Swal.fire({
                 icon: 'success',
                 title: 'Logout successful!',
                 text: 'You have been logged out. Redirecting to login page...',
-                timer: 1000, // ตั้งเวลาแสดง 2 วินาที
+                timer: 1000,
                 showConfirmButton: false,
             });
 
@@ -101,10 +159,5 @@ const logout = async () => {
         });
     }
 };
-
-// เรียกใช้งานฟังก์ชันเมื่อโหลดหน้าเว็บ
-document.addEventListener('DOMContentLoaded', fetchTransactions);
-// เพิ่ม Event Listener สำหรับปุ่ม Toggle Sidebar
-document.getElementById('toggleSidebar').addEventListener('click', toggleSidebar);
 
 

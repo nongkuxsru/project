@@ -5,7 +5,76 @@
 // =============================================
 // Core Utility Functions
 // =============================================
+document.addEventListener('DOMContentLoaded', () => {
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+});
 
+// Sidebar Functions
+const toggleSidebar = () => {
+    try {
+        const aside = document.querySelector('aside');
+        const main = document.querySelector('main');
+        
+        if (!aside || !main) {
+            console.error('ไม่พบ aside หรือ main elements');
+            return;
+        }
+
+        aside.classList.toggle('w-64');
+        aside.classList.toggle('w-20');
+        
+        const textElements = aside.querySelectorAll('span');
+        textElements.forEach(span => {
+            span.classList.toggle('hidden');
+        });
+
+        const isCollapsed = !aside.classList.contains('w-64');
+        localStorage.setItem('sidebarState', isCollapsed);
+    } catch (error) {
+        console.error('เกิดข้อผิดพลาดในการ toggle sidebar:', error);
+    }
+};
+
+const initializeSidebar = () => {
+    try {
+        const aside = document.querySelector('aside');
+        if (!aside) return;
+
+        const isCollapsed = localStorage.getItem('sidebarState') === 'true';
+        
+        if (isCollapsed) {
+            aside.classList.remove('w-64');
+            aside.classList.add('w-20');
+            
+            const textElements = aside.querySelectorAll('span');
+            textElements.forEach(span => {
+                span.classList.add('hidden');
+            });
+        }
+    } catch (error) {
+        console.error('เกิดข้อผิดพลาดในการเริ่มต้น sidebar:', error);
+    }
+};
+
+// Sidebar Observer
+const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        if (mutation.addedNodes.length) {
+            const aside = document.querySelector('aside');
+            const toggleButton = document.getElementById('toggleSidebar');
+            
+            if (aside && toggleButton && !toggleButton.hasListener) {
+                toggleButton.addEventListener('click', toggleSidebar);
+                toggleButton.hasListener = true;
+                initializeSidebar();
+                observer.disconnect();
+            }
+        }
+    });
+});
 // ฟังก์ชันดึงชื่อผู้ใช้จาก API
 const fetchUserName = async (userId) => {
     try {
@@ -17,14 +86,6 @@ const fetchUserName = async (userId) => {
         console.error('Error fetching user name:', error);
         return 'Unknown';
     }
-};
-
-// ฟังก์ชันสำหรับ Toggle Sidebar
-const toggleSidebar = () => {
-    const sidebar = document.querySelector('.sidebar');
-    const mainContent = document.querySelector('.main-content');
-    sidebar.classList.toggle('collapsed');
-    mainContent.classList.toggle('collapsed');
 };
 
 // =============================================
@@ -267,8 +328,8 @@ const cancelPromiseCreation = () => {
         if (result.isConfirmed) {
             const modal = document.getElementById('createPromiseModal');
             const form = document.getElementById('createPromiseForm');
-            modal.style.display = 'none';
-            form.reset();
+            if (modal) modal.style.display = 'none';
+            if (form) form.reset();
         }
     });
 };
@@ -371,6 +432,50 @@ const logout = async () => {
 
 // Event Listeners เมื่อโหลดหน้าเว็บ
 document.addEventListener("DOMContentLoaded", () => {
+    // ใช้ MutationObserver เพื่อตรวจจับการโหลดของ sidebar
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.addedNodes.length) {
+                // ตรวจสอบและเพิ่ม event listeners สำหรับปุ่มต่างๆ
+                const logoutButton = document.getElementById('logoutButton');
+                const createPromiseButton = document.getElementById('createPromiseButton');
+                const toggleSidebarButton = document.getElementById('toggleSidebar');
+                const cancelPromiseButton = document.getElementById('cancelPromiseButton');
+
+                if (logoutButton && !logoutButton.hasListener) {
+                    logoutButton.addEventListener('click', logout);
+                    logoutButton.hasListener = true;
+                }
+
+                if (createPromiseButton && !createPromiseButton.hasListener) {
+                    createPromiseButton.addEventListener('click', openCreatePromiseModal);
+                    createPromiseButton.hasListener = true;
+                }
+
+                if (toggleSidebarButton && !toggleSidebarButton.hasListener) {
+                    toggleSidebarButton.addEventListener('click', toggleSidebar);
+                    toggleSidebarButton.hasListener = true;
+                }
+
+                if (cancelPromiseButton && !cancelPromiseButton.hasListener) {
+                    cancelPromiseButton.addEventListener('click', cancelPromiseCreation);
+                    cancelPromiseButton.hasListener = true;
+                }
+
+                // ถ้าเจอปุ่มทั้งหมดแล้ว ให้หยุดการ observe
+                if (logoutButton && createPromiseButton && toggleSidebarButton && cancelPromiseButton) {
+                    observer.disconnect();
+                }
+            }
+        });
+    });
+
+    // เริ่มการ observe
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+
     // ดึงข้อมูลผู้ใช้และแสดงผล
     const user = JSON.parse(localStorage.getItem('currentUser'));
     if (user) {
@@ -383,11 +488,6 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById('userAvatar').textContent = 'N/A';
     }
 
-    // เพิ่ม Event Listeners
-    document.getElementById('createPromiseButton').addEventListener('click', openCreatePromiseModal);
-    document.getElementById('logoutButton').addEventListener('click', logout);
-    document.getElementById('toggleSidebar').addEventListener('click', toggleSidebar);
-    
     // ดึงข้อมูลสัญญาเมื่อโหลดหน้า
     fetchPromise();
 });
