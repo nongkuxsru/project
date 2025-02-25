@@ -1,4 +1,6 @@
+// ===============================
 // Event Listeners
+// ===============================
 window.onload = () => {
     document.getElementById('logoutButton').addEventListener('click', logout);
 };
@@ -13,7 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeUserInfo();
 });
 
+// ===============================
 // Sidebar Functions
+// ===============================
 const toggleSidebar = () => {
     try {
         const aside = document.querySelector('aside');
@@ -28,9 +32,7 @@ const toggleSidebar = () => {
         aside.classList.toggle('w-20');
         
         const textElements = aside.querySelectorAll('span');
-        textElements.forEach(span => {
-            span.classList.toggle('hidden');
-        });
+        textElements.forEach(span => span.classList.toggle('hidden'));
 
         const isCollapsed = !aside.classList.contains('w-64');
         localStorage.setItem('sidebarState', isCollapsed);
@@ -51,16 +53,16 @@ const initializeSidebar = () => {
             aside.classList.add('w-20');
             
             const textElements = aside.querySelectorAll('span');
-            textElements.forEach(span => {
-                span.classList.add('hidden');
-            });
+            textElements.forEach(span => span.classList.add('hidden'));
         }
     } catch (error) {
         console.error('เกิดข้อผิดพลาดในการเริ่มต้น sidebar:', error);
     }
 };
 
+// ===============================
 // Sidebar Observer
+// ===============================
 const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
         if (mutation.addedNodes.length) {
@@ -77,7 +79,9 @@ const observer = new MutationObserver((mutations) => {
     });
 });
 
+// ===============================
 // Data Fetching Functions
+// ===============================
 const fetchTransactions = async () => {
     try {
         const response = await fetch('/api/staff/transactions');
@@ -107,7 +111,9 @@ const fetchTransactions = async () => {
     }
 };
 
+// ===============================
 // User Management Functions
+// ===============================
 const initializeUserInfo = () => {
     const user = JSON.parse(localStorage.getItem('currentUser'));
 
@@ -127,35 +133,35 @@ const logout = async () => {
     try {
         const response = await fetch('/api/auth/logout', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' }
         });
 
         if (response.ok) {
-            localStorage.removeItem("currentUser");
-            localStorage.removeItem("selectedTheme");
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('selectedTheme');
 
             await Swal.fire({
                 icon: 'success',
                 title: 'Logout successful!',
                 text: 'You have been logged out. Redirecting to login page...',
                 timer: 1000,
-                showConfirmButton: false,
+                showConfirmButton: false
             });
 
-            window.location.href = "/";
+            window.location.href = '/';
         } else {
             await Swal.fire({
                 icon: 'error',
                 title: 'Logout failed!',
-                text: 'Please try again.',
+                text: 'Please try again.'
             });
         }
     } catch (error) {
-        console.error("Error during logout:", error);
+        console.error('Error during logout:', error);
         await Swal.fire({
             icon: 'error',
             title: 'An error occurred',
-            text: 'There was an error while logging out.',
+            text: 'There was an error while logging out.'
         });
     }
 };

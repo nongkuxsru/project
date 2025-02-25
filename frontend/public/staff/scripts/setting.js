@@ -1,3 +1,6 @@
+// ===============================
+// Event Listeners
+// ===============================
 document.addEventListener('DOMContentLoaded', () => {
     observer.observe(document.body, {
         childList: true,
@@ -5,7 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// ===============================
 // Sidebar Functions
+// ===============================
 const toggleSidebar = () => {
     try {
         const aside = document.querySelector('aside');
@@ -20,9 +25,7 @@ const toggleSidebar = () => {
         aside.classList.toggle('w-20');
         
         const textElements = aside.querySelectorAll('span');
-        textElements.forEach(span => {
-            span.classList.toggle('hidden');
-        });
+        textElements.forEach(span => span.classList.toggle('hidden'));
 
         const isCollapsed = !aside.classList.contains('w-64');
         localStorage.setItem('sidebarState', isCollapsed);
@@ -43,16 +46,16 @@ const initializeSidebar = () => {
             aside.classList.add('w-20');
             
             const textElements = aside.querySelectorAll('span');
-            textElements.forEach(span => {
-                span.classList.add('hidden');
-            });
+            textElements.forEach(span => span.classList.add('hidden'));
         }
     } catch (error) {
         console.error('เกิดข้อผิดพลาดในการเริ่มต้น sidebar:', error);
     }
 };
 
+// ===============================
 // Sidebar Observer
+// ===============================
 const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
         if (mutation.addedNodes.length) {
@@ -69,122 +72,120 @@ const observer = new MutationObserver((mutations) => {
     });
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-    // ✅ ดึงข้อมูลจาก LocalStorage
-    const userData = JSON.parse(localStorage.getItem("currentUser"));
+// ===============================
+// Form Handling
+// ===============================
+document.addEventListener('DOMContentLoaded', () => {
+    const userData = JSON.parse(localStorage.getItem('currentUser'));
 
     if (!userData) {
-        // ใช้ SweetAlert2 แสดงข้อความเมื่อไม่มีข้อมูลผู้ใช้
         Swal.fire({
             icon: 'error',
             title: 'No user data found',
-            text: 'Please log in again.',
+            text: 'Please log in again.'
         }).then(() => {
-            window.location.href = "/login"; // Redirect ไปหน้า Login ถ้าไม่มีข้อมูลผู้ใช้
+            window.location.href = '/login';
         });
         return;
     }
 
-    // ✅ แสดงข้อมูลในฟอร์ม
     populateForm(userData);
 
-    // ✅ Event listener สำหรับอัปเดตข้อมูล
-    document.getElementById("personalInfoForm").addEventListener("submit", async (event) => {
+    document.getElementById('personalInfoForm').addEventListener('submit', async (event) => {
         event.preventDefault();
 
-        // ✅ ดึงข้อมูลจากฟอร์มและแปลงปีจาก พ.ศ. เป็น ค.ศ.
         const updatedData = {
-            _id: userData._id, // ใช้ _id จาก LocalStorage
-            name: document.getElementById("fullName").value,
-            email: document.getElementById("email").value,
-            address: document.getElementById("address").value,
-            phone: document.getElementById("phone").value,
-            birthday: convertToAD(document.getElementById("birthday").value), // แปลงเป็นปี ค.ศ.
-            permission: userData.permission // ไม่ให้แก้ไข permission
+            _id: userData._id,
+            name: document.getElementById('fullName').value,
+            email: document.getElementById('email').value,
+            address: document.getElementById('address').value,
+            phone: document.getElementById('phone').value,
+            birthday: convertToAD(document.getElementById('birthday').value),
+            permission: userData.permission
         };
 
         try {
-            // ✅ อัปเดตข้อมูลไปยัง Database ผ่าน API
             const response = await fetch(`/api/admin/users/${updatedData._id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(updatedData),
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData)
             });
 
             const result = await response.json();
             if (response.ok) {
-                // ✅ บันทึกข้อมูลใหม่ลง LocalStorage
-                localStorage.setItem("currentUser", JSON.stringify(updatedData));
+                localStorage.setItem('currentUser', JSON.stringify(updatedData));
 
-                // ใช้ SweetAlert2 แสดงข้อความเมื่ออัปเดตสำเร็จ
                 await Swal.fire({
                     icon: 'success',
                     title: 'อัพเดทข้อมูลผู้ใช้เสร็จสิ้น !',
                     text: 'กำลังเปลี่ยนเส้นทางไปยังแดชบอร์ด...',
-                    timer: 2000, // ตั้งเวลาแสดง 2 วินาที
-                    showConfirmButton: false,
+                    timer: 2000,
+                    showConfirmButton: false
                 });
 
-                window.location.href = "/staff"; // ส่งกลับไปหน้า Staff Dashboard
+                window.location.href = '/staff';
             } else {
-                // ใช้ SweetAlert2 แสดงข้อความเมื่อเกิดข้อผิดพลาด
                 await Swal.fire({
                     icon: 'error',
                     title: 'อัพเดทข้อมูลผู้ใช้ไม่สำเร็จ !',
-                    text: result.error,
+                    text: result.error
                 });
             }
         } catch (error) {
-            console.error("Update failed:", error);
-            // ใช้ SweetAlert2 แสดงข้อความเมื่อเกิดข้อผิดพลาดในการอัปเดต
+            console.error('Update failed:', error);
             await Swal.fire({
                 icon: 'error',
                 title: 'An error occurred',
-                text: 'มีข้อผิดพลาดในการอัปเดตข้อมูลผู้ใช้',
+                text: 'มีข้อผิดพลาดในการอัปเดตข้อมูลผู้ใช้'
             });
         }
     });
 });
 
-// ฟังก์ชันแปลงปี พ.ศ. เป็นปี ค.ศ.
+// ===============================
+// Date Conversion Functions
+// ===============================
 function convertToAD(dateString) {
-    if (!dateString) return "";
+    if (!dateString) return '';
     const dateParts = dateString.split('-');
     const yearAD = parseInt(dateParts[0]) - 543;
     return `${yearAD}-${dateParts[1]}-${dateParts[2]}`;
 }
 
-// ฟังก์ชันแปลงปี ค.ศ. เป็นปี พ.ศ.
 function convertToBE(dateString) {
-    if (!dateString) return "";
+    if (!dateString) return '';
     const date = new Date(dateString);
     const yearBE = date.getFullYear() + 543;
-    return `${yearBE}-${("0" + (date.getMonth() + 1)).slice(-2)}-${("0" + date.getDate()).slice(-2)}`;
+    return `${yearBE}-${('0' + (date.getMonth() + 1)).slice(-2)}-${('0' + date.getDate()).slice(-2)}`;
 }
 
-// ฟังก์ชันแสดงข้อมูลในฟอร์ม
+// ===============================
+// Form Utility Functions
+// ===============================
 function populateForm(userData) {
-    document.getElementById("userId").value = userData._id || ""; // ใช้ _id แทน id
-    document.getElementById("fullName").value = userData.name || "";
-    document.getElementById("email").value = userData.email || "";
-    document.getElementById("address").value = userData.address || "";
-    document.getElementById("phone").value = userData.phone || "";
-    document.getElementById("birthday").value = userData.birthday ? convertToBE(userData.birthday.split('T')[0]) : ""; // แปลงเป็นปี พ.ศ.
-    document.getElementById("permission").value = userData.permission || "";
+    document.getElementById('userId').value = userData._id || '';
+    document.getElementById('fullName').value = userData.name || '';
+    document.getElementById('email').value = userData.email || '';
+    document.getElementById('address').value = userData.address || '';
+    document.getElementById('phone').value = userData.phone || '';
+    document.getElementById('birthday').value = userData.birthday ? 
+        convertToBE(userData.birthday.split('T')[0]) : '';
+    document.getElementById('permission').value = userData.permission || '';
 }
 
-// ฟังก์ชันรีเซ็ตฟอร์ม
 function resetForm() {
-    const userData = JSON.parse(localStorage.getItem("userData"));
+    const userData = JSON.parse(localStorage.getItem('userData'));
     if (userData) {
-        populateForm(userData); // นำข้อมูลเดิมกลับมาแสดงในฟอร์ม
+        populateForm(userData);
     } else {
-        alert("No user data found to reset.");
+        alert('No user data found to reset.');
     }
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-    // ดึงข้อมูลผู้ใช้และแสดงผลตามปกติ
+// ===============================
+// User Info Display
+// ===============================
+document.addEventListener('DOMContentLoaded', () => {
     const user = JSON.parse(localStorage.getItem('currentUser'));
 
     if (user) {
@@ -197,61 +198,60 @@ document.addEventListener("DOMContentLoaded", function() {
         document.getElementById('userAvatar').textContent = 'N/A';
     }
 
-    // ใช้ MutationObserver เพื่อตรวจจับเมื่อ sidebar ถูกโหลด
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             if (mutation.addedNodes.length) {
-                const logoutButton = document.getElementById("logoutButton");
+                const logoutButton = document.getElementById('logoutButton');
                 if (logoutButton) {
-                    logoutButton.addEventListener("click", logout);
-                    observer.disconnect(); // หยุดการ observe เมื่อเจอปุ่มแล้ว
+                    logoutButton.addEventListener('click', logout);
+                    observer.disconnect();
                 }
             }
         });
     });
 
-    // เริ่มการ observe
     observer.observe(document.body, {
         childList: true,
         subtree: true
     });
 });
 
+// ===============================
+// Authentication Functions
+// ===============================
 const logout = async () => {
     try {
         const response = await fetch('/api/auth/logout', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' }
         });
 
         if (response.ok) {
-            // ลบข้อมูลจาก LocalStorage
-            localStorage.removeItem("currentUser");
-            localStorage.removeItem("selectedTheme");
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('selectedTheme');
 
-             // แสดงข้อความด้วย SweetAlert2
             await Swal.fire({
                 icon: 'success',
                 title: 'Logout successful!',
                 text: 'You have been logged out. Redirecting to login page...',
-                timer: 1000, // ตั้งเวลาแสดง 2 วินาที
-                showConfirmButton: false,
+                timer: 1000,
+                showConfirmButton: false
             });
 
-            window.location.href = "/";
+            window.location.href = '/';
         } else {
             await Swal.fire({
                 icon: 'error',
                 title: 'Logout failed!',
-                text: 'Please try again.',
+                text: 'Please try again.'
             });
         }
     } catch (error) {
-        console.error("Error during logout:", error);
+        console.error('Error during logout:', error);
         await Swal.fire({
             icon: 'error',
             title: 'An error occurred',
-            text: 'There was an error while logging out.',
+            text: 'There was an error while logging out.'
         });
     }
 };

@@ -586,7 +586,6 @@ const logout = async () => {
         });
     }
 };
-
 document.getElementById('addUserButton').addEventListener('click', openAddUserModal);
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -602,3 +601,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.getElementById('toggleSidebar').addEventListener('click', toggleSidebar);
+
