@@ -3,6 +3,23 @@ document.addEventListener('DOMContentLoaded', () => {
         childList: true,
         subtree: true
     });
+
+    // เพิ่ม event listener สำหรับปุ่ม "เพิ่มผู้ใช้"
+    const addUserButton = document.getElementById('addUserButton');
+    if (addUserButton) {
+        addUserButton.addEventListener('click', openAddUserModal);
+    }
+
+    // เพิ่ม event listener สำหรับปุ่ม "แก้ไข"
+    document.querySelectorAll('.edit-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+            const userId = event.target.closest('button').getAttribute('data-user-id');
+            openTransactionModal(userId);
+        });
+    });
+
+    // รีเฟรชข้อมูลบัญชี
+    fetchAccount();
 });
 
 // Sidebar Functions
@@ -586,19 +603,3 @@ const logout = async () => {
         });
     }
 };
-document.getElementById('addUserButton').addEventListener('click', openAddUserModal);
-
-document.addEventListener('DOMContentLoaded', () => {
-    // เพิ่ม event listener สำหรับปุ่ม "แก้ไข" ภายใน DOMContentLoaded
-    document.querySelectorAll('.edit-btn').forEach(button => {
-        button.addEventListener('click', (event) => {
-            const userId = event.target.closest('button').getAttribute('data-user-id');
-            openTransactionModal(userId); // เรียกใช้ openEditModal
-        });
-    });
-    // รีเฟรชข้อมูลบัญชี
-    fetchAccount();
-});
-
-document.getElementById('toggleSidebar').addEventListener('click', toggleSidebar);
-
