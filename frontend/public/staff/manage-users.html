@@ -114,10 +114,14 @@
 
                 <!-- ส่วนแสดงตารางผู้ใช้ -->
                 <div class="account-list">
-                    <h2 class="text-2xl font-bold text-primary text-center">ผู้ใช้ทั้งหมด</h2>
-                    <button id="addUserButton" class="bg-primary text-white py-2 px-4 rounded-lg mt-4 hover:bg-green-600">
-                        <i class="fa-solid fa-user-plus"></i> เพิ่มผู้ใช้
-                    </button>
+                    <div class="text-center">
+                        <h2 class="text-2xl font-bold text-primary">ผู้ใช้ทั้งหมด</h2>
+                        <div class="flex justify-end mt-2">
+                            <button id="addUserButton" class="bg-primary text-white py-1 px-2.5 rounded-lg hover:bg-green-600 text-xs">
+                                <i class="fa-solid fa-user-plus"></i> เพิ่มผู้ใช้
+                            </button>
+                        </div>
+                    </div>
                     <table id="usersTable" class="w-full table-auto mt-6">
                         <thead>
                             <tr>
