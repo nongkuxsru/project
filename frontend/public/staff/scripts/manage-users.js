@@ -306,6 +306,14 @@ const filterUsers = () => {
     renderUsers(filteredUsers); // แสดงข้อมูลที่ filter แล้ว
 };
 
+// เพิ่มฟังก์ชันแปลงวันที่จาก BE เป็น AD
+const convertToAD = (dateString) => {
+    if (!dateString) return '';
+    const dateParts = dateString.split('-');
+    const yearAD = parseInt(dateParts[0]) - 543;
+    return `${yearAD}-${dateParts[1]}-${dateParts[2]}`;
+};
+
 // ฟังก์ชันสำหรับเปิด modal เพื่อเพิ่มผู้ใช้
 const openAddUserModal = () => {
     const modal = document.getElementById('addUserModal');
@@ -314,36 +322,10 @@ const openAddUserModal = () => {
     // แสดง modal
     modal.style.display = 'block';
 
-    // ฟังก์ชันแปลงปี ค.ศ. เป็นปี พ.ศ.
-    const convertToBE = (dateString) => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        const yearBE = date.getFullYear() + 543;
-        return `${yearBE}-${("0" + (date.getMonth() + 1)).slice(-2)}-${("0" + date.getDate()).slice(-2)}`;
-    };
-
-    // ฟังก์ชันแปลงปี พ.ศ. เป็นปี ค.ศ.
-    const convertToAD = (dateString) => {
-        if (!dateString) return '';
-        const dateParts = dateString.split('-');
-        const yearAD = parseInt(dateParts[0]) - 543;
-        return `${yearAD}-${dateParts[1]}-${dateParts[2]}`;
-    };
-
-    // ปิด modal เมื่อคลิกปุ่ม close (×)
-    document.querySelector('#addUserModal .close').onclick = () => {
-        modal.style.display = 'none';
-    };
-
-    // ปิด modal เมื่อคลิกนอก modal
-    window.onclick = (event) => {
-        if (event.target === modal) {
-            modal.style.display = 'none';
-        }
-    };
-
     form.onsubmit = async (e) => {
         e.preventDefault();
+    
+        const permission = document.getElementById('addPermission').value;
     
         const newUser = {
             name: document.getElementById('addName').value,
@@ -352,7 +334,7 @@ const openAddUserModal = () => {
             address: document.getElementById('addAddress').value,
             phone: document.getElementById('addPhone').value,
             birthday: convertToAD(document.getElementById('addBirthday').value),
-            permission: document.getElementById('addPermission').value,
+            permission: permission
         };
     
         try {
@@ -363,8 +345,7 @@ const openAddUserModal = () => {
             });
     
             const result = await response.json();
-            console.log('User created:', result); // ✅ ตรวจสอบข้อมูลที่ได้จาก API
-    
+            
             if (!response.ok) {
                 throw new Error(result.message || 'ไม่สามารถเพิ่มผู้ใช้ได้');
             }
@@ -372,17 +353,25 @@ const openAddUserModal = () => {
             if (!result._id) {
                 throw new Error('ไม่พบ User ID ในการตอบกลับจาก API');
             }
-    
-            // ✅ ใช้ _id ในการสร้างบัญชี Saving
+
+            // สร้างบัญชีออมทรัพย์
             await createSavingAccount(result._id);
-    
-            await fetchAndRenderUsers();
-            modal.style.display = 'none';
-            Swal.fire({
-                icon: 'success',
-                title: 'เพิ่มผู้ใช้สำเร็จ',
-                text: 'ผู้ใช้ได้ถูกเพิ่มเข้ามาแล้ว',
-            });
+            
+            // ถ้าเป็นผู้ดูแล ให้แสดง modal สำหรับตั้ง PIN
+            if (permission === 'admin') {
+                modal.style.display = 'none';
+                await showSetPinModal(result._id);
+            } else {
+                modal.style.display = 'none';
+                await fetchAndRenderUsers();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'เพิ่มผู้ใช้สำเร็จ',
+                    text: 'ผู้ใช้ได้ถูกเพิ่มเข้ามาแล้ว',
+                });
+            }
+            
+            form.reset();
         } catch (error) {
             console.error('Error adding user:', error);
             Swal.fire({
@@ -392,6 +381,75 @@ const openAddUserModal = () => {
             });
         }
     };
+};
+
+// เพิ่มฟังก์ชันสำหรับแสดง modal ตั้ง PIN
+const showSetPinModal = async (userId) => {
+    const result = await Swal.fire({
+        title: 'ตั้ง PIN สำหรับผู้ดูแล',
+        html: `
+            <input type="password" 
+                id="pin" 
+                class="swal2-input" 
+                maxlength="4" 
+                pattern="\\d{4}"
+                inputmode="numeric"
+                placeholder="กรุณากรอก PIN 4 หลัก">
+            <div id="pinError" class="text-red-500 text-sm mt-2"></div>
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'ตั้ง PIN',
+        cancelButtonText: 'ยกเลิก',
+        preConfirm: () => {
+            const pin = document.getElementById('pin').value;
+            if (!pin || pin.length !== 4 || !/^\d+$/.test(pin)) {
+                Swal.showValidationMessage('PIN ต้องเป็นตัวเลข 4 หลักเท่านั้น');
+                return false;
+            }
+            return pin;
+        }
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const response = await fetch(`/api/admin/users/${userId}/pin`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pin: result.value })
+            });
+
+            if (!response.ok) {
+                throw new Error('ไม่สามารถตั้ง PIN ได้');
+            }
+
+            await fetchAndRenderUsers();
+            Swal.fire({
+                icon: 'success',
+                title: 'เพิ่มผู้ใช้และตั้ง PIN สำเร็จ',
+                text: 'ผู้ดูแลระบบได้ถูกเพิ่มเข้ามาแล้ว',
+            });
+        } catch (error) {
+            console.error('Error setting PIN:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: 'ไม่สามารถตั้ง PIN ได้ กรุณาลองใหม่',
+            });
+        }
+    } else {
+        // ถ้าผู้ใช้ยกเลิกการตั้ง PIN ให้ลบผู้ใช้ที่เพิ่งสร้าง
+        try {
+            await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
+            Swal.fire({
+                icon: 'info',
+                title: 'ยกเลิกการเพิ่มผู้ดูแล',
+                text: 'การเพิ่มผู้ดูแลถูกยกเลิกเนื่องจากไม่ได้ตั้ง PIN',
+            });
+        } catch (error) {
+            console.error('Error deleting user:', error);
+        }
+    }
 };
 
 const createSavingAccount = async (userId) => {

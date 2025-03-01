@@ -53,15 +53,10 @@ router.get('/users', async (req, res) => {
 // Add user
 router.post('/users', async (req, res) => {
     try {
-        const { name, email, password, address, phone, birthday, permission } = req.body;
-
-        // ตรวจสอบว่าข้อมูลครบถ้วน
-        if (!name || !email || !password || !address || !phone || !birthday || !permission) {
-            return res.status(400).json({ message: 'All fields are required' });
-        }
+        const { name, email, password, address, phone, birthday, permission, pin } = req.body;
 
         // สร้างผู้ใช้ใหม่
-        const newUser = new User({ name, email, password, address, phone, birthday, permission });
+        const newUser = new User({ name, email, password, address, phone, birthday, permission, pin });
         await newUser.save(); // บันทึกข้อมูลผู้ใช้
 
         res.status(201).json(newUser); // ส่งข้อมูลผู้ใช้ที่เพิ่มใหม่กลับไป
@@ -132,5 +127,43 @@ router.put('/users/:id', async (req, res) => {
     }
 });
 
+// API สำหรับตั้ง PIN สำหรับผู้ดูแล
+router.put('/users/:userId/pin', async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const { pin } = req.body;
+
+        // ตรวจสอบรูปแบบ PIN
+        if (!pin || pin.length !== 4 || !/^\d+$/.test(pin)) {
+            return res.status(400).json({ 
+                message: 'PIN ไม่ถูกต้อง กรุณาระบุตัวเลข 4 หลัก' 
+            });
+        }
+
+        // ค้นหาผู้ใช้และตรวจสอบว่าเป็นผู้ดูแลหรือไม่
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'ไม่พบผู้ใช้' });
+        }
+
+        if (user.permission !== 'admin') {
+            return res.status(400).json({ 
+                message: 'สามารถตั้ง PIN ได้เฉพาะผู้ดูแลระบบเท่านั้น' 
+            });
+        }
+
+        // อัปเดต PIN
+        user.pin = pin;
+        await user.save();
+
+        res.json({ message: 'ตั้ง PIN สำเร็จ' });
+    } catch (error) {
+        console.error('Error setting PIN:', error);
+        res.status(500).json({ 
+            message: 'เกิดข้อผิดพลาดในการตั้ง PIN', 
+            error: error.message 
+        });
+    }
+});
 
 module.exports = router;

@@ -33,6 +33,18 @@ const UserSchema = new mongoose.Schema({
         enum: ['admin', 'staff', 'user'], // จำกัดค่า permission
         default: 'user'
     },
+    pin: {
+        type: String,
+        validate: {
+            validator: function(v) {
+                if (this.permission === 'admin') {
+                    return v && v.length === 4 && /^\d+$/.test(v);
+                }
+                return true;
+            },
+            message: 'PIN ต้องเป็นตัวเลข 4 หลักสำหรับผู้ดูแลระบบ'
+        }
+    },
     createdAt: {
         type: Date,
         default: Date.now

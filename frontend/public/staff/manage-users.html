@@ -154,6 +154,19 @@
                             <option value="staff">พนักงาน</option>
                             <option value="user">ผู้ใช้</option>
                         </select>
+
+                        <!-- เพิ่มฟิลด์ PIN สำหรับผู้ดูแล -->
+                        <div id="pinField" class="hidden">
+                            <label for="addPin" class="block text-secondary">PIN (4 หลัก):</label>
+                            <input type="password" 
+                                id="addPin" 
+                                name="pin" 
+                                maxlength="4" 
+                                pattern="\d{4}"
+                                inputmode="numeric"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                placeholder="กรุณากรอก PIN 4 หลัก">
+                        </div>
                     
                         <button type="submit" class="bg-primary text-white py-2 px-6 rounded-lg mt-4 hover:bg-green-600">เพิ่มผู้ใช้</button>
                     </form>

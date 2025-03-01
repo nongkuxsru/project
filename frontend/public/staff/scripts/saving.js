@@ -370,6 +370,15 @@ const openTransactionModal = async (userId, type) => {
         document.getElementById(`transactionUserId${type.charAt(0).toUpperCase() + type.slice(1)}`).value = account._id;
         document.getElementById(`transactionName${type.charAt(0).toUpperCase() + type.slice(1)}`).value = userName;
         document.getElementById(`transactionBalance${type.charAt(0).toUpperCase() + type.slice(1)}`).value = account.balance;
+        
+        // ล้างค่าและ focus ที่ช่องจำนวนเงิน
+        const amountInput = document.getElementById(`transactionAmount${type.charAt(0).toUpperCase() + type.slice(1)}`);
+        amountInput.value = '';
+        
+        // ใช้ setTimeout เพื่อให้แน่ใจว่า modal แสดงเรียบร้อยแล้ว
+        setTimeout(() => {
+            amountInput.focus();
+        }, 100);
 
         // จัดการการส่งฟอร์ม
         form.onsubmit = async (e) => {
@@ -461,7 +470,6 @@ const handleTransaction = async (event, type, account) => {
         }
 
         const updatedData = await transactionResponse.json();
-        // บันทึกประวัติการทำธุรกรรม
         const historyResponse = await fetch('/api/staff/transactions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -476,11 +484,150 @@ const handleTransaction = async (event, type, account) => {
 
         if (!historyResponse.ok) throw new Error('Failed to save transaction history');
 
-        await Swal.fire({
+        // ถามผู้ใช้ว่าต้องการพิมพ์สลิปหรือไม่
+        const printSlip = await Swal.fire({
             icon: 'success',
             title: 'ทำรายการสำเร็จ!',
-            text: 'ธุรกรรมของคุณได้รับการบันทึกแล้ว',
+            text: 'คุณต้องการพิมพ์สลิปหรือไม่?',
+            showCancelButton: true,
+            confirmButtonText: 'พิมพ์สลิป',
+            cancelButtonText: 'ไม่ต้องการ'
         });
+
+        if (printSlip.isConfirmed) {
+            // สร้างสลิปในรูปแบบ HTML
+            const slip = document.createElement('div');
+            slip.innerHTML = `
+                <div class="slip-container" style="font-family: 'Sarabun', sans-serif; max-width: 210mm; margin: 0 auto; padding: 20px;">
+                    <!-- หัวสลิป -->
+                    <div style="text-align: center; border-bottom: 2px dashed #000; padding-bottom: 15px; margin-bottom: 20px;">
+                        <img src="/images/logo.png" alt="Logo" style="max-width: 100px; margin-bottom: 15px;">
+                        <h2 style="font-size: 28px; font-weight: bold; margin: 8px 0;">ระบบออมทรัพย์</h2>
+                        <h3 style="font-size: 22px; margin: 8px 0;">สลิป${type === 'deposit' ? 'ฝาก' : 'ถอน'}เงิน</h3>
+                    </div>
+
+                    <!-- ข้อมูลธุรกรรม -->
+                    <div style="margin-bottom: 20px; font-size: 16px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 6px 0; width: 180px;">วันที่:</td>
+                                <td style="text-align: left;">${new Date().toLocaleDateString('th-TH')}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 6px 0;">เวลา:</td>
+                                <td style="text-align: left;">${new Date().toLocaleTimeString('th-TH')}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 6px 0;">เลขที่บัญชี:</td>
+                                <td style="text-align: left;">${account.id_account}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 6px 0;">ชื่อบัญชี:</td>
+                                <td style="text-align: left;">${await fetchUserName(account.id_member)}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- รายละเอียดการทำรายการ -->
+                    <div style="border: 2px solid #000; padding: 15px; margin: 20px 0; border-radius: 8px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 8px 0; font-size: 18px; font-weight: bold;">ประเภทรายการ:</td>
+                                <td style="text-align: right; font-size: 18px; font-weight: bold;">${type === 'deposit' ? 'ฝากเงิน' : 'ถอนเงิน'}</td>
+                            </tr>
+                            <tr style="border-top: 1px solid #ddd;">
+                                <td style="padding: 12px 0; font-size: 20px; font-weight: bold;">จำนวนเงิน:</td>
+                                <td style="text-align: right; font-size: 20px; font-weight: bold; color: ${type === 'deposit' ? '#28a745' : '#dc3545'}">
+                                    ${formatCurrency(amount)} บาท
+                                </td>
+                            </tr>
+                            <tr style="border-top: 1px solid #ddd;">
+                                <td style="padding: 8px 0; font-size: 18px;">ยอดเงินคงเหลือ:</td>
+                                <td style="text-align: right; font-size: 18px;">${formatCurrency(newBalance)} บาท</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- ข้อมูลผู้ทำรายการ -->
+                    <div style="margin: 20px 0; font-size: 16px;">
+                        <p style="margin: 8px 0;">ผู้ทำรายการ: ${await fetchStaffName(account.id_staff)}</p>
+                    </div>
+
+                    <!-- ลายเซ็นและการรับรอง -->
+                    <div style="margin: 40px 0; display: flex; justify-content: space-between;">
+                        <div style="text-align: center; flex: 1;">
+                            <div style="border-top: 1px solid #000; margin-top: 60px; padding-top: 8px; width: 180px; display: inline-block;">
+                                <p style="margin: 4px 0;">ลายมือชื่อผู้ทำรายการ</p>
+                            </div>
+                        </div>
+                        <div style="text-align: center; flex: 1;">
+                            <div style="border-top: 1px solid #000; margin-top: 60px; padding-top: 8px; width: 180px; display: inline-block;">
+                                <p style="margin: 4px 0;">ลายมือชื่อผู้รับเงิน</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- QR Code -->
+                    <div style="text-align: center; margin: 20px 0;">
+                        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=" 
+                             alt="QR Code" style="width: 120px; height: 120px;">
+                    </div>
+
+                    <!-- หมายเหตุ -->
+                    <div style="text-align: center; font-size: 14px; color: #666; margin-top: 20px; border-top: 2px dashed #000; padding-top: 15px;">
+                        <p style="margin: 4px 0;">เอกสารนี้เป็นหลักฐานการทำรายการ</p>
+                        <p style="margin: 4px 0;">กรุณาเก็บไว้เพื่อการตรวจสอบ</p>
+                        <p style="margin: 4px 0;">ขอบคุณที่ใช้บริการ</p>
+                    </div>
+                </div>
+            `;
+
+            // อัปเดตส่วนของการเปิดหน้าต่างพิมพ์
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>สลิป${type === 'deposit' ? 'ฝาก' : 'ถอน'}เงิน</title>
+                        <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+                        <style>
+                            @page {
+                                size: A4;
+                                margin: 0;
+                            }
+                            body {
+                                font-family: 'Sarabun', sans-serif;
+                                margin: 0;
+                                padding: 0;
+                                background: #fff;
+                            }
+                            .slip-container {
+                                width: 210mm;
+                                height: 297mm;
+                                padding: 15mm;
+                                margin: 0 auto;
+                                background: #fff;
+                                box-sizing: border-box;
+                                display: flex;
+                                flex-direction: column;
+                            }
+                            @media print {
+                                html, body {
+                                    width: 210mm;
+                                    height: 297mm;
+                                }
+                                .slip-container {
+                                    page-break-after: always;
+                                }
+                            }
+                        </style>
+                    </head>
+                    <body>${slip.innerHTML}</body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+            printWindow.close();
+        }
 
         modal.style.display = 'none';
         await fetchAccount();
