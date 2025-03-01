@@ -66,7 +66,6 @@
                                 <th class="border px-4 py-2">ชื่อพนักงาน</th>
                                 <th class="border px-4 py-2">วันที่สร้าง</th>
                                 <th class="border px-4 py-2">ธุรกรรม</th>
-                                <th class="border px-4 py-2">การทำงาน</th>
                             </tr>
                         </thead>
                         <tbody id="accountTableBody">
@@ -130,32 +129,79 @@
                 </div>
             </div>
 
-            <!-- Transaction Modal -->
-            <div id="transactionModal" class="modal">
+            <!-- Deposit Modal -->
+            <div id="depositModal" class="modal">
                 <div class="modal-content">
                     <span class="close">&times;</span>
-                    <h2 class="text-primary">ธุรกรรม</h2>
-                    <form id="transactionForm" class="space-y-4">
-                        <input type="hidden" id="transactionUserId">
+                    <div class="transaction-form">
+                        <h2 class="text-primary text-xl font-bold mb-4">ฝากเงิน</h2>
+                        <form id="transactionFormDeposit" class="space-y-4">
+                            <input type="hidden" id="transactionUserIdDeposit">
+                            <input type="hidden" name="transactionType" value="deposit">
 
-                        <label for="transactionAccountId">เลขที่บัญชี</label>
-                        <input type="text" id="transactionAccountId" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="transactionAccountIdDeposit">เลขที่บัญชี</label>
+                                    <input type="text" id="transactionAccountIdDeposit" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                                <div>
+                                    <label for="transactionNameDeposit">ชื่อผู้ใช้</label>
+                                    <input type="text" id="transactionNameDeposit" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                            </div>
 
-                        <label for="transactionName" class="block text-secondary">ชื่อผู้ใช้:</label>
-                        <input type="text" id="transactionName" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="transactionBalanceDeposit">ยอดคงเหลือปัจจุบัน</label>
+                                    <input type="text" id="transactionBalanceDeposit" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                                <div>
+                                    <label for="transactionAmountDeposit">จำนวนเงินฝาก</label>
+                                    <input type="number" id="transactionAmountDeposit" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                            </div>
 
-                        <label for="transactionBalance" class="block text-secondary">ยอดคงเหลือปัจจุบัน:</label>
-                        <input type="text" id="transactionBalance" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            <button type="submit" class="w-full bg-primary text-white py-2 px-6 rounded-lg mt-4 hover:bg-green-600">ยืนยันการฝากเงิน</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
 
-                        <label for="transactionAmount" class="block text-secondary">จำนวนเงิน:</label>
-                        <input type="number" id="transactionAmount" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            <!-- Withdraw Modal -->
+            <div id="withdrawModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <div class="transaction-form">
+                        <h2 class="text-red-500 text-xl font-bold mb-4">ถอนเงิน</h2>
+                        <form id="transactionFormWithdraw" class="space-y-4">
+                            <input type="hidden" id="transactionUserIdWithdraw">
+                            <input type="hidden" name="transactionType" value="withdraw">
 
-                        <label for="transactionType" class="block text-secondary">ประเภทการทำธุรกรรม:</label><br>
-                        <input type="radio" id="deposit" name="transactionType" value="deposit" required> ฝากเงิน
-                        <input type="radio" id="withdraw" name="transactionType" value="withdraw" required> ถอนเงิน
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="transactionAccountIdWithdraw">เลขที่บัญชี</label>
+                                    <input type="text" id="transactionAccountIdWithdraw" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                                <div>
+                                    <label for="transactionNameWithdraw">ชื่อผู้ใช้</label>
+                                    <input type="text" id="transactionNameWithdraw" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                            </div>
 
-                        <button type="submit" class="bg-primary text-white py-2 px-6 rounded-lg mt-4 hover:bg-green-600">ยืนยัน</button>
-                    </form>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="transactionBalanceWithdraw">ยอดคงเหลือปัจจุบัน</label>
+                                    <input type="text" id="transactionBalanceWithdraw" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                                <div>
+                                    <label for="transactionAmountWithdraw">จำนวนเงินถอน</label>
+                                    <input type="number" id="transactionAmountWithdraw" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full bg-red-500 text-white py-2 px-6 rounded-lg mt-4 hover:bg-red-600">ยืนยันการถอนเงิน</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </main>

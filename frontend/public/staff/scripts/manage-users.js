@@ -102,6 +102,7 @@ const openEditModal = async (user) => {
             throw new Error(`ไม่สามารถดึงข้อมูลผู้ใช้ได้: ${response.status}`);
         }
         const userData = await response.json();
+        console.log(userData);
 
         const convertToBE = (dateString) => {
             if (!dateString) return '';
@@ -112,7 +113,6 @@ const openEditModal = async (user) => {
 
         document.getElementById('editName').value = userData.name || '';
         document.getElementById('editEmail').value = userData.email || '';
-        document.getElementById('editPassword').value = userData.password || '';
         document.getElementById('editAddress').value = userData.address || '';
         document.getElementById('editPhone').value = userData.phone || '';
         document.getElementById('editBirthday').value = userData.birthday
@@ -291,7 +291,6 @@ const deleteUser = async (userId) => {
         });
     }
 };
-
 
 // ฟังก์ชันสำหรับ filter ข้อมูล
 const filterUsers = () => {

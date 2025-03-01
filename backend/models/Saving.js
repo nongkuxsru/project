@@ -23,6 +23,11 @@ const savingSchema = new mongoose.Schema({
     createdAt: { // วันที่สร้างข้อมูล
         type: Date,
         default: Date.now
+    },
+    status: {
+        type: String,
+        required: true,
+        default: 'active'
     }
 });
 

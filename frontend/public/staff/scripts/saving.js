@@ -128,35 +128,37 @@ const formatCurrency = (amount) => {
 const fetchAccount = async () => {
     try {
         const response = await fetch('/api/staff/saving');
+        if (!response.ok) {
+            throw new Error('Failed to fetch account data');
+        }
+        
         const data = await response.json();
         const tableBody = document.getElementById('accountTableBody');
         tableBody.innerHTML = '';
 
         if (data.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="6">No accounts available.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4">ไม่พบข้อมูลบัญชี</td></tr>';
         } else {
             for (const account of data) {
                 const userName = await fetchUserName(account.id_member);
                 const staffName = await fetchUserName(account.id_staff);
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${account.id_account}</td>
-                    <td>${userName}</td>
-                    <td>${formatCurrency(account.balance)}</td>
-                    <td>${staffName}</td>
-                    <td>${convertToBuddhistYear(account.createdAt)}</td>
-                    <td>
-                        <button class="deposit-btn bg-primary text-white py-2 px-4 rounded-lg shadow-md hover:bg-green-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50" 
+                    <td class="px-4 py-2">${account.id_account}</td>
+                    <td class="px-4 py-2">${userName}</td>
+                    <td class="px-4 py-2 text-right">${formatCurrency(account.balance)}</td>
+                    <td class="px-4 py-2">${staffName}</td>
+                    <td class="px-4 py-2">${convertToBuddhistYear(account.createdAt)}</td>
+                    <td class="px-4 py-2 space-x-2">
+                        <button class="deposit-btn bg-green-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-green-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50" 
                                 data-user-id="${account.id_member}" 
                                 onclick="openTransactionModal('${account.id_member}', 'deposit')">
-                            <i class="fa fa-bank"></i> ทำรายการ
+                            <i class="fas fa-money-bill-wave"></i> ฝาก
                         </button>
-                    </td>
-                    <td>
-                        <button class="delete-btn bg-red-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-red-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-opacity-50"
+                        <button class="withdraw-btn bg-red-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-red-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-opacity-50"
                                 data-user-id="${account.id_member}"
-                                onclick="deleteAccount('${account.id_member}', 'withdraw')">
-                            <i class="fa fa-bank"></i> ลบบัญชี
+                                onclick="openTransactionModal('${account.id_member}', 'withdraw')">
+                            <i class="fas fa-money-bill-wave"></i> ถอน
                         </button>
                     </td>
                 `;
@@ -166,7 +168,7 @@ const fetchAccount = async () => {
     } catch (error) {
         console.error('Error fetching account data:', error);
         const tableBody = document.getElementById('accountTableBody');
-        tableBody.innerHTML = '<tr><td colspan="6">Failed to load data.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-red-500">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
     }
 };
 
@@ -339,31 +341,41 @@ const openAddUserModal = () => {
     };
 };
 
-const openTransactionModal = async (userId) => {
-    const modal = document.getElementById('transactionModal');
-    const form = document.getElementById('transactionForm');
+const openTransactionModal = async (userId, type) => {
+    // เลือก modal ตามประเภทธุรกรรม
+    const modalId = type === 'deposit' ? 'depositModal' : 'withdrawModal';
+    const modal = document.getElementById(modalId);
+    const form = document.getElementById(`transactionForm${type.charAt(0).toUpperCase() + type.slice(1)}`);
 
     if (!modal || !form) {
         console.error('Modal or form not found');
         return;
     }
 
-    modal.style.display = 'block'; // แสดง modal
+    // แสดง modal
+    modal.style.display = 'block';
 
     // ดึงข้อมูลผู้ใช้จาก API
     try {
         const response = await fetch(`/api/staff/saving/${userId}`);
         const account = await response.json();
+        const userName = await fetchUserName(account.id_member);
 
         if (!response.ok || !account) {
             throw new Error('Failed to fetch account data');
         }
 
-        // แสดงข้อมูลในฟอร์ม
-        document.getElementById('transactionAccountId').value = account.id_account;
-        document.getElementById('transactionUserId').value = account._id;
-        document.getElementById('transactionName').value = await fetchUserName(account.id_member);
-        document.getElementById('transactionBalance').value = account.balance;
+        // กำหนดค่าให้กับฟอร์ม
+        document.getElementById(`transactionAccountId${type.charAt(0).toUpperCase() + type.slice(1)}`).value = account.id_account;
+        document.getElementById(`transactionUserId${type.charAt(0).toUpperCase() + type.slice(1)}`).value = account._id;
+        document.getElementById(`transactionName${type.charAt(0).toUpperCase() + type.slice(1)}`).value = userName;
+        document.getElementById(`transactionBalance${type.charAt(0).toUpperCase() + type.slice(1)}`).value = account.balance;
+
+        // จัดการการส่งฟอร์ม
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            await handleTransaction(e, type, account);
+        };
 
     } catch (error) {
         console.error('Error fetching account data:', error);
@@ -373,125 +385,13 @@ const openTransactionModal = async (userId) => {
             text: 'ไม่สามารถโหลดข้อมูลบัญชีได้',
         });
         modal.style.display = 'none';
-        return;
     }
 
-    // เมื่อฟอร์มถูกส่ง
-    form.onsubmit = async (e) => {
-        e.preventDefault();
-
-        const transactionType = document.querySelector('input[name="transactionType"]:checked').value; // ฝากหรือถอน
-        const transactionAmount = parseFloat(document.getElementById('transactionAmount').value); // ปรับให้เป็นเลขทศนิยม
-
-        if (!transactionAmount || transactionAmount <= 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'ข้อมูลไม่ถูกต้อง',
-                text: 'กรุณากรอกจำนวนเงินที่ถูกต้อง',
-            });
-            return;
-        }
-
-        // ดึงยอดเงินปัจจุบันจากฟอร์ม
-        const currentBalance = parseFloat(document.getElementById('transactionBalance').value);
-
-        let newBalance = 0;
-        if (transactionType === 'deposit') {
-            newBalance = currentBalance + transactionAmount;
-        } else if (transactionType === 'withdraw') {
-            if (currentBalance < transactionAmount) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'ยอดเงินไม่พอ',
-                    text: 'ไม่สามารถถอนเงินเกินยอดเงินที่มีได้',
-                });
-                return;
-            }
-            newBalance = currentBalance - transactionAmount;
-        }
-
-        // ยืนยันก่อนทำธุรกรรม
-        const confirmTransaction = await Swal.fire({
-            title: 'ยืนยันการทำธุรกรรม?',
-            text: `คุณต้องการ ${transactionType === 'deposit' ? 'ฝาก' : 'ถอน'} เงินจำนวน ${transactionAmount} หรือไม่?`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#28a745',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'ใช่, ดำเนินการ!',
-            cancelButtonText: 'ยกเลิก',
-        });
-
-        if (!confirmTransaction.isConfirmed) {
-            console.log('❌ ผู้ใช้ยกเลิกการทำธุรกรรม');
-            return;
-        }
-
-        // สร้างข้อมูลการทำธุรกรรม
-        const transactionData = {
-            amount: transactionAmount,
-            type: transactionType, // 'deposit' หรือ 'withdraw'
-            balance: newBalance, // ยอดเงินใหม่
-        };
-
-        try {
-            // ส่งข้อมูลการทำธุรกรรมไปยัง API เพื่อบันทึกการทำธุรกรรม
-            const transactionResponse = await fetch(`/api/staff/saving/${userId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(transactionData),
-            });
-
-            if (!transactionResponse.ok) {
-                throw new Error('Failed to process transaction');
-            }
-
-            // ข้อมูลการทำธุรกรรมที่ใช้บันทึกประวัติ
-            const transactionHistory = {
-                user: userId,
-                type: transactionType === 'deposit' ? 'Deposit' : 'Withdraw',
-                amount: transactionAmount,
-                status: 'Completed', // ใช้สถานะนี้เป็นตัวอย่าง
-                date: new Date().toISOString(),
-            };
-
-            // ส่งข้อมูลการทำธุรกรรมไปยัง API เพื่อบันทึกประวัติ
-            const historyResponse = await fetch('/api/staff/transactions', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(transactionHistory),
-            });
-
-            if (!historyResponse.ok) {
-                throw new Error('Failed to save transaction history');
-            }
-
-            Swal.fire({
-                icon: 'success',
-                title: 'ทำรายการสำเร็จ!',
-                text: 'ธุรกรรมของคุณได้รับการบันทึกแล้ว',
-            });
-
-            modal.style.display = 'none';  // ปิด modal
-            await fetchAccount();  // รีเฟรชข้อมูลบัญชี
-            form.reset();  // ล้างฟอร์มหลังการทำธุรกรรม
-
-        } catch (error) {
-            console.error('Error processing transaction:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'เกิดข้อผิดพลาด!',
-                text: 'ไม่สามารถทำธุรกรรมได้ กรุณาลองใหม่อีกครั้ง',
-            });
-        }
-    };
-
-    // ปิด modal เมื่อคลิกปุ่ม close (×)
-    document.querySelector('#transactionModal .close').onclick = () => {
+    // ปิด modal
+    document.querySelector(`#${modalId} .close`).onclick = () => {
         modal.style.display = 'none';
     };
 
-    // ปิด modal เมื่อคลิกนอก modal
     window.onclick = (event) => {
         if (event.target === modal) {
             modal.style.display = 'none';
@@ -499,50 +399,146 @@ const openTransactionModal = async (userId) => {
     };
 };
 
+// เพิ่มฟังก์ชันใหม่สำหรับจัดการการทำธุรกรรม
+const handleTransaction = async (event, type, account) => {
+    const modalId = type === 'deposit' ? 'depositModal' : 'withdrawModal';
+    const modal = document.getElementById(modalId);
+    const amount = parseFloat(document.getElementById(`transactionAmount${type.charAt(0).toUpperCase() + type.slice(1)}`).value);
+    const currentBalance = parseFloat(account.balance);
 
-const deleteAccount = async (userId) => {
-    const confirmDelete = await Swal.fire({
-        title: 'คุณแน่ใจหรือไม่?',
-        text: 'บัญชีนี้จะถูกลบถาวรและไม่สามารถกู้คืนได้!',
-        icon: 'warning',
+    if (!amount || amount <= 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'ข้อมูลไม่ถูกต้อง',
+            text: 'กรุณากรอกจำนวนเงินที่ถูกต้อง',
+        });
+        return;
+    }
+
+    // ตรวจสอบการถอนเงิน
+    if (type === 'withdraw' && currentBalance < amount) {
+        Swal.fire({
+            icon: 'error',
+            title: 'ยอดเงินไม่พอ',
+            text: 'ไม่สามารถถอนเงินเกินยอดเงินที่มีได้',
+        });
+        return;
+    }
+
+    const newBalance = type === 'deposit' ? currentBalance + amount : currentBalance - amount;
+
+    // ยืนยันการทำธุรกรรม
+    const confirmResult = await Swal.fire({
+        title: 'ยืนยันการทำธุรกรรม?',
+        text: `คุณต้องการ${type === 'deposit' ? 'ฝาก' : 'ถอน'}เงินจำนวน ${amount} บาท หรือไม่?`,
+        icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'ใช่, ลบเลย!',
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'ใช่, ดำเนินการ!',
         cancelButtonText: 'ยกเลิก',
     });
 
-    if (!confirmDelete.isConfirmed) {
-        console.log('❌ User cancelled the deletion.');
-        return; // ยกเลิกการลบถ้าผู้ใช้ไม่ยืนยัน
-    }
+    if (!confirmResult.isConfirmed) return;
 
     try {
-        const response = await fetch(`/api/staff/saving/${userId}`, {
-            method: 'DELETE',
+        // แก้ไข endpoint ให้ใช้ id ที่ถูกต้อง
+        const transactionResponse = await fetch(`/api/staff/saving/${account.id_member}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id_account: account.id_account,
+                balance: newBalance,
+                id_member: account.id_member,
+                id_staff: account.id_staff
+            }),
         });
 
-        if (!response.ok) {
-            throw new Error('Failed to delete account');
+        if (!transactionResponse.ok) {
+            const errorData = await transactionResponse.json();
+            console.error('API Error Response:', errorData);
+            throw new Error(errorData.message || 'Failed to process transaction');
         }
+
+        const updatedData = await transactionResponse.json();
+        // บันทึกประวัติการทำธุรกรรม
+        const historyResponse = await fetch('/api/staff/transactions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user: account._id,
+                type: type === 'deposit' ? 'Deposit' : 'Withdraw',
+                amount,
+                status: 'Completed',
+                date: new Date().toISOString(),
+            }),
+        });
+
+        if (!historyResponse.ok) throw new Error('Failed to save transaction history');
 
         await Swal.fire({
             icon: 'success',
-            title: 'ลบสำเร็จ!',
-            text: 'บัญชีถูกลบเรียบร้อยแล้ว',
+            title: 'ทำรายการสำเร็จ!',
+            text: 'ธุรกรรมของคุณได้รับการบันทึกแล้ว',
         });
 
-        // เรียกใช้ฟังก์ชันรีเฟรชข้อมูลบัญชี
+        modal.style.display = 'none';
         await fetchAccount();
+        event.target.reset();
+
     } catch (error) {
-        console.error('Error deleting account:', error);
+        console.error('Error processing transaction:', error);
         Swal.fire({
             icon: 'error',
             title: 'เกิดข้อผิดพลาด!',
-            text: 'ไม่สามารถลบบัญชีได้ กรุณาลองใหม่อีกครั้ง',
+            text: 'ไม่สามารถทำธุรกรรมได้ กรุณาลองใหม่อีกครั้ง',
         });
     }
 };
+
+// const deleteAccount = async (userId) => {
+//     const confirmDelete = await Swal.fire({
+//         title: 'คุณแน่ใจหรือไม่?',
+//         text: 'บัญชีนี้จะถูกลบถาวรและไม่สามารถกู้คืนได้!',
+//         icon: 'warning',
+//         showCancelButton: true,
+//         confirmButtonColor: '#d33',
+//         cancelButtonColor: '#3085d6',
+//         confirmButtonText: 'ใช่, ลบเลย!',
+//         cancelButtonText: 'ยกเลิก',
+//     });
+
+//     if (!confirmDelete.isConfirmed) {
+//         console.log('❌ User cancelled the deletion.');
+//         return; // ยกเลิกการลบถ้าผู้ใช้ไม่ยืนยัน
+//     }
+
+//     try {
+//         const response = await fetch(`/api/staff/saving/${userId}`, {
+//             method: 'DELETE',
+//         });
+
+//         if (!response.ok) {
+//             throw new Error('Failed to delete account');
+//         }
+
+//         await Swal.fire({
+//             icon: 'success',
+//             title: 'ลบสำเร็จ!',
+//             text: 'บัญชีถูกลบเรียบร้อยแล้ว',
+//         });
+
+//         // เรียกใช้ฟังก์ชันรีเฟรชข้อมูลบัญชี
+//         await fetchAccount();
+//     } catch (error) {
+//         console.error('Error deleting account:', error);
+//         Swal.fire({
+//             icon: 'error',
+//             title: 'เกิดข้อผิดพลาด!',
+//             text: 'ไม่สามารถลบบัญชีได้ กรุณาลองใหม่อีกครั้ง',
+//         });
+//     }
+// };
 
 document.addEventListener("DOMContentLoaded", function() {
     // ดึงข้อมูลผู้ใช้จาก localStorage
