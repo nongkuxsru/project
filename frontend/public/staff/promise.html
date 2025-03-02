@@ -50,9 +50,18 @@
             <section class="bg-white p-6 shadow-lg rounded-lg w-full max-w-full mx-auto border-2 border-green-500">
                 <h2 class="text-2xl font-bold text-primary mb-6 text-center">บัญชีสัญญาเงินกู้</h2>
                 
-                <!-- เพิ่มปุ่มสร้างสัญญาเงินกู้ใหม่ -->
-                <div class="flex justify-end mb-4">
-                    <button id="createPromiseButton" class="bg-primary hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition duration-300 hover:scale-105">
+                <!-- เพิ่มส่วนปุ่มด้านบน -->
+                <div class="flex justify-between mb-4">
+                    <!-- ปุ่มพิมพ์แบบฟอร์มขอสินเชื่อ -->
+                    <button onclick="printEmptyLoanForm()" 
+                            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition duration-300 hover:scale-105">
+                        <i class="fas fa-file-alt"></i>
+                        <span>พิมพ์แบบฟอร์มขอสินเชื่อ</span>
+                    </button>
+                    
+                    <!-- ปุ่มสร้างสัญญาเงินกู้ใหม่ -->
+                    <button id="createPromiseButton" 
+                            class="bg-primary hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition duration-300 hover:scale-105">
                         <i class="fas fa-plus"></i>
                         <span>สร้างสัญญาเงินกู้ใหม่</span>
                     </button>
@@ -157,11 +166,13 @@
                         </div>
                     </div>
                     <div class="modal-footer bg-gray-50 p-4 rounded-b-lg flex justify-end space-x-3">
-                        <button class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors" onclick="closePromiseDetails()">
-                            ปิด
-                        </button>
-                        <button class="bg-primary hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors" onclick="printPromiseDetails()">
+                        <button class="bg-primary hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors" 
+                                onclick="printPromiseDetails()">
                             <i class="fas fa-print mr-2"></i>พิมพ์สัญญา
+                        </button>
+                        <button class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors" 
+                                onclick="closePromiseDetails()">
+                            ปิด
                         </button>
                     </div>
                 </div>
@@ -170,5 +181,149 @@
     </div>
     <script src="/staff/components/load-sidebar.js"></script>
     <script src="/staff/scripts/promise.js"></script>
+
+    <!-- เพิ่มเทมเพลตสำหรับฟอร์มขอสินเชื่อ -->
+    <template id="loanFormTemplate">
+        <div class="loan-form-container" style="font-family: 'Sarabun', sans-serif; max-width: 210mm; margin: 0 auto;">
+            <!-- หัวกระดาษ -->
+            <div style="text-align: center; margin-bottom: 30px;">
+                <img src="/images/logo.png" alt="Logo" style="max-width: 100px; margin-bottom: 15px;">
+                <h1 style="font-size: 24px; font-weight: bold; margin: 8px 0;">แบบฟอร์มคำขอสินเชื่อ</h1>
+                <h2 style="font-size: 22px; margin: 8px 0;">สหกรณ์ออมทรัพย์หมู่บ้าน ตำบลตะกุกเหนือ</h2>
+            </div>
+
+            <!-- ข้อมูลส่วนตัว -->
+            <div style="margin-bottom: 25px;">
+                <h3 style="font-size: 20px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #000;">1. ข้อมูลผู้ขอสินเชื่อ</h3>
+                <div style="margin-bottom: 15px;">
+                    <p style="margin: 8px 0;">
+                        <strong>ชื่อ-นามสกุล:</strong> <span class="form-field">................................................</span>
+                    </p>
+                    <p style="margin: 8px 0;">
+                        <strong>เลขบัตรประชาชน:</strong> <span class="form-field">................................................</span>
+                    </p>
+                    <p style="margin: 8px 0;">
+                        <strong>ที่อยู่:</strong> <span class="form-field">................................................</span>
+                    </p>
+                    <p style="margin: 8px 0;">
+                        <strong>เบอร์โทรศัพท์:</strong> <span class="form-field">................................................</span>
+                    </p>
+                    <p style="margin: 8px 0;">
+                        <strong>เลขบัญชีออมทรัพย์:</strong> <span class="form-field">................................................</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- ข้อมูลการขอสินเชื่อ -->
+            <div style="margin-bottom: 25px;">
+                <h3 style="font-size: 20px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #000;">2. รายละเอียดการขอสินเชื่อ</h3>
+                <div style="margin-bottom: 15px;">
+                    <p style="margin: 8px 0;">ประเภทสินเชื่อที่ต้องการ:</p>
+                    <div style="display: flex; gap: 30px; margin: 10px 0;">
+                        <div style="font-size: 16px;">☐ สินเชื่อสามัญ</div>
+                        <div style="font-size: 16px;">☐ สินเชื่อฉุกเฉิน</div>
+                    </div>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <p style="margin: 8px 0;">
+                        <strong>จำนวนเงินที่ขอกู้:</strong> <span class="form-field">...........................</span> บาท
+                    </p>
+                    <p style="margin: 8px 0;">
+                        <strong>ระยะเวลาการผ่อนชำระ:</strong> <span class="form-field">...........................</span> เดือน
+                    </p>
+                    <p style="margin: 8px 0;">
+                        <strong>วัตถุประสงค์ในการกู้:</strong> <span class="form-field">...........................................................</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- หลักประกัน -->
+            <div style="margin-bottom: 25px;">
+                <h3 style="font-size: 20px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #000;">3. หลักประกัน</h3>
+                <div style="margin-bottom: 15px;">
+                    <p style="margin: 8px 0;">☐ บุคคลค้ำประกัน</p>
+                    <p style="margin: 8px 0;">☐ หลักทรัพย์ค้ำประกัน (โปรดระบุ) <span class="form-field">...........................................................</span></p>
+                    <p style="margin: 8px 0;">☐ อื่นๆ (โปรดระบุ) <span class="form-field">...........................................................</span></p>
+                </div>
+            </div>
+
+            <!-- ลายเซ็นต์ -->
+            <div style="margin-top: 30px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <div style="text-align: center; width: 200px;">
+                        <p style="margin: 5px 0;">ลงชื่อ ................................................</p>
+                        <p style="margin: 5px 0;">(.................................................)</p>
+                        <p style="margin: 5px 0;">ผู้ขอสินเชื่อ</p>
+                        <p style="margin: 5px 0;">วันที่ ........../........../.........</p>
+                    </div>
+                    <div style="text-align: center; width: 200px;">
+                        <p style="margin: 5px 0;">ลงชื่อ ................................................</p>
+                        <p style="margin: 5px 0;">(.................................................)</p>
+                        <p style="margin: 5px 0;">พยาน</p>
+                        <p style="margin: 5px 0;">วันที่ ........../........../.........</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ส่วนสำหรับเจ้าหน้าที่ -->
+            <div style="margin-top: 25px; border-top: 1px dashed #000; padding-top: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="flex: 1;">
+                        <h3 style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">สำหรับเจ้าหน้าที่</h3>
+                        <p style="margin: 5px 0;">ความเห็นเจ้าหน้าที่: <span class="form-field">...........................................................</span></p>
+                        <p style="margin: 5px 0;">ผลการพิจารณา: ☐ อนุมัติ ☐ ไม่อนุมัติ</p>
+                    </div>
+                    <div style="text-align: center; width: 200px;">
+                        <p style="margin: 5px 0;">ลงชื่อ .................................</p>
+                        <p style="margin: 5px 0;">(......................................)</p>
+                        <p style="margin: 5px 0;">ผู้มีอำนาจอนุมัติ</p>
+                        <p style="margin: 5px 0;">วันที่ ......../......../........</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- เพิ่มเทมเพลตสำหรับการพิมพ์รายละเอียดสัญญา -->
+    <template id="promiseDetailsTemplate">
+        <div class="contract-container" style="font-family: 'Sarabun', sans-serif; max-width: 210mm; margin: 0 auto;">
+            <!-- หัวกระดาษ -->
+            <div style="text-align: center; margin-bottom: 30px;">
+                <img src="/images/logo.png" alt="Logo" style="max-width: 100px; margin-bottom: 15px;">
+                <h1 style="font-size: 24px; font-weight: bold; margin: 8px 0;">สัญญาเงินกู้</h1>
+                <h2 style="font-size: 22px; margin: 8px 0;">สหกรณ์ออมทรัพย์หมู่บ้าน ตำบลตะกุกเหนือ</h2>
+            </div>
+
+            <!-- รายละเอียดสัญญา -->
+            <div style="margin-bottom: 25px;">
+                <h3 style="font-size: 20px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #000;">รายละเอียดสัญญา</h3>
+                <div style="margin-bottom: 15px;">
+                    <p style="margin: 8px 0;"><strong>รหัสสัญญา:</strong> <span id="contractId"></span></p>
+                    <p style="margin: 8px 0;"><strong>รหัสสมาชิก:</strong> <span id="memberId"></span></p>
+                    <p style="margin: 8px 0;"><strong>จำนวนเงิน:</strong> <span id="amount"></span> บาท</p>
+                    <p style="margin: 8px 0;"><strong>วันที่ทำสัญญา:</strong> <span id="startDate"></span></p>
+                    <p style="margin: 8px 0;"><strong>วันครบกำหนด:</strong> <span id="dueDate"></span></p>
+                </div>
+            </div>
+
+            <!-- ลายเซ็นต์ -->
+            <div style="margin-top: 50px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <div style="text-align: center; width: 200px;">
+                        <p style="margin: 5px 0;">ลงชื่อ ................................................</p>
+                        <p style="margin: 5px 0;">(.................................................)</p>
+                        <p style="margin: 5px 0;">ผู้กู้</p>
+                        <p style="margin: 5px 0;">วันที่ ........../........../.........</p>
+                    </div>
+                    <div style="text-align: center; width: 200px;">
+                        <p style="margin: 5px 0;">ลงชื่อ ................................................</p>
+                        <p style="margin: 5px 0;">(.................................................)</p>
+                        <p style="margin: 5px 0;">ผู้อนุมัติ</p>
+                        <p style="margin: 5px 0;">วันที่ ........../........../.........</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
 </body>
 </html>

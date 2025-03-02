@@ -238,6 +238,8 @@ const openPromiseDetailsModal = async (promiseId) => {
             <button onclick="closePromiseDetailsModal()" class="closeButton"></button>
         `;
 
+        // เก็บข้อมูล promiseDetails ไว้ใน dataset ของ modal
+        modal.dataset.promiseDetails = JSON.stringify(promiseDetails);
         modal.style.display = 'block';
     } catch (error) {
         console.error('Error fetching promise details:', error);
@@ -340,49 +342,96 @@ const cancelPromiseCreation = () => {
 
 // ฟังก์ชันสำหรับพิมพ์รายละเอียดสัญญา
 const printPromiseDetails = () => {
-    const content = document.getElementById('promiseDetailsContent');
+    // ดึงข้อมูลจาก modal dataset
+    const modal = document.getElementById('promiseDetailsModal');
+    const promiseDetails = JSON.parse(modal.dataset.promiseDetails);
+    
+    // ดึงเทมเพลตจาก HTML
+    const template = document.getElementById('promiseDetailsTemplate');
+    
+    // สร้างหน้าต่างใหม่สำหรับพิมพ์
     const printWindow = window.open('', '', 'width=800,height=600');
     
+    // กำหนดสไตล์สำหรับการพิมพ์
+    const printStyles = `
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            font-family: 'Sarabun', sans-serif;
+            margin: 0;
+            padding: 15mm;
+            background: white;
+        }
+        @media print {
+            body {
+                width: 210mm;
+                height: 297mm;
+            }
+            .contract-container {
+                page-break-inside: avoid;
+            }
+            #printControls {
+                display: none !important;
+            }
+        }
+    `;
+
+    // เขียน HTML ลงในหน้าต่างใหม่
     printWindow.document.write(`
         <html>
             <head>
-                <title>พิมพ์สัญญาเงินกู้</title>
-                <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
-                <style>
-                    body {
-                        font-family: 'IBM Plex Sans Thai', sans-serif;
-                        padding: 20px;
-                        line-height: 1.6;
-                    }
-                    .header {
-                        text-align: center;
-                        margin-bottom: 30px;
-                    }
-                    .content {
-                        margin: 20px;
-                    }
-                </style>
+                <title>สัญญาเงินกู้</title>
+                <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+                <style>${printStyles}</style>
             </head>
             <body>
-                <div class="header">
-                    <h1>สัญญาเงินกู้</h1>
+                <div id="printControls" style="position: fixed; top: 20px; right: 20px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1000;">
+                    <button onclick="window.print()" style="padding: 8px 16px; background: #1B8F4C; color: white; border: none; border-radius: 4px; margin-right: 8px; cursor: pointer;">
+                        พิมพ์สัญญา
+                    </button>
+                    <button onclick="window.close()" style="padding: 8px 16px; background: #6B7280; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        ยกเลิก
+                    </button>
                 </div>
-                <div class="content">
-                    ${content.innerHTML}
-                </div>
+                ${template.innerHTML}
             </body>
         </html>
     `);
-    
-    printWindow.document.close();
-    printWindow.focus();
-    
-    // รอให้เนื้อหาโหลดเสร็จก่อนสั่งพิมพ์
+
+    // รอให้หน้าเว็บโหลดเสร็จก่อนอัพเดตข้อมูล
     setTimeout(() => {
-        printWindow.print();
+        try {
+            const contractIdElement = printWindow.document.getElementById('contractId');
+            const memberIdElement = printWindow.document.getElementById('memberId');
+            const amountElement = printWindow.document.getElementById('amount');
+            const startDateElement = printWindow.document.getElementById('startDate');
+            const dueDateElement = printWindow.document.getElementById('dueDate');
+
+            if (contractIdElement) contractIdElement.textContent = promiseDetails._id;
+            if (memberIdElement) memberIdElement.textContent = promiseDetails.id_saving;
+            if (amountElement) amountElement.textContent = promiseDetails.amount;
+            if (startDateElement) startDateElement.textContent = new Date(promiseDetails.Datepromise).toLocaleDateString();
+            if (dueDateElement) dueDateElement.textContent = new Date(promiseDetails.DueDate).toLocaleDateString();
+        } catch (error) {
+            console.error('Error updating print window content:', error);
+        }
+    }, 100);
+
+    // เพิ่ม event listeners สำหรับการพิมพ์และปิดหน้าต่าง
+    printWindow.addEventListener('afterprint', () => {
         printWindow.close();
-    }, 250);
-}
+    });
+
+    printWindow.addEventListener('unload', () => {
+        if (window.opener && !window.opener.closed) {
+            window.opener.focus();
+        }
+    });
+
+    printWindow.document.close();
+};
 
 // =============================================
 // Authentication Functions
@@ -548,4 +597,81 @@ const createNewPromise = async (formData) => {
         console.error('Error in createNewPromise:', error);
         throw new Error(error.message || 'เกิดข้อผิดพลาดในการสร้างสัญญาเงินกู้');
     }
+};
+
+const printEmptyLoanForm = () => {
+    // ดึงเทมเพลตจาก HTML
+    const template = document.getElementById('loanFormTemplate');
+    const formContent = template.innerHTML;
+
+    // สร้างสไตล์สำหรับการพิมพ์
+    const printStyles = `
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            font-family: 'Sarabun', sans-serif;
+            margin: 0;
+            padding: 15mm;
+            background: white;
+        }
+        @media print {
+            body {
+                width: 210mm;
+                height: 297mm;
+            }
+            .loan-form-container {
+                page-break-inside: avoid;
+            }
+        }
+        .form-field {
+            display: inline-block;
+            min-width: 150px;
+            border-bottom: 1px dotted #000;
+        }
+    `;
+
+    // เปิดหน้าต่างใหม่และพิมพ์ทันที
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>แบบฟอร์มคำขอสินเชื่อ</title>
+                <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+                <style>${printStyles}</style>
+                <script>
+                    // พิมพ์ทันทีเมื่อโหลดเสร็จ
+                    window.onload = function() {
+                        window.print();
+                    }
+
+                    // ปิดหน้าต่างหลังจากพิมพ์เสร็จ
+                    window.addEventListener('afterprint', function() {
+                        window.close();
+                        if (window.opener && !window.opener.closed) {
+                            window.opener.focus();
+                        }
+                    });
+                </script>
+            </head>
+            <body>
+                ${formContent}
+            </body>
+        </html>
+    `);
+    printWindow.document.close();
+
+    // จัดการข้อผิดพลาด
+    printWindow.onerror = function(error) {
+        console.error('Print preview error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
+            text: 'ไม่สามารถแสดงตัวอย่างแบบฟอร์มได้',
+            timer: 1500,
+            showConfirmButton: false
+        });
+        printWindow.close();
+    };
 };
