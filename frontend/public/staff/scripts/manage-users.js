@@ -2,7 +2,6 @@
 window.onload = () => {
     fetchAndRenderUsers(); // ดึงข้อมูลผู้ใช้และแสดงผลในตาราง
     document.getElementById('searchInput').addEventListener('input', filterUsers);
-    document.getElementById('permissionFilter').addEventListener('change', filterUsers);
     document.getElementById('logoutButton').addEventListener('click', logout);
 };
 
@@ -96,13 +95,18 @@ const openEditModal = async (user) => {
         return;
     }
 
+    // ฟังก์ชันสำหรับปิด modal
+    const closeModal = () => {
+        modal.style.display = 'none';
+        form.reset();
+    };
+
     try {
         const response = await fetch(`/api/admin/users/${userId}`);
         if (!response.ok) {
             throw new Error(`ไม่สามารถดึงข้อมูลผู้ใช้ได้: ${response.status}`);
         }
         const userData = await response.json();
-        console.log(userData);
 
         const convertToBE = (dateString) => {
             if (!dateString) return '';
@@ -111,6 +115,7 @@ const openEditModal = async (user) => {
             return `${yearBE}-${("0" + (date.getMonth() + 1)).slice(-2)}-${("0" + date.getDate()).slice(-2)}`;
         };
 
+        // กรอกข้อมูลในฟอร์ม
         document.getElementById('editName').value = userData.name || '';
         document.getElementById('editEmail').value = userData.email || '';
         document.getElementById('editAddress').value = userData.address || '';
@@ -118,10 +123,26 @@ const openEditModal = async (user) => {
         document.getElementById('editBirthday').value = userData.birthday
             ? convertToBE(userData.birthday)
             : '';
-        document.getElementById('editPermission').value = userData.permission || 'User';
+        document.getElementById('editPermission').value = userData.permission || 'user';
 
+        // แสดง modal
         modal.style.display = 'block';
 
+        // จัดการการคลิกที่ modal background
+        modal.addEventListener('click', (event) => {
+            // ตรวจสอบว่าคลิกที่ modal background หรือพื้นที่ centering
+            if (event.target === modal || event.target.classList.contains('min-h-screen')) {
+                closeModal();
+            }
+        });
+
+        // จัดการปุ่มปิด
+        const closeButton = modal.querySelector('.close');
+        if (closeButton) {
+            closeButton.onclick = closeModal;
+        }
+
+        // จัดการการส่งฟอร์ม
         form.onsubmit = async (e) => {
             e.preventDefault();
 
@@ -135,7 +156,6 @@ const openEditModal = async (user) => {
             const updatedData = {
                 name: document.getElementById('editName').value,
                 email: document.getElementById('editEmail').value,
-                password: document.getElementById('editPassword').value,
                 address: document.getElementById('editAddress').value,
                 phone: document.getElementById('editPhone').value,
                 birthday: convertToAD(document.getElementById('editBirthday').value),
@@ -153,16 +173,15 @@ const openEditModal = async (user) => {
                     throw new Error(`ไม่สามารถบันทึกข้อมูลผู้ใช้ได้: ${saveResponse.status}`);
                 }
 
-                const result = await saveResponse.json();
+                await saveResponse.json();
+                closeModal();
+                await fetchAndRenderUsers();
 
                 Swal.fire({
                     icon: 'success',
                     title: 'แก้ไขข้อมูลสำเร็จ',
                     text: 'ข้อมูลผู้ใช้ถูกบันทึกเรียบร้อยแล้ว',
                 });
-
-                modal.style.display = 'none';
-                await fetchAndRenderUsers();
             } catch (saveError) {
                 console.error('เกิดข้อผิดพลาดในการบันทึกข้อมูลผู้ใช้:', saveError);
                 Swal.fire({
@@ -180,16 +199,6 @@ const openEditModal = async (user) => {
             text: 'ไม่สามารถดึงข้อมูลผู้ใช้ได้ กรุณาลองใหม่',
         });
     }
-
-    document.querySelector('#editUserModal .close').onclick = () => {
-        modal.style.display = 'none';
-    };
-
-    window.onclick = (event) => {
-        if (event.target === modal) {
-            modal.style.display = 'none';
-        }
-    };
 };
 
 // ฟังก์ชันสำหรับแก้ไขผู้ใช้
@@ -295,16 +304,36 @@ const deleteUser = async (userId) => {
 // ฟังก์ชันสำหรับ filter ข้อมูล
 const filterUsers = () => {
     const searchText = document.getElementById('searchInput').value.toLowerCase();
-    const permissionFilter = document.getElementById('permissionFilter').value;
 
     const filteredUsers = allUsers.filter(user => {
-        const matchesSearch = user.name.toLowerCase().includes(searchText) || user.email.toLowerCase().includes(searchText);
-        const matchesPermission = permissionFilter === 'all' || user.permission === permissionFilter;
-        return matchesSearch && matchesPermission;
+        return user.name.toLowerCase().includes(searchText) || 
+               user.email.toLowerCase().includes(searchText);
     });
 
-    renderUsers(filteredUsers); // แสดงข้อมูลที่ filter แล้ว
+    renderUsers(filteredUsers);
 };
+
+// เพิ่ม debounce function เพื่อเพิ่มประสิทธิภาพการค้นหา
+const debounce = (func, wait) => {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+};
+
+// ปรับปรุงการเพิ่ม event listener สำหรับการค้นหา
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        const debouncedFilter = debounce(filterUsers, 300);
+        searchInput.addEventListener('input', debouncedFilter);
+    }
+});
 
 // เพิ่มฟังก์ชันแปลงวันที่จาก BE เป็น AD
 const convertToAD = (dateString) => {
@@ -322,23 +351,27 @@ const openAddUserModal = () => {
     // แสดง modal
     modal.style.display = 'block';
 
-    // เพิ่ม event listener สำหรับการคลิกนอก modal
-    window.onclick = (event) => {
-        if (event.target === modal) {
-            modal.style.display = 'none';
-            form.reset(); // รีเซ็ตฟอร์มเมื่อปิด
-        }
+    // ฟังก์ชันสำหรับปิด modal
+    const closeModal = () => {
+        modal.style.display = 'none';
+        form.reset();
     };
 
-    // เพิ่ม event listener สำหรับปุ่มปิด (ถ้ามี)
+    // จัดการการคลิกที่ modal background
+    modal.addEventListener('click', (event) => {
+        // ตรวจสอบว่าคลิกที่ modal background (ไม่ใช่ที่เนื้อหาของ modal)
+        if (event.target === modal || event.target.classList.contains('min-h-screen')) {
+            closeModal();
+        }
+    });
+
+    // จัดการปุ่มปิด
     const closeButton = modal.querySelector('.close');
     if (closeButton) {
-        closeButton.onclick = () => {
-            modal.style.display = 'none';
-            form.reset(); // รีเซ็ตฟอร์มเมื่อปิด
-        };
+        closeButton.onclick = closeModal;
     }
 
+    // จัดการการส่งฟอร์ม (ส่วนที่เหลือคงเดิม)
     form.onsubmit = async (e) => {
         e.preventDefault();
     

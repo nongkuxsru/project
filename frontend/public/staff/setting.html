@@ -48,40 +48,42 @@
             </header>
             
             <!-- ส่วนแสดงข้อมูลผู้ใช้ -->
-            <section class="bg-white p-6 shadow-lg rounded-lg w-full max-w-3xl mx-auto border-2 border-green-500">
-                <h2 class="text-2xl font-bold text-primary text-center">ข้อมูลผู้ใช้</h2>
+            <section class="bg-white p-6 shadow-lg rounded-lg w-full max-w-2xl mx-auto border-2 border-green-500 overflow-y-auto max-h-[calc(100vh-120px)]">
+                <h2 class="text-2xl font-bold text-primary text-center mb-6">ข้อมูลผู้ใช้</h2>
                 <form id="personalInfoForm" class="space-y-4">
-                    <div class="form-group">
-                        <label for="userId" class="text-secondary">รหัสผู้ใช้:</label>
-                        <input type="text" id="userId" name="userId" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg" readonly>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="userId" class="text-secondary block mb-1">รหัสผู้ใช้:</label>
+                            <input type="text" id="userId" name="userId" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="fullName" class="text-secondary block mb-1">ชื่อเต็ม:</label>
+                            <input type="text" id="fullName" name="fullName" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email" class="text-secondary block mb-1">อีเมล:</label>
+                            <input type="email" id="email" name="email" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone" class="text-secondary block mb-1">โทรศัพท์:</label>
+                            <input type="text" id="phone" name="phone" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm" required>
+                        </div>
+                        <div class="form-group md:col-span-2">
+                            <label for="address" class="text-secondary block mb-1">ที่อยู่:</label>
+                            <input type="text" id="address" name="address" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="birthday" class="text-secondary block mb-1">วันเกิด:</label>
+                            <input type="date" id="birthday" name="birthday" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="permission" class="text-secondary block mb-1">สิทธิ์:</label>
+                            <input type="text" id="permission" name="permission" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm" readonly>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="fullName" class="text-secondary">ชื่อเต็ม:</label>
-                        <input type="text" id="fullName" name="fullName" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email" class="text-secondary">อีเมล:</label>
-                        <input type="email" id="email" name="email" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="address" class="text-secondary">ที่อยู่:</label>
-                        <input type="text" id="address" name="address" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="phone" class="text-secondary">โทรศัพท์:</label>
-                        <input type="text" id="phone" name="phone" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="birthday" class="text-secondary">วันเกิด:</label>
-                        <input type="date" id="birthday" name="birthday" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="permission" class="text-secondary">สิทธิ์:</label>
-                        <input type="text" id="permission" name="permission" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg" readonly>
-                    </div>
-                    <div class="form-group flex space-x-4">
-                        <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-green-600 transition">บันทึกการเปลี่ยนแปลง</button>
-                        <button type="button" class="bg-gray-300 text-secondary px-6 py-2 rounded-lg hover:bg-gray-400 transition" onclick="resetForm()">ยกเลิก</button>
+                    <div class="flex justify-center space-x-4 mt-6">
+                        <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-green-600 transition text-sm">บันทึกการเปลี่ยนแปลง</button>
+                        <button type="button" class="bg-gray-300 text-secondary px-6 py-2 rounded-lg hover:bg-gray-400 transition text-sm" onclick="resetForm()">ยกเลิก</button>
                     </div>
                 </form>
             </section>
