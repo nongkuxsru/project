@@ -322,6 +322,23 @@ const openAddUserModal = () => {
     // แสดง modal
     modal.style.display = 'block';
 
+    // เพิ่ม event listener สำหรับการคลิกนอก modal
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+            form.reset(); // รีเซ็ตฟอร์มเมื่อปิด
+        }
+    };
+
+    // เพิ่ม event listener สำหรับปุ่มปิด (ถ้ามี)
+    const closeButton = modal.querySelector('.close');
+    if (closeButton) {
+        closeButton.onclick = () => {
+            modal.style.display = 'none';
+            form.reset(); // รีเซ็ตฟอร์มเมื่อปิด
+        };
+    }
+
     form.onsubmit = async (e) => {
         e.preventDefault();
     

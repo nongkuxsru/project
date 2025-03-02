@@ -125,51 +125,86 @@
             </div>
 
             <!-- Modal สำหรับเพิ่มผู้ใช้ -->
-            <div id="addUserModal" class="modal">
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <h2 class="text-primary">เพิ่มผู้ใช้ใหม่</h2>
-                    <form id="addUserForm" class="space-y-4">
-                        <label for="addName" class="block text-secondary">ชื่อ:</label>
-                        <input type="text" id="addName" name="name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            <div id="addUserModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden">
+                <div class="min-h-screen px-4 text-center">
+                    <!-- Vertical centering trick -->
+                    <span class="inline-block h-screen align-middle" aria-hidden="true">&#8203;</span>
                     
-                        <label for="addEmail" class="block text-secondary">อีเมล:</label>
-                        <input type="email" id="addEmail" name="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                    
-                        <label for="addPassword" class="block text-secondary">รหัสผ่าน:</label>
-                        <input type="password" id="addPassword" name="password" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                    
-                        <label for="addAddress" class="block text-secondary">ที่อยู่:</label>
-                        <input type="text" id="addAddress" name="address" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                    
-                        <label for="addPhone" class="block text-secondary">โทรศัพท์:</label>
-                        <input type="text" id="addPhone" name="phone" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                    
-                        <label for="addBirthday" class="block text-secondary">วันเกิด:</label>
-                        <input type="date" id="addBirthday" name="birthday" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                    
-                        <label for="addPermission" class="block text-secondary">สิทธิ์:</label>
-                        <select id="addPermission" name="permission" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                            <option value="admin">ผู้ดูแล</option>
-                            <option value="staff">พนักงาน</option>
-                            <option value="user">ผู้ใช้</option>
-                        </select>
+                    <div class="modal-content inline-block align-middle bg-white rounded-lg text-left shadow-xl transform transition-all w-full max-w-2xl">
+                        <div class="p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-2xl font-bold text-primary">เพิ่มผู้ใช้ใหม่</h2>
+                                <button class="close text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                            </div>
+                            
+                            <div class="modal-body">
+                                <form id="addUserForm" class="space-y-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label for="addName" class="block text-secondary">ชื่อ:</label>
+                                            <input type="text" id="addName" name="name" required 
+                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="addEmail" class="block text-secondary">อีเมล:</label>
+                                            <input type="email" id="addEmail" name="email" required 
+                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="addPassword" class="block text-secondary">รหัสผ่าน:</label>
+                                            <input type="password" id="addPassword" name="password" required 
+                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="addAddress" class="block text-secondary">ที่อยู่:</label>
+                                            <input type="text" id="addAddress" name="address" required 
+                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="addPhone" class="block text-secondary">โทรศัพท์:</label>
+                                            <input type="text" id="addPhone" name="phone" required 
+                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="addBirthday" class="block text-secondary">วันเกิด:</label>
+                                            <input type="date" id="addBirthday" name="birthday" required 
+                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="addPermission" class="block text-secondary">สิทธิ์:</label>
+                                            <select id="addPermission" name="permission" required 
+                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                                <option value="admin">ผู้ดูแล</option>
+                                                <option value="staff">พนักงาน</option>
+                                                <option value="user">ผู้ใช้</option>
+                                            </select>
+                                        </div>
 
-                        <!-- เพิ่มฟิลด์ PIN สำหรับผู้ดูแล -->
-                        <div id="pinField" class="hidden">
-                            <label for="addPin" class="block text-secondary">PIN (4 หลัก):</label>
-                            <input type="password" 
-                                id="addPin" 
-                                name="pin" 
-                                maxlength="4" 
-                                pattern="\d{4}"
-                                inputmode="numeric"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                                placeholder="กรุณากรอก PIN 4 หลัก">
+                                        <div id="pinField" class="hidden">
+                                            <label for="addPin" class="block text-secondary">PIN (4 หลัก):</label>
+                                            <input type="password" id="addPin" name="pin" maxlength="4" 
+                                                pattern="\d{4}" inputmode="numeric"
+                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                                placeholder="กรุณากรอก PIN 4 หลัก">
+                                        </div>
+                                    </div>
+
+                                    <div class="flex justify-end mt-6">
+                                        <button type="submit" 
+                                            class="bg-primary text-white py-2 px-6 rounded-lg hover:bg-green-600 transition duration-300">
+                                            เพิ่มผู้ใช้
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-                    
-                        <button type="submit" class="bg-primary text-white py-2 px-6 rounded-lg mt-4 hover:bg-green-600">เพิ่มผู้ใช้</button>
-                    </form>
+                    </div>
                 </div>
             </div>
         </main>
