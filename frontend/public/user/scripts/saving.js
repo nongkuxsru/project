@@ -155,61 +155,86 @@ function populateTransactionTable(transactions) {
     const tableBody = document.querySelector("#transactionTable tbody");
     tableBody.innerHTML = "";
 
-    transactions.forEach(transaction => {
-        const row = document.createElement("tr");
-        row.classList.add("hover:bg-green-50", "transition-colors", "duration-150");
+    if (transactions && transactions.length > 0) {
+        transactions.forEach(transaction => {
+            const row = document.createElement("tr");
+            row.classList.add("hover:bg-gray-50", "transition-colors", "duration-150");
 
-        // จัดรูปแบบวันที่
-        const date = new Date(transaction.date);
-        const formattedDate = date.toLocaleDateString('th-TH', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+            // จัดรูปแบบวันที่
+            const date = new Date(transaction.date);
+            const formattedDate = date.toLocaleDateString('th-TH', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long'
+            });
+
+            // สร้างและจัดรูปแบบเซลล์วันที่
+            const dateCell = document.createElement("td");
+            dateCell.classList.add("px-4", "py-3", "text-sm", "text-gray-700", "border-b", "border-gray-200");
+            dateCell.innerHTML = `
+                <div class="flex items-center">
+                    <i class="far fa-calendar-alt text-green-500 mr-2"></i>
+                    ${formattedDate}
+                </div>
+            `;
+
+            // สร้างและจัดรูปแบบเซลล์ประเภทรายการ
+            const typeCell = document.createElement("td");
+            typeCell.classList.add("px-4", "py-3", "text-sm", "border-b", "border-gray-200", "text-center");
+            
+            // ตรวจสอบประเภทรายการและกำหนดไอคอนและสี
+            const isDeposit = transaction.type.toLowerCase() === 'deposit';
+            const typeSpan = document.createElement("span");
+            typeSpan.classList.add("px-3", "py-1", "rounded-full", "text-sm", "font-medium", "inline-flex", "items-center");
+            
+            if (isDeposit) {
+                typeSpan.classList.add("bg-green-100", "text-green-800");
+                typeSpan.innerHTML = `
+                    <i class="fas fa-arrow-up text-green-600 mr-2"></i>
+                    ฝากเงิน
+                `;
+            } else {
+                typeSpan.classList.add("bg-red-100", "text-red-800");
+                typeSpan.innerHTML = `
+                    <i class="fas fa-arrow-down text-red-600 mr-2"></i>
+                    ถอนเงิน
+                `;
+            }
+            typeCell.appendChild(typeSpan);
+
+            // สร้างและจัดรูปแบบเซลล์จำนวนเงิน
+            const amountCell = document.createElement("td");
+            amountCell.classList.add("px-4", "py-3", "text-sm", "border-b", "border-gray-200", "font-medium", "text-right");
+            
+            const amount = isDeposit ? 
+                `+${transaction.amount.toLocaleString('th-TH')}` : 
+                `-${transaction.amount.toLocaleString('th-TH')}`;
+            
+            amountCell.innerHTML = `
+                <span class="${isDeposit ? 'text-green-600' : 'text-red-600'}">
+                    ${amount} บาท
+                </span>
+            `;
+
+            // เพิ่มเซลล์ทั้งหมดลงในแถว
+            row.appendChild(dateCell);
+            row.appendChild(typeCell);
+            row.appendChild(amountCell);
+            tableBody.appendChild(row);
         });
-
-        // สร้างและจัดรูปแบบเซลล์วันที่
-        const dateCell = document.createElement("td");
-        dateCell.classList.add("px-4", "py-3", "text-sm", "text-gray-700", "border-b", "border-green-200");
-        dateCell.textContent = formattedDate;
-
-        // สร้างและจัดรูปแบบเซลล์ประเภทรายการ
-        const typeCell = document.createElement("td");
-        typeCell.classList.add("px-4", "py-3", "text-sm", "border-b", "border-green-200");
-        const typeSpan = document.createElement("span");
-        typeSpan.classList.add("px-3", "py-1", "rounded-full", "text-sm", "font-medium");
-        
-        if (transaction.type === "deposit") {
-            typeSpan.classList.add("bg-green-100", "text-green-800");
-            typeSpan.textContent = "ฝากเงิน";
-        } else {
-            typeSpan.classList.add("bg-red-100", "text-red-800");
-            typeSpan.textContent = "ถอนเงิน";
-        }
-        typeCell.appendChild(typeSpan);
-
-        // สร้างและจัดรูปแบบเซลล์จำนวนเงิน
-        const amountCell = document.createElement("td");
-        amountCell.classList.add("px-4", "py-3", "text-sm", "border-b", "border-green-200", "font-medium");
-        const amount = transaction.type === "deposit" ? 
-            `+${transaction.amount.toLocaleString('th-TH')}` : 
-            `-${transaction.amount.toLocaleString('th-TH')}`;
-        amountCell.classList.add(transaction.type === "deposit" ? "text-green-600" : "text-red-600");
-        amountCell.textContent = `${amount} บาท`;
-
-        // เพิ่มเซลล์ทั้งหมดลงในแถว
-        row.appendChild(dateCell);
-        row.appendChild(typeCell);
-        row.appendChild(amountCell);
-        tableBody.appendChild(row);
-    });
-
-    // ถ้าไม่มีข้อมูล
-    if (transactions.length === 0) {
+    } else {
+        // ถ้าไม่มีข้อมูล
         const emptyRow = document.createElement("tr");
         const emptyCell = document.createElement("td");
         emptyCell.colSpan = 3;
-        emptyCell.classList.add("px-4", "py-4", "text-center", "text-gray-500", "border-b", "border-green-200");
-        emptyCell.textContent = "ไม่พบรายการธุรกรรม";
+        emptyCell.classList.add("px-4", "py-8", "text-center", "text-gray-500", "border-b", "border-gray-200");
+        emptyCell.innerHTML = `
+            <div class="flex flex-col items-center justify-center">
+                <i class="fas fa-inbox text-gray-400 text-4xl mb-3"></i>
+                <p class="text-lg">ไม่พบรายการธุรกรรม</p>
+            </div>
+        `;
         emptyRow.appendChild(emptyCell);
         tableBody.appendChild(emptyRow);
     }
