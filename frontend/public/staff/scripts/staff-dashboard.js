@@ -187,7 +187,7 @@ const getStatusDisplay = (status) => {
         }
     };
 
-    const config = statusConfig[status] || statusConfig['Pending'];
+    const config = statusConfig[status] || statusConfig['Completed'];
     return `
         <span class="inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-full text-sm font-medium ${config.color}">
             <i class="${config.icon}"></i>
@@ -215,48 +215,37 @@ const initializeUserInfo = () => {
 
 const logout = async () => {
     try {
-        // แสดง SweetAlert2 เพื่อยืนยันการออกจากระบบ
-        const result = await Swal.fire({
-            title: 'ยืนยันการออกจากระบบ',
-            text: 'คุณต้องการออกจากระบบใช่หรือไม่?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'ใช่, ออกจากระบบ',
-            cancelButtonText: 'ยกเลิก'
+        const response = await fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
         });
 
-        // ถ้าผู้ใช้กดยืนยัน
-        if (result.isConfirmed) {
-            const response = await fetch('/api/auth/logout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+        if (response.ok) {
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('selectedTheme');
+
+            await Swal.fire({
+                icon: 'success',
+                title: 'Logout successful!',
+                text: 'You have been logged out. Redirecting to login page...',
+                timer: 1000,
+                showConfirmButton: false
             });
 
-            if (response.ok) {
-                localStorage.removeItem('currentUser');
-                localStorage.removeItem('selectedTheme');
-
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'ออกจากระบบสำเร็จ',
-                    text: 'กำลังนำคุณไปยังหน้าเข้าสู่ระบบ...',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-
-                window.location.href = '/';
-            } else {
-                throw new Error('Logout failed');
-            }
+            window.location.href = '/';
+        } else {
+            await Swal.fire({
+                icon: 'error',
+                title: 'Logout failed!',
+                text: 'Please try again.'
+            });
         }
     } catch (error) {
         console.error('Error during logout:', error);
         await Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถออกจากระบบได้ กรุณาลองใหม่อีกครั้ง'
+            title: 'An error occurred',
+            text: 'There was an error while logging out.'
         });
     }
 };

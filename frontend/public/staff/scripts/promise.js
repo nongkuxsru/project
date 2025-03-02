@@ -1,10 +1,3 @@
-// =============================================
-// Constants and Configurations
-// =============================================
-
-// =============================================
-// Core Utility Functions
-// =============================================
 document.addEventListener('DOMContentLoaded', () => {
     observer.observe(document.body, {
         childList: true,
@@ -102,7 +95,7 @@ const fetchPromise = async () => {
         tableBody.innerHTML = '';
 
         if (data.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="7">No loan promises available.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="7">ไม่พบข้อมูลสัญญาเงินกู้</td></tr>';
             return;
         }
 
@@ -111,11 +104,11 @@ const fetchPromise = async () => {
             row.innerHTML = `
                 <td>${account._id}</td>
                 <td>${account.id_saving}</td>
-                <td>${account.amount}</td>
-                <td>${new Date(account.Datepromise).toLocaleDateString()}</td>
-                <td>${new Date(account.DueDate).toLocaleDateString()}</td>
+                <td>${account.amount.toLocaleString('th-TH')} บาท</td>
+                <td>${new Date(account.Datepromise).toLocaleDateString('th-TH')}</td>
+                <td>${new Date(account.DueDate).toLocaleDateString('th-TH')}</td>
                 <td>
-                    <button onclick="openPromiseDetailsModal('${account._id}')" 
+                    <button onclick="openPromiseDetailsModal('${account.id_saving}')" 
                         class="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-none focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
                         <i class="fas fa-eye"></i>
                         <span class="font-ibm-plex-thai">ดูรายละเอียด</span>
@@ -127,7 +120,7 @@ const fetchPromise = async () => {
     } catch (error) {
         console.error('Error fetching loan promise data:', error);
         const tableBody = document.getElementById('promiseTableBody');
-        tableBody.innerHTML = '<tr><td colspan="7">Failed to load data.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="7">ไม่สามารถโหลดข้อมูลได้</td></tr>';
     }
 };
 
@@ -142,6 +135,8 @@ const validateAndGetFormData = () => {
     const memberId = selectedOption?.value;
     const savingBalance = parseFloat(selectedOption?.dataset.balance || '0');
     const loanAmount = parseFloat(document.getElementById('loanAmount').value);
+    const interestRate = parseFloat(document.getElementById('interestRate').value);
+    const totalWithInterest = parseFloat(document.getElementById('totalWithInterest').value.replace(/[^\d.-]/g, ''));
     const promiseDate = document.getElementById('promiseDate').value;
     const dueDate = document.getElementById('dueDate').value;
 
@@ -151,6 +146,9 @@ const validateAndGetFormData = () => {
     }
     if (!loanAmount || isNaN(loanAmount) || loanAmount <= 0) {
         throw new Error('กรุณาระบุจำนวนเงินที่ถูกต้อง');
+    }
+    if (!interestRate || isNaN(interestRate)) {
+        throw new Error('กรุณาระบุอัตราดอกเบี้ยที่ถูกต้อง');
     }
     if (!promiseDate) {
         throw new Error('กรุณาระบุวันที่ทำสัญญา');
@@ -169,7 +167,10 @@ const validateAndGetFormData = () => {
         id_saving: memberId,
         amount: loanAmount,
         Datepromise: promiseDate,
-        DueDate: dueDate
+        DueDate: dueDate,
+        interestRate: interestRate,
+        totalAmount: totalWithInterest,
+        status: 'active'
     };
 };
 
@@ -189,7 +190,6 @@ const handleCreatePromiseForm = (form, modal) => {
 
 // ฟังก์ชันจัดการเมื่อสร้างสัญญาสำเร็จ
 const handleSuccessfulCreation = async (modal, form) => {
-    console.log('สร้างสัญญาสำเร็จ - กำลังรีเฟรชข้อมูล');
     await Swal.fire({
         icon: 'success',
         title: 'สร้างสัญญาเงินกู้สำเร็จ',
@@ -212,38 +212,67 @@ const handlePromiseCreationError = (error) => {
     });
 };
 
-// =============================================
-// Modal Management Functions
-// =============================================
-
 // ฟังก์ชันสำหรับเปิด modal แสดงรายละเอียด
-const openPromiseDetailsModal = async (promiseId) => {
+const openPromiseDetailsModal = async (id_saving) => {
     try {
-        const response = await fetch(`/api/staff/promise/${promiseId}`);
+        const response = await fetch(`/api/staff/promise/${id_saving}`);
+        
+        if (response.status === 404) {
+            throw new Error('ไม่พบข้อมูลสัญญาที่ต้องการ');
+        }
+        if (!response.ok) {
+            throw new Error(`เกิดข้อผิดพลาดในการดึงข้อมูล: ${response.status}`);
+        }
+
         const promiseDetails = await response.json();
+
+        if (!promiseDetails) {
+            throw new Error('ไม่ได้รับข้อมูลจาก API');
+        }
 
         const modal = document.getElementById('promiseDetailsModal');
         const modalContent = document.getElementById('promiseDetailsContent');
         
         if (!modal || !modalContent) {
-            throw new Error('Modal elements not found in the document');
+            throw new Error('ไม่พบ elements ของ modal ในเอกสาร');
         }
 
         modalContent.innerHTML = `
-            <p><strong>รหัสสัญญา:</strong> ${promiseDetails._id}</p>
-            <p><strong>รหัสสมาชิก:</strong> ${promiseDetails.id_saving}</p>
-            <p><strong>จำนวนเงิน:</strong> ${promiseDetails.amount} บาท</p>
-            <p><strong>วันที่ทำสัญญา:</strong> ${new Date(promiseDetails.Datepromise).toLocaleDateString()}</p>
-            <p><strong>วันครบกำหนด:</strong> ${new Date(promiseDetails.DueDate).toLocaleDateString()}</p>
-            <button onclick="closePromiseDetailsModal()" class="closeButton"></button>
+            <div class="p-6">
+                <div class="space-y-3">
+                    <p><strong>รหัสสัญญา:</strong> ${promiseDetails._id || 'ไม่ระบุ'}</p>
+                    <p><strong>รหัสบัญชี:</strong> ${promiseDetails.id_saving || 'ไม่ระบุ'}</p>
+                    <p><strong>จำนวนเงินต้น:</strong> ${promiseDetails.amount ? promiseDetails.amount.toLocaleString('th-TH') : '0'} บาท</p>
+                    <p><strong>อัตราดอกเบี้ย:</strong> ${promiseDetails.interestRate || '0'}%</p>
+                    ${(() => {
+                        const amount = promiseDetails.amount || 0;
+                        const interestRate = promiseDetails.interestRate || 0;
+                        const interestAmount = (amount * interestRate) / 100;
+                        const total = amount + interestAmount;
+                        return `
+                            <p><strong>จำนวนเงินดอกเบี้ย:</strong> ${interestAmount.toLocaleString('th-TH')} บาท</p>
+                            <p class="font-semibold text-lg text-green-600"><strong>ยอดรวมทั้งสิ้น:</strong> ${total.toLocaleString('th-TH')} บาท</p>
+                        `;
+                    })()}
+                    <p><strong>วันที่ทำสัญญา:</strong> ${promiseDetails.Datepromise ? 
+                        new Date(promiseDetails.Datepromise).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }) : 'ไม่ระบุ'}</p>
+                    <p><strong>วันครบกำหนด:</strong> ${promiseDetails.DueDate ? 
+                        new Date(promiseDetails.DueDate).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }) : 'ไม่ระบุ'}</p>
+                </div>
+            </div>
         `;
 
-        // เก็บข้อมูล promiseDetails ไว้ใน dataset ของ modal
         modal.dataset.promiseDetails = JSON.stringify(promiseDetails);
         modal.style.display = 'block';
+
     } catch (error) {
         console.error('Error fetching promise details:', error);
-        alert('ไม่สามารถดึงข้อมูลรายละเอียดสัญญาได้: ' + error.message);
+        Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
+            text: error.message,
+            confirmButtonText: 'ตกลง'
+        });
     }
 };
 
@@ -270,15 +299,28 @@ const openCreatePromiseModal = async () => {
 
         // สร้าง options สำหรับแต่ละบัญชี
         for (const account of savingAccounts) {
-            // ดึงข้อมูลชื่อสมาชิกจาก API
             const memberName = await fetchUserName(account.id_member);
-            
             const option = document.createElement('option');
             option.value = account.id_account;
             option.textContent = `${memberName}`;
             option.dataset.balance = account.balance;
+            option.dataset.interestRate = account.interestRate;
             option.dataset.status = account.status;
             memberSelect.appendChild(option);
+        }
+
+        // ตั้งค่าเริ่มต้นและ event listeners
+        document.getElementById('interestRate').value = '6';
+        
+        // เพิ่ม event listeners สำหรับการคำนวณดอกเบี้ย
+        const loanAmountInput = document.getElementById('loanAmount');
+        const interestRateInput = document.getElementById('interestRate');
+        
+        if (loanAmountInput) {
+            loanAmountInput.addEventListener('input', calculateTotalWithInterest);
+        }
+        if (interestRateInput) {
+            interestRateInput.addEventListener('input', calculateTotalWithInterest);
         }
 
         // เพิ่ม event listener สำหรับการเปลี่ยนแปลงการเลือกสมาชิก
@@ -288,15 +330,23 @@ const openCreatePromiseModal = async () => {
                 document.getElementById('memberId').value = selectedOption.value;
                 document.getElementById('savingBalance').value = selectedOption.dataset.balance || '0.00';
                 document.getElementById('savingStatus').value = selectedOption.dataset.status || 'ไม่ระบุ';
+                document.getElementById('interestRate').value = '6';
+                calculateTotalWithInterest(); // คำนวณดอกเบี้ยเมื่อเลือกสมาชิกใหม่
             } else {
                 document.getElementById('memberId').value = '';
                 document.getElementById('savingBalance').value = '0.00';
                 document.getElementById('savingStatus').value = '';
+                document.getElementById('interestRate').value = '6';
+                calculateTotalWithInterest();
             }
         });
 
         modal.style.display = 'block';
         handleCreatePromiseForm(form, modal);
+        
+        // คำนวณดอกเบี้ยครั้งแรก
+        calculateTotalWithInterest();
+
     } catch (error) {
         console.error('Error fetching members:', error);
         Swal.fire({
@@ -336,15 +386,16 @@ const cancelPromiseCreation = () => {
     });
 };
 
-// =============================================
-// Print Functions
-// =============================================
-
 // ฟังก์ชันสำหรับพิมพ์รายละเอียดสัญญา
 const printPromiseDetails = () => {
     // ดึงข้อมูลจาก modal dataset
     const modal = document.getElementById('promiseDetailsModal');
     const promiseDetails = JSON.parse(modal.dataset.promiseDetails);
+    // คำนวณดอกเบี้ยและยอดรวม
+    const amount = promiseDetails.amount || 0;
+    const interestRate = promiseDetails.interestRate || 0;
+    const interestAmount = (amount * interestRate) / 100;
+    const total = amount + interestAmount;
     
     // ดึงเทมเพลตจาก HTML
     const template = document.getElementById('promiseDetailsTemplate');
@@ -385,14 +436,24 @@ const printPromiseDetails = () => {
                 <script>
                     // พิมพ์ทันทีเมื่อโหลดเสร็จ
                     window.onload = function() {
-                        // อัพเดตข้อมูลในเอกสาร
+                         // อัพเดตข้อมูลในเอกสาร
                         document.getElementById('contractId').textContent = '${promiseDetails._id}';
                         document.getElementById('memberId').textContent = '${promiseDetails.id_saving}';
-                        document.getElementById('amount').textContent = '${promiseDetails.amount}';
-                        document.getElementById('startDate').textContent = '${new Date(promiseDetails.Datepromise).toLocaleDateString()}';
-                        document.getElementById('dueDate').textContent = '${new Date(promiseDetails.DueDate).toLocaleDateString()}';
+                        document.getElementById('amount').textContent = '${amount.toLocaleString('th-TH')} ';
+                        document.getElementById('interestRate').textContent = '${interestRate}';
+                        document.getElementById('interest').textContent = '${interestAmount.toLocaleString('th-TH')} ';
+                        document.getElementById('total').textContent = '${total.toLocaleString('th-TH')}';
+                        document.getElementById('startDate').textContent = '${new Date(promiseDetails.Datepromise).toLocaleDateString('th-TH', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        })}';
+                        document.getElementById('dueDate').textContent = '${new Date(promiseDetails.DueDate).toLocaleDateString('th-TH', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        })}';
                         
-                        // สั่งพิมพ์
                         window.print();
                     }
 
@@ -476,10 +537,6 @@ const logout = async () => {
     }
 };
 
-// =============================================
-// Event Listeners
-// =============================================
-
 // Event Listeners เมื่อโหลดหน้าเว็บ
 document.addEventListener("DOMContentLoaded", () => {
     // ใช้ MutationObserver เพื่อตรวจจับการโหลดของ sidebar
@@ -542,15 +599,7 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchPromise();
 });
 
-// Event Listener สำหรับการคลิกนอก modal
-window.onclick = (event) => {
-    const modal = document.getElementById('promiseDetailsModal');
-    if (event.target === modal) {
-        modal.style.display = 'none';
-    }
-};
-
-// เพิ่ม Event Listener สำหรับการคลิกพื้นที่ว่างเพื่อปิด modal
+// ลบ window.onclick อันแรกออก และรวมเป็นอันเดียว
 window.onclick = (event) => {
     const modals = document.querySelectorAll('.modal');
     modals.forEach(modal => {
@@ -570,33 +619,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// =============================================
-// Export (if needed)
-// =============================================
-
 // ฟังก์ชันสำหรับสร้างสัญญาเงินกู้ใหม่
 const createNewPromise = async (formData) => {
     try {
-        console.log('ข้อมูลที่ส่งไป API:', formData);
+        // เตรียมข้อมูลที่จะส่งไป API
+        const promiseData = {
+            id_saving: formData.id_saving,
+            amount: parseFloat(formData.amount),
+            Datepromise: formData.Datepromise,
+            DueDate: formData.DueDate,
+            interestRate: parseFloat(formData.interestRate),
+            totalAmount: parseFloat(formData.totalAmount),
+            status: formData.status
+        };
+
+        // ตรวจสอบความถูกต้องของข้อมูลก่อนส่ง
+        if (isNaN(promiseData.interestRate) || isNaN(promiseData.amount) || isNaN(promiseData.totalAmount)) {
+            throw new Error('ข้อมูลจำนวนเงินหรืออัตราดอกเบี้ยไม่ถูกต้อง');
+        }
+
         const response = await fetch('/api/staff/promise', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(promiseData)
         });
 
         const data = await response.json();
-        console.log('ข้อมูลที่ได้รับจาก API:', data);
 
         if (!response.ok) {
-            throw new Error(data.message || 'ไม่สามารถสร้างสัญญาเงินกู้ได้');
+            throw new Error(data.error || 'ไม่สามารถสร้างสัญญาเงินกู้ได้');
         }
 
         return data;
     } catch (error) {
         console.error('Error in createNewPromise:', error);
-        throw new Error(error.message || 'เกิดข้อผิดพลาดในการสร้างสัญญาเงินกู้');
+        throw error;
     }
 };
 
@@ -732,4 +791,26 @@ const printEmptyLoanForm = () => {
         });
         printWindow.close();
     };
+};
+
+// ย้ายฟังก์ชัน calculateTotalWithInterest ไปไว้ด้านบน
+const calculateTotalWithInterest = () => {
+    const loanAmountInput = document.getElementById('loanAmount');
+    const interestRateInput = document.getElementById('interestRate');
+    const totalWithInterestInput = document.getElementById('totalWithInterest');
+
+    if (!loanAmountInput || !interestRateInput || !totalWithInterestInput) {
+        console.error('ไม่พบ elements ที่จำเป็นสำหรับการคำนวณดอกเบี้ย');
+        return;
+    }
+
+    const loanAmount = parseFloat(loanAmountInput.value) || 0;
+    const interestRate = parseFloat(interestRateInput.value) || 0;
+    const interestAmount = (loanAmount * interestRate) / 100;
+    const total = loanAmount + interestAmount;
+    
+    totalWithInterestInput.value = total.toLocaleString('th-TH', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }) + ' บาท';
 };

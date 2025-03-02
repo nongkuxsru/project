@@ -17,6 +17,12 @@ const promiseSchema = new mongoose.Schema({
         required: true,
         min: 0
     },
+    interestRate: { // อัตราดอกเบี้ย
+        type: Number,
+        required: true,
+        min: 0,
+        max: 25
+    },
     DueDate: { // วันที่ครบกำหนด
         type: Date,
         required: true

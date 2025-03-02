@@ -16,6 +16,66 @@ router.get('/transactions', async (req, res) => {
     }
 });
 
+// อัพเดทชื่อผู้ใช้ในตาราง transactions
+router.put('/transactions/update-username', async (req, res) => {
+    try {
+        const { oldUsername, newUsername } = req.body;
+        
+        // Debug logs
+        console.log('Request to update transactions:', { oldUsername, newUsername });
+
+        // Validation
+        if (!oldUsername || !newUsername) {
+            return res.status(400).json({
+                success: false,
+                message: 'กรุณาระบุชื่อผู้ใช้เดิมและชื่อใหม่'
+            });
+        }
+
+        // ค้นหาธุรกรรมก่อนอัพเดท โดยใช้ userName แทน username
+        const existingTransactions = await Transaction.find({ userName: oldUsername });
+        console.log(`Found ${existingTransactions.length} transactions for ${oldUsername}`);
+
+        if (existingTransactions.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: `ไม่พบธุรกรรมของผู้ใช้ ${oldUsername}`
+            });
+        }
+
+        // ทำการอัพเดท โดยใช้ userName แทน username
+        const updateResult = await Transaction.updateMany(
+            { userName: oldUsername },
+            { $set: { userName: newUsername } }
+        );
+
+        console.log('Update result:', updateResult);
+
+        // ตรวจสอบผลการอัพเดท
+        if (updateResult.matchedCount === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'ไม่พบรายการที่ต้องอัพเดท'
+            });
+        }
+
+        return res.json({
+            success: true,
+            message: `อัพเดทชื่อผู้ใช้ในธุรกรรมสำเร็จ ${updateResult.modifiedCount} รายการ`,
+            modifiedCount: updateResult.modifiedCount,
+            matchedCount: updateResult.matchedCount
+        });
+
+    } catch (error) {
+        console.error('Error in updateTransactions:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'เกิดข้อผิดพลาดในการอัพเดทธุรกรรม',
+            error: error.message
+        });
+    }
+});
+
 // กำหนดเส้นทาง API สำหรับเพิ่มข้อมูลธุรกรรม
 router.post('/transactions', async (req, res) => {
     try {
@@ -39,6 +99,8 @@ router.put('/transactions/:id', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
+
 
 // API สำหรับดึงข้อมูลบัญชีการออมทั้งหมด
 router.get('/saving', async (req, res) => {
@@ -181,10 +243,11 @@ router.get('/promise/check/:id_member', async (req, res) => {
     }
 });
 
-router.get('/promise/:id', async (req, res) => {
-    const { id } = req.params;
+// API สำหรับดึงข้อมูลสัญญากู้ยืมตาม id_saving
+router.get('/promise/:id_saving', async (req, res) => {
+    const { id_saving } = req.params;
     try {
-        const promise = await Promise.findById(id);
+        const promise = await Promise.findOne({ id_saving });
         res.json(promise);
     } catch (error) {
         console.error('Error fetching promise:', error);

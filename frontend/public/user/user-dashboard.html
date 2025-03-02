@@ -33,45 +33,10 @@
 
 <body class="bg-background text-secondary font-sans">
     <div class="flex h-screen">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-gradient-to-b from-primary to-green-700 text-white flex flex-col shadow-xl rounded-r-lg transition-all duration-300">
-            <div class="flex justify-center items-center h-24 border-b border-white/20">
-                <img src="/images/logo-sidebar.png" alt="" class="w-20 h-20">
-            </div>
-            <ul class="space-y-4 p-4">
-                <li>
-                    <a href="/user/" class="flex items-center space-x-3 text-gray-300 hover:text-gray-700 transition duration-200 p-3 rounded-lg hover:bg-green-600">
-                        <i class="fas fa-home"></i><span>หน้าหลัก</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/user/setting.html" class="flex items-center space-x-3 text-gray-300 hover:text-gray-700 transition duration-200 p-3 rounded-lg hover:bg-green-600">
-                        <i class="fas fa-cog"></i><span>การตั้งค่า</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/user/saving.html" class="flex items-center space-x-3 text-gray-300 hover:text-gray-700 transition duration-200 p-3 rounded-lg hover:bg-green-600">
-                        <i class="fa-solid fa-piggy-bank"></i><span>บัญชีเงินออม</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/user/promise.html" class="flex items-center space-x-3 text-gray-300 hover:text-gray-700 transition duration-200 p-3 rounded-lg hover:bg-green-600">
-                        <i class="fa-solid fa-money-check-dollar"></i><span>บัญชีเงินกู้ยืม</span>
-                    </a>
-                </li>
-                <li>
-                    <a id="logoutButton" class="flex items-center space-x-3 text-red-500 hover:text-red-400 transition duration-200 p-3 rounded-lg hover:bg-green-600">
-                        <i class="fas fa-sign-out-alt"></i><span>ออกจากระบบ</span>
-                    </a>
-                </li>
-            </ul>
-        </aside>
-        
         <!-- Main Content -->
         <main class="flex-1 p-8">
             <header class="flex justify-between items-center mb-6">
                 <button id="toggleSidebar" class="text-secondary hover:text-gray-600 transition duration-200 text-lg">
-                    <i class="fas fa-bars"></i>
                 </button>
                 <!-- ส่วนแสดงโปรไฟล์ผู้ใช้ -->
                 <div class="flex items-center space-x-3">
@@ -96,6 +61,7 @@
         </main>
 
     </div>
+    <script src="/user/components/load-sidebar.js"></script>
     <script src="/user/scripts/user-dashboard.js"></script>
 </body>
 </html>

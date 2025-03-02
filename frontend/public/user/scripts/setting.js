@@ -1,3 +1,79 @@
+window.onload = () => {
+    // เพิ่ม Event Listener สำหรับปุ่ม Logout
+    document.getElementById('logoutButton').addEventListener('click', logout);
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+});
+
+// ===============================
+// Sidebar Functions
+// ===============================
+const toggleSidebar = () => {
+    try {
+        const aside = document.querySelector('aside');
+        const main = document.querySelector('main');
+        
+        if (!aside || !main) {
+            console.error('ไม่พบ aside หรือ main elements');
+            return;
+        }
+
+        aside.classList.toggle('w-64');
+        aside.classList.toggle('w-20');
+        
+        const textElements = aside.querySelectorAll('span');
+        textElements.forEach(span => span.classList.toggle('hidden'));
+
+        const isCollapsed = !aside.classList.contains('w-64');
+        localStorage.setItem('sidebarState', isCollapsed);
+    } catch (error) {
+        console.error('เกิดข้อผิดพลาดในการ toggle sidebar:', error);
+    }
+};
+
+const initializeSidebar = () => {
+    try {
+        const aside = document.querySelector('aside');
+        if (!aside) return;
+
+        const isCollapsed = localStorage.getItem('sidebarState') === 'true';
+        
+        if (isCollapsed) {
+            aside.classList.remove('w-64');
+            aside.classList.add('w-20');
+            
+            const textElements = aside.querySelectorAll('span');
+            textElements.forEach(span => span.classList.add('hidden'));
+        }
+    } catch (error) {
+        console.error('เกิดข้อผิดพลาดในการเริ่มต้น sidebar:', error);
+    }
+};
+
+// ===============================
+// Sidebar Observer
+// ===============================
+const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        if (mutation.addedNodes.length) {
+            const aside = document.querySelector('aside');
+            const toggleButton = document.getElementById('toggleSidebar');
+            
+            if (aside && toggleButton && !toggleButton.hasListener) {
+                toggleButton.addEventListener('click', toggleSidebar);
+                toggleButton.hasListener = true;
+                initializeSidebar();
+                observer.disconnect();
+            }
+        }
+    });
+});
+
 document.addEventListener("DOMContentLoaded", () => {
     // ✅ ดึงข้อมูลจาก LocalStorage
     const userData = JSON.parse(localStorage.getItem("currentUser"));
@@ -20,19 +96,22 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("personalInfoForm").addEventListener("submit", async (event) => {
         event.preventDefault();
 
-        // ✅ ดึงข้อมูลจากฟอร์มและแปลงปีจาก พ.ศ. เป็น ค.ศ.
-        const updatedData = {
-            _id: userData._id, // ใช้ _id จาก LocalStorage
-            name: document.getElementById("fullName").value,
-            email: document.getElementById("email").value,
-            address: document.getElementById("address").value,
-            phone: document.getElementById("phone").value,
-            birthday: (document.getElementById("birthday").value), // แปลงเป็นปี ค.ศ.
-            permission: userData.permission // ไม่ให้แก้ไข permission
-        };
-
         try {
-            // ✅ อัปเดตข้อมูลไปยัง Database ผ่าน API
+            // เก็บชื่อเดิมก่อนอัพเดท
+            const oldUsername = userData.name;
+            
+            // ดึงข้อมูลจากฟอร์ม
+            const updatedData = {
+                _id: userData._id,
+                name: document.getElementById("fullName").value,
+                email: document.getElementById("email").value,
+                address: document.getElementById("address").value,
+                phone: document.getElementById("phone").value,
+                birthday: document.getElementById("birthday").value,
+                permission: userData.permission
+            };
+
+            // อัพเดทข้อมูลผู้ใช้
             const response = await fetch(`/api/admin/users/${updatedData._id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
@@ -40,54 +119,68 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             const result = await response.json();
+            
             if (response.ok) {
-                // ✅ บันทึกข้อมูลใหม่ลง LocalStorage
+                // บันทึกข้อมูลใหม่ลง LocalStorage
                 localStorage.setItem("currentUser", JSON.stringify(updatedData));
 
-                Swal.fire({
+                // อัพเดทธุรกรรมถ้าชื่อมีการเปลี่ยนแปลง
+                if (oldUsername !== updatedData.name) {
+                    await updateUserTransactions(oldUsername, updatedData.name);
+                }
+
+                await Swal.fire({
                     icon: 'success',
-                    title: 'User information updated successfully!',
-                    text: 'Redirecting to user dashboard...',
-                }).then(() => {
-                    window.location.href = "/user"; // Redirect ไปหน้า User Dashboard
+                    title: 'อัพเดทข้อมูลสำเร็จ',
+                    text: 'กำลังนำคุณไปยังหน้าแดชบอร์ด...',
+                    timer: 1500,
+                    showConfirmButton: false
                 });
 
-                // ✅ อัปเดต Transaction พร้อมกัน
-                await updateUserTransactions(updatedData.name);
+                window.location.href = "/user";
             } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error updating data',
-                    text: result.error,
-                });
+                throw new Error(result.error || 'Failed to update user data');
             }
         } catch (error) {
             console.error("Update failed:", error);
             Swal.fire({
                 icon: 'error',
-                title: 'An error occurred',
-                text: 'Unable to update user information. Please try again later.',
+                title: 'เกิดข้อผิดพลาด',
+                text: 'ไม่สามารถอัพเดทข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
             });
         }
     });
 
     // ✅ ฟังก์ชันสำหรับอัปเดต Transaction
-    async function updateUserTransactions(userName) {
-        console.log(`Updating transactions for user: ${userName}`);
+    async function updateUserTransactions(oldUsername, newUsername) {
         try {
-            const response = await fetch(`/api/staff/transactions/${userName}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ updated: true }),
-            });
-
-            if (!response.ok) {
-                throw new Error("Failed to update transactions.");
+            if (!oldUsername || !newUsername) {
+                return;
             }
 
-            console.log(`Transactions updated successfully for user: ${userName}`);
+            const response = await fetch('/api/staff/transactions/update-username', {
+                method: "PUT",
+                headers: { 
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ 
+                    oldUsername: oldUsername.trim(),
+                    newUsername: newUsername.trim()
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                    return;
+                }
+                throw new Error(data.message || 'ไม่สามารถอัพเดทธุรกรรมได้');
+            }
+
         } catch (error) {
-            console.error("Error updating transactions:", error);
+            // ไม่ต้องแสดง alert เมื่อเกิดข้อผิดพลาด เพราะข้อมูลผู้ใช้ถูกบันทึกแล้ว
+            console.error('Error updating transactions:', error);
         }
     }
 });
@@ -137,42 +230,48 @@ document.addEventListener("DOMContentLoaded", function() {
 
 const logout = async () => {
     try {
-        const response = await fetch('/api/auth/logout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        // แสดง SweetAlert2 เพื่อยืนยันการออกจากระบบ
+        const result = await Swal.fire({
+            title: 'ยืนยันการออกจากระบบ',
+            text: 'คุณต้องการออกจากระบบใช่หรือไม่?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'ใช่, ออกจากระบบ',
+            cancelButtonText: 'ยกเลิก'
         });
 
-        if (response.ok) {
-            // ลบข้อมูลจาก LocalStorage
-            localStorage.removeItem("currentUser");
-            localStorage.removeItem("selectedTheme");
-
-             // แสดงข้อความด้วย SweetAlert2
-            await Swal.fire({
-                icon: 'success',
-                title: 'Logout successful!',
-                text: 'You have been logged out. Redirecting to login page...',
-                timer: 1000, // ตั้งเวลาแสดง 2 วินาที
-                showConfirmButton: false,
+        // ถ้าผู้ใช้กดยืนยัน
+        if (result.isConfirmed) {
+            const response = await fetch('/api/auth/logout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
             });
 
-            window.location.href = "/";
-        } else {
-            await Swal.fire({
-                icon: 'error',
-                title: 'Logout failed!',
-                text: 'Please try again.',
-            });
+            if (response.ok) {
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('selectedTheme');
+
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'ออกจากระบบสำเร็จ',
+                    text: 'กำลังนำคุณไปยังหน้าเข้าสู่ระบบ...',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                window.location.href = '/';
+            } else {
+                throw new Error('Logout failed');
+            }
         }
     } catch (error) {
-        console.error("Error during logout:", error);
+        console.error('Error during logout:', error);
         await Swal.fire({
             icon: 'error',
-            title: 'An error occurred',
-            text: 'There was an error while logging out.',
+            title: 'เกิดข้อผิดพลาด',
+            text: 'ไม่สามารถออกจากระบบได้ กรุณาลองใหม่อีกครั้ง'
         });
     }
 };
-
-// เพิ่ม Event Listener สำหรับปุ่ม Logout
-document.getElementById("logoutButton").addEventListener("click", logout);
