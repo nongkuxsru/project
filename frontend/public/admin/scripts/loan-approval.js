@@ -2,24 +2,51 @@ window.onload = () => {
     document.getElementById('logoutButton').addEventListener('click', logout);
 };
 
-// ตัวแปรสำหรับเก็บข้อมูลคำขอกู้ทั้งหมด
+// ===============================
+// Constants & Global Variables
+// ===============================
 let allLoanApplications = [];
 let currentLoanId = null;
-
-// ตัวแปรสำหรับเก็บข้อมูลการทำงานปัจจุบัน
 let currentAction = null;
 let currentPaymentId = null;
 let currentReason = null;
 
-// เมื่อโหลดหน้าเว็บ
+const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        if (mutation.addedNodes.length) {
+            const aside = document.querySelector('aside');
+            const toggleButton = document.getElementById('toggleSidebar');
+            
+            if (aside && toggleButton && !toggleButton.hasListener) {
+                toggleButton.addEventListener('click', toggleSidebar);
+                toggleButton.hasListener = true;
+                initializeSidebar();
+                observer.disconnect();
+            }
+        }
+    });
+});
+
+
+// ===============================
+// Event Listeners & Initialization
+// ===============================
 document.addEventListener('DOMContentLoaded', () => {
     initializeUserInfo();
     fetchAndRenderLoanApplications();
     initializeEventListeners();
     initializeModal();
+
+    // เริ่มการสังเกตการณ์ DOM สำหรับ Sidebar
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
 });
 
-// ดึงข้อมูลคำขอกู้และแสดงผล
+// ===============================
+// Loan Management Functions
+// ===============================
 const fetchAndRenderLoanApplications = async () => {
     try {
         const response = await fetch('/api/admin/promise-status/pending');
@@ -30,15 +57,10 @@ const fetchAndRenderLoanApplications = async () => {
         renderLoanApplications(allLoanApplications);
     } catch (error) {
         console.error('Error fetching loan applications:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถดึงข้อมูลคำขอกู้ได้ กรุณาลองใหม่อีกครั้ง'
-        });
+        showError('ไม่สามารถดึงข้อมูลคำขอกู้ได้ กรุณาลองใหม่อีกครั้ง');
     }
 };
 
-// แสดงข้อมูลคำขอกู้ในตาราง
 const renderLoanApplications = (applications) => {
     const tbody = document.querySelector('#loanApplicationsTable tbody');
     tbody.innerHTML = '';
@@ -97,7 +119,9 @@ const renderLoanApplications = (applications) => {
     });
 };
 
-// ฟังก์ชันแสดงรายละเอียดคำขอกู้
+// ===============================
+// Loan Details Functions
+// ===============================
 const viewLoanDetails = async (loanId) => {
     try {
         const response = await fetch(`/api/admin/loan-applications/${loanId}`);
@@ -107,169 +131,358 @@ const viewLoanDetails = async (loanId) => {
         const loanDetails = await response.json();
         currentLoanId = loanId;
 
-        // แสดงข้อมูลในโมดัล
-        document.getElementById('borrowerName').textContent = loanDetails.borrowerName;
-        document.getElementById('borrowerId').textContent = loanDetails.borrowerId;
-        document.getElementById('borrowerAddress').textContent = loanDetails.address;
-        document.getElementById('borrowerPhone').textContent = loanDetails.phone;
-        document.getElementById('loanAmount').textContent = new Intl.NumberFormat('th-TH', {
-            style: 'currency',
-            currency: 'THB'
-        }).format(loanDetails.loanAmount);
-        document.getElementById('loanTerm').textContent = `${loanDetails.loanTerm} เดือน`;
-        document.getElementById('interestRate').textContent = `${loanDetails.interestRate}%`;
-        document.getElementById('monthlyPayment').textContent = new Intl.NumberFormat('th-TH', {
-            style: 'currency',
-            currency: 'THB'
-        }).format(loanDetails.monthlyPayment);
-
-        // แสดงรายการเอกสารแนบ
-        const documentsContainer = document.getElementById('attachedDocuments');
-        documentsContainer.innerHTML = '';
-        loanDetails.documents.forEach(doc => {
-            const docElement = document.createElement('div');
-            docElement.className = 'flex items-center justify-between bg-gray-50 p-3 rounded-lg';
-            docElement.innerHTML = `
-                <span class="flex items-center">
-                    <i class="fas fa-file-pdf text-red-500 mr-2"></i>
-                    ${doc.name}
-                </span>
-                <button onclick="viewDocument('${doc.url}')" class="text-blue-600 hover:text-blue-800">
-                    <i class="fas fa-external-link-alt"></i>
-                </button>
-            `;
-            documentsContainer.appendChild(docElement);
-        });
-
-        // แสดงหรือซ่อนปุ่มตามสถานะ
-        const approveBtn = document.getElementById('approveBtn');
-        const rejectBtn = document.getElementById('rejectBtn');
-        if (loanDetails.status === 'pending') {
-            approveBtn.style.display = 'block';
-            rejectBtn.style.display = 'block';
-        } else {
-            approveBtn.style.display = 'none';
-            rejectBtn.style.display = 'none';
-        }
-
-        // แสดงโมดัล
+        displayLoanDetails(loanDetails);
         document.getElementById('viewDetailsModal').style.display = 'flex';
     } catch (error) {
         console.error('Error fetching loan details:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถดึงข้อมูลรายละเอียดคำขอกู้ได้'
-        });
+        showError('ไม่สามารถดึงข้อมูลรายละเอียดคำขอกู้ได้');
     }
 };
 
-// ฟังก์ชันเปิดเอกสารแนบ
+const displayLoanDetails = (loanDetails) => {
+    // แสดงข้อมูลในโมดัล
+    document.getElementById('borrowerName').textContent = loanDetails.borrowerName;
+    document.getElementById('borrowerId').textContent = loanDetails.borrowerId;
+    document.getElementById('borrowerAddress').textContent = loanDetails.address;
+    document.getElementById('borrowerPhone').textContent = loanDetails.phone;
+    document.getElementById('loanAmount').textContent = new Intl.NumberFormat('th-TH', {
+        style: 'currency',
+        currency: 'THB'
+    }).format(loanDetails.loanAmount);
+    document.getElementById('loanTerm').textContent = `${loanDetails.loanTerm} เดือน`;
+    document.getElementById('interestRate').textContent = `${loanDetails.interestRate}%`;
+    document.getElementById('monthlyPayment').textContent = new Intl.NumberFormat('th-TH', {
+        style: 'currency',
+        currency: 'THB'
+    }).format(loanDetails.monthlyPayment);
+
+    displayAttachedDocuments(loanDetails.documents);
+    updateActionButtons(loanDetails.status);
+};
+
+// ===============================
+// Document Management Functions
+// ===============================
+const displayAttachedDocuments = (documents) => {
+    const documentsContainer = document.getElementById('attachedDocuments');
+    documentsContainer.innerHTML = '';
+    
+    documents.forEach(doc => {
+        const docElement = document.createElement('div');
+        docElement.className = 'flex items-center justify-between bg-gray-50 p-3 rounded-lg';
+        docElement.innerHTML = `
+            <span class="flex items-center">
+                <i class="fas fa-file-pdf text-red-500 mr-2"></i>
+                ${doc.name}
+            </span>
+            <button onclick="viewDocument('${doc.url}')" class="text-blue-600 hover:text-blue-800">
+                <i class="fas fa-external-link-alt"></i>
+            </button>
+        `;
+        documentsContainer.appendChild(docElement);
+    });
+};
+
 const viewDocument = (url) => {
     window.open(url, '_blank');
 };
 
-// ฟังก์ชันอนุมัติคำขอกู้
-const approveLoan = async () => {
+// ===============================
+// Approval/Rejection Functions
+// ===============================
+const handleApprove = async (loanId) => {
+    if (!loanId) {
+        showError('ไม่พบข้อมูลสัญญาที่ต้องการอนุมัติ');
+        return;
+    }
+    currentLoanId = loanId;
+    showPinModal('approve');
+};
+
+const handleReject = async (loanId) => {
+    if (!loanId) {
+        showError('ไม่พบข้อมูลสัญญาที่ต้องการปฏิเสธ');
+        return;
+    }
+    currentLoanId = loanId;
+    
+    const { value: reason } = await Swal.fire({
+        title: 'ระบุเหตุผลในการปฏิเสธ',
+        input: 'text',
+        inputLabel: 'เหตุผล',
+        inputPlaceholder: 'กรุณาระบุเหตุผล',
+        showCancelButton: true,
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonText: 'ยืนยัน',
+        inputValidator: (value) => {
+            if (!value) {
+                return 'กรุณาระบุเหตุผลในการปฏิเสธ';
+            }
+        }
+    });
+
+    if (reason) {
+        showPinModal('reject', reason);
+    }
+};
+
+// ===============================
+// PIN Verification Functions
+// ===============================
+const showPinModal = (action, reason = '') => {
+    const pinModal = document.getElementById('pinModal');
+    const pinInput = document.getElementById('pinInput');
+    
+    if (pinModal && pinInput) {
+        pinModal.dataset.action = action;
+        pinModal.dataset.reason = reason;
+        pinModal.classList.remove('hidden');
+        pinInput.value = '';
+        pinInput.focus();
+    }
+};
+
+const closePinModal = () => {
+    const pinModal = document.getElementById('pinModal');
+    if (pinModal) {
+        pinModal.classList.add('hidden');
+        pinModal.dataset.action = '';
+        pinModal.dataset.reason = '';
+        currentLoanId = null;
+    }
+};
+
+const verifyPin = async () => {
+    const pinInput = document.getElementById('pinInput');
+    const pinModal = document.getElementById('pinModal');
+    if (!pinInput || !pinModal) return;
+
+    const pin = pinInput.value;
+    if (!pin || pin.length !== 4) {
+        showError('กรุณากรอกรหัส PIN 4 หลัก');
+        return;
+    }
+
     try {
-        const response = await fetch(`/api/admin/loan-applications/${currentLoanId}/approve`, {
-            method: 'PUT'
+        const currentUser = localStorage.getItem('currentUser');
+        if (!currentUser) {
+            showError('กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
+            window.location.href = '/';
+            return;
+        }
+
+        const response = await fetch('/api/admin/verify-pin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pin })
+        });
+
+        const result = await response.json();
+        if (result.verified) {
+            const action = pinModal.dataset.action;
+            const reason = pinModal.dataset.reason;
+
+            pinModal.classList.add('hidden');
+            
+            if (action === 'approve') {
+                await approvePromise();
+            } else if (action === 'reject') {
+                await rejectPromise(reason);
+            }
+
+            currentLoanId = null;
+            pinModal.dataset.action = '';
+            pinModal.dataset.reason = '';
+        } else {
+            showError('รหัส PIN ไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง');
+        }
+    } catch (error) {
+        console.error('Error verifying PIN:', error);
+        showError('ไม่สามารถตรวจสอบรหัส PIN ได้');
+    }
+};
+
+// ===============================
+// Promise Management Functions
+// ===============================
+const approvePromise = async () => {
+    try {
+        if (!currentLoanId) {
+            throw new Error('ไม่พบข้อมูลสัญญาที่ต้องการอนุมัติ');
+        }
+
+        const currentUserStr = localStorage.getItem('currentUser');
+        if (!currentUserStr) {
+            throw new Error('กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
+        }
+
+        const currentUser = JSON.parse(currentUserStr);
+        if (!currentUser || !currentUser._id) {
+            throw new Error('ข้อมูลผู้ใช้ไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่');
+        }
+
+        const response = await fetch(`/api/admin/promise-status/${currentLoanId}/approve`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ adminId: currentUser._id })
         });
 
         if (!response.ok) {
-            throw new Error('ไม่สามารถอนุมัติคำขอกู้ได้');
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'ไม่สามารถอนุมัติสัญญาได้');
         }
 
-        await Swal.fire({
-            icon: 'success',
-            title: 'อนุมัติสำเร็จ',
-            text: 'คำขอกู้ได้รับการอนุมัติแล้ว'
-        });
-
-        document.getElementById('viewDetailsModal').style.display = 'none';
+        const result = await response.json();
+        showSuccess(result.message);
         await fetchAndRenderLoanApplications();
     } catch (error) {
-        console.error('Error approving loan:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถอนุมัติคำขอกู้ได้'
-        });
-    }
-};
-
-// ฟังก์ชันปฏิเสธคำขอกู้
-const rejectLoan = async () => {
-    try {
-        const { value: reason } = await Swal.fire({
-            title: 'ระบุเหตุผลที่ปฏิเสธ',
-            input: 'textarea',
-            inputPlaceholder: 'กรุณาระบุเหตุผล...',
-            showCancelButton: true,
-            confirmButtonText: 'ยืนยัน',
-            cancelButtonText: 'ยกเลิก',
-            inputValidator: (value) => {
-                if (!value) {
-                    return 'กรุณาระบุเหตุผล';
-                }
-            }
-        });
-
-        if (reason) {
-            const response = await fetch(`/api/admin/loan-applications/${currentLoanId}/reject`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ reason })
-            });
-
-            if (!response.ok) {
-                throw new Error('ไม่สามารถปฏิเสธคำขอกู้ได้');
-            }
-
-            await Swal.fire({
-                icon: 'success',
-                title: 'ปฏิเสธสำเร็จ',
-                text: 'คำขอกู้ถูกปฏิเสธแล้ว'
-            });
-
-            document.getElementById('viewDetailsModal').style.display = 'none';
-            await fetchAndRenderLoanApplications();
+        console.error('Error approving loan promise:', error);
+        showError(error.message);
+        if (error.message.includes('เข้าสู่ระบบ')) {
+            window.location.href = '/';
         }
-    } catch (error) {
-        console.error('Error rejecting loan:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถปฏิเสธคำขอกู้ได้'
-        });
     }
 };
 
-// ฟังก์ชันเริ่มต้นโมดัล
+const rejectPromise = async (reason) => {
+    try {
+        if (!currentLoanId) {
+            throw new Error('ไม่พบข้อมูลสัญญาที่ต้องการปฏิเสธ');
+        }
+
+        const currentUserStr = localStorage.getItem('currentUser');
+        if (!currentUserStr) {
+            throw new Error('กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
+        }
+
+        const currentUser = JSON.parse(currentUserStr);
+        if (!currentUser || !currentUser._id) {
+            throw new Error('ข้อมูลผู้ใช้ไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่');
+        }
+
+        const response = await fetch(`/api/admin/promise-status/${currentLoanId}/reject`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                adminId: currentUser._id,
+                reason: reason
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'ไม่สามารถปฏิเสธสัญญาได้');
+        }
+
+        const result = await response.json();
+        showSuccess(result.message);
+        await fetchAndRenderLoanApplications();
+    } catch (error) {
+        console.error('Error rejecting loan promise:', error);
+        showError(error.message);
+        if (error.message.includes('เข้าสู่ระบบ')) {
+            window.location.href = '/';
+        }
+    }
+};
+
+// ===============================
+// Modal Management Functions
+// ===============================
 const initializeModal = () => {
     const modal = document.getElementById('viewDetailsModal');
     const closeBtn = modal.querySelector('.close');
 
-    // ปิดโมดัลเมื่อคลิกที่ปุ่มปิด
     closeBtn.onclick = () => {
         modal.style.display = 'none';
     };
 
-    // ปิดโมดัลเมื่อคลิกที่พื้นหลัง
     modal.onclick = (event) => {
         if (event.target === modal) {
             modal.style.display = 'none';
         }
     };
 
-    // เพิ่ม event listener สำหรับปุ่มอนุมัติและปฏิเสธ
-    document.getElementById('approveBtn').onclick = approveLoan;
-    document.getElementById('rejectBtn').onclick = rejectLoan;
+    document.getElementById('approveBtn').onclick = () => handleApprove(currentLoanId);
+    document.getElementById('rejectBtn').onclick = () => handleReject(currentLoanId);
 };
 
-// ฟังก์ชันออกจากระบบ
+const updateActionButtons = (status) => {
+    const approveBtn = document.getElementById('approveBtn');
+    const rejectBtn = document.getElementById('rejectBtn');
+    
+    if (status === 'pending') {
+        approveBtn.style.display = 'block';
+        rejectBtn.style.display = 'block';
+    } else {
+        approveBtn.style.display = 'none';
+        rejectBtn.style.display = 'none';
+    }
+};
+
+// ===============================
+// Sidebar Functions
+// ===============================
+const toggleSidebar = () => {
+    try {
+        const aside = document.querySelector('aside');
+        const main = document.querySelector('main');
+        
+        if (!aside || !main) {
+            console.error('ไม่พบ aside หรือ main elements');
+            return;
+        }
+
+        aside.classList.toggle('w-64');
+        aside.classList.toggle('w-20');
+        
+        const textElements = aside.querySelectorAll('span');
+        textElements.forEach(span => span.classList.toggle('hidden'));
+
+        const isCollapsed = !aside.classList.contains('w-64');
+        localStorage.setItem('sidebarState', isCollapsed);
+    } catch (error) {
+        console.error('เกิดข้อผิดพลาดในการ toggle sidebar:', error);
+    }
+};
+
+const initializeSidebar = () => {
+    try {
+        const aside = document.querySelector('aside');
+        if (!aside) return;
+
+        const isCollapsed = localStorage.getItem('sidebarState') === 'true';
+        
+        if (isCollapsed) {
+            aside.classList.remove('w-64');
+            aside.classList.add('w-20');
+            
+            const textElements = aside.querySelectorAll('span');
+            textElements.forEach(span => span.classList.add('hidden'));
+        }
+    } catch (error) {
+        console.error('เกิดข้อผิดพลาดในการเริ่มต้น sidebar:', error);
+    }
+};
+
+// ===============================
+// User Management Functions
+// ===============================
+const initializeUserInfo = () => {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+
+    if (user) {
+        const userName = user.name || 'ผู้ใช้ไม่ระบุ';
+        const userAvatar = user.avatar || userName.charAt(0).toUpperCase();
+       
+        document.getElementById('userName').textContent = 'ยินดีต้อนรับ ' + userName;
+        document.getElementById('userAvatar').textContent = userAvatar;
+    } else {
+        document.getElementById('userName').textContent = 'ไม่พบข้อมูลผู้ใช้';
+        document.getElementById('userAvatar').textContent = 'N/A';
+    }
+};
+
 const logout = async () => {
     try {
         const result = await Swal.fire({
@@ -308,316 +521,14 @@ const logout = async () => {
         }
     } catch (error) {
         console.error('Error during logout:', error);
-        await Swal.fire({
-            icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถออกจากระบบได้ กรุณาลองใหม่อีกครั้ง'
-        });
+        showError('ไม่สามารถออกจากระบบได้ กรุณาลองใหม่อีกครั้ง');
     }
 };
 
-// แสดงข้อมูลธุรกรรม
-function renderTransactions(transactions) {
-    const tbody = document.getElementById('transactionsTableBody');
-    const noDataState = document.getElementById('noDataState');
-    
-    if (!tbody || !noDataState) {
-        console.error('Required elements not found');
-        return;
-    }
-
-    if (!transactions || transactions.length === 0) {
-        tbody.innerHTML = '';
-        noDataState.classList.remove('hidden');
-        return;
-    }
-
-    noDataState.classList.add('hidden');
-    tbody.innerHTML = transactions.map(loan => {
-        const pendingPayment = loan.payments.find(p => p.status === 'pending');
-        if (!pendingPayment) return '';
-
-        return `
-            <tr>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${loan.id_saving}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${new Date(pendingPayment.paymentDate).toLocaleDateString('th-TH')}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${pendingPayment.amount.toLocaleString()} บาท</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${pendingPayment.remainingBalance.toLocaleString()} บาท</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button onclick="handleApprove('${loan._id}', '${pendingPayment._id}')" 
-                            class="text-green-600 hover:text-green-900 mr-3">
-                        <i class="fas fa-check-circle mr-1"></i>อนุมัติ
-                    </button>
-                    <button onclick="handleReject('${loan._id}', '${pendingPayment._id}')"
-                            class="text-red-600 hover:text-red-900">
-                        <i class="fas fa-times-circle mr-1"></i>ปฏิเสธ
-                    </button>
-                </td>
-            </tr>
-        `;
-    }).join('');
-}
-
-// จัดการการอนุมัติ
-async function handleApprove(loanId) {
-    if (!loanId) {
-        showError('ไม่พบข้อมูลสัญญาที่ต้องการอนุมัติ');
-        return;
-    }
-    
-    currentLoanId = loanId; // กำหนดค่า currentLoanId
-    showPinModal('approve');
-}
-
-// จัดการการปฏิเสธ
-async function handleReject(loanId) {
-    if (!loanId) {
-        showError('ไม่พบข้อมูลสัญญาที่ต้องการปฏิเสธ');
-        return;
-    }
-    currentLoanId = loanId;
-    
-    const { value: reason } = await Swal.fire({
-        title: 'ระบุเหตุผลในการปฏิเสธ',
-        input: 'text',
-        inputLabel: 'เหตุผล',
-        inputPlaceholder: 'กรุณาระบุเหตุผล',
-        showCancelButton: true,
-        cancelButtonText: 'ยกเลิก',
-        confirmButtonText: 'ยืนยัน',
-        inputValidator: (value) => {
-            if (!value) {
-                return 'กรุณาระบุเหตุผลในการปฏิเสธ';
-            }
-        }
-    });
-
-    if (reason) {
-        showPinModal('reject', reason);
-    }
-}
-
-// แสดง Modal สำหรับกรอก PIN
-function showPinModal(action, reason = '') {
-    const pinModal = document.getElementById('pinModal');
-    const pinInput = document.getElementById('pinInput');
-    
-    if (pinModal && pinInput) {
-        pinModal.dataset.action = action;
-        pinModal.dataset.reason = reason;
-        pinModal.classList.remove('hidden');
-        pinInput.value = '';
-        pinInput.focus();
-    }
-}
-
-// ปิด Modal PIN
-function closePinModal() {
-    const pinModal = document.getElementById('pinModal');
-    if (pinModal) {
-        pinModal.classList.add('hidden');
-        pinModal.dataset.action = '';
-        pinModal.dataset.reason = '';
-        currentLoanId = null;
-    }
-}
-
-// ตรวจสอบ PIN
-async function verifyPin() {
-    const pinInput = document.getElementById('pinInput');
-    const pinModal = document.getElementById('pinModal');
-    if (!pinInput || !pinModal) return;
-
-    const pin = pinInput.value;
-    if (!pin || pin.length !== 4) {
-        showError('กรุณากรอกรหัส PIN 4 หลัก');
-        return;
-    }
-
-    try {
-        // ตรวจสอบว่ามีข้อมูลผู้ใช้หรือไม่
-        const currentUser = localStorage.getItem('currentUser');
-        if (!currentUser) {
-            showError('กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
-            window.location.href = '/login.html';
-            return;
-        }
-
-        const response = await fetch('/api/admin/verify-pin', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ pin })
-        });
-
-        const result = await response.json();
-        if (result.verified) {
-            const action = pinModal.dataset.action;
-            const reason = pinModal.dataset.reason;
-
-            // ตรวจสอบ currentLoanId
-            if (!currentLoanId) {
-                showError('ไม่พบข้อมูลสัญญาที่ต้องการดำเนินการ');
-                return;
-            }
-
-            // ซ่อน Modal
-            pinModal.classList.add('hidden');
-            
-            if (action === 'approve') {
-                await approvePromise();
-            } else if (action === 'reject') {
-                await rejectPromise(reason);
-            }
-
-            // ล้างค่าหลังจากดำเนินการเสร็จ
-            currentLoanId = null;
-            pinModal.dataset.action = '';
-            pinModal.dataset.reason = '';
-        } else {
-            showError('รหัส PIN ไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง');
-        }
-    } catch (error) {
-        console.error('Error verifying PIN:', error);
-        showError('ไม่สามารถตรวจสอบรหัส PIN ได้');
-    }
-}
-
-// อนุมัติสัญญา
-async function approvePromise() {
-    try {
-        // ตรวจสอบ currentLoanId
-        if (!currentLoanId) {
-            throw new Error('ไม่พบข้อมูลสัญญาที่ต้องการอนุมัติ');
-        }
-
-        // ตรวจสอบว่ามีข้อมูลผู้ใช้หรือไม่
-        const currentUserStr = localStorage.getItem('currentUser');
-        if (!currentUserStr) {
-            throw new Error('กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
-        }
-
-        const currentUser = JSON.parse(currentUserStr);
-        if (!currentUser || !currentUser._id) {
-            throw new Error('ข้อมูลผู้ใช้ไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่');
-        }
-
-        const response = await fetch(`/api/admin/promise-status/${currentLoanId}/approve`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                adminId: currentUser._id
-            })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'ไม่สามารถอนุมัติสัญญาได้');
-        }
-
-        const result = await response.json();
-        showSuccess(result.message);
-        await fetchAndRenderLoanApplications();
-    } catch (error) {
-        console.error('Error approving loan promise:', error);
-        showError(error.message);
-        if (error.message.includes('เข้าสู่ระบบ')) {
-            window.location.href = '/login.html';
-        }
-    }
-}
-
-// ปฏิเสธสัญญา
-async function rejectPromise(reason) {
-    try {
-        // ตรวจสอบ currentLoanId
-        if (!currentLoanId) {
-            throw new Error('ไม่พบข้อมูลสัญญาที่ต้องการปฏิเสธ');
-        }
-
-        // ตรวจสอบว่ามีข้อมูลผู้ใช้หรือไม่
-        const currentUserStr = localStorage.getItem('currentUser');
-        if (!currentUserStr) {
-            throw new Error('กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
-        }
-
-        const currentUser = JSON.parse(currentUserStr);
-        if (!currentUser || !currentUser._id) {
-            throw new Error('ข้อมูลผู้ใช้ไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่');
-        }
-
-        const response = await fetch(`/api/admin/promise-status/${currentLoanId}/reject`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                adminId: currentUser._id,
-                reason: reason
-            })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'ไม่สามารถปฏิเสธสัญญาได้');
-        }
-
-        const result = await response.json();
-        showSuccess(result.message);
-        await fetchAndRenderLoanApplications();
-    } catch (error) {
-        console.error('Error rejecting loan promise:', error);
-        showError(error.message);
-        if (error.message.includes('เข้าสู่ระบบ')) {
-            window.location.href = '/login.html';
-        }
-    }
-}
-
-// รีเฟรชข้อมูล
-function refreshTransactions() {
-    fetchPendingTransactions();
-}
-
-// Utility Functions
-function showError(message) {
-    Swal.fire({
-        icon: 'error',
-        title: 'เกิดข้อผิดพลาด',
-        text: message
-    });
-}
-
-function showSuccess(message) {
-    Swal.fire({
-        icon: 'success',
-        title: 'สำเร็จ',
-        text: message
-    });
-}
-
-function getInitials(name) {
-    return name
-        .split(' ')
-        .map(word => word[0])
-        .join('')
-        .toUpperCase();
-}
-
-// เริ่มต้น Event Listeners
-function initializeEventListeners() {
-    // จัดการ PIN Modal
+// ===============================
+// Event Listeners Functions
+// ===============================
+const initializeEventListeners = () => {
     const pinModal = document.getElementById('pinModal');
     if (pinModal) {
         const closeButton = pinModal.querySelector('button[onclick="closePinModal()"]');
@@ -631,32 +542,38 @@ function initializeEventListeners() {
         }
     }
 
-    // จัดการปุ่มรีเฟรช
     const refreshButton = document.getElementById('refreshButton');
     if (refreshButton) {
         refreshButton.onclick = fetchAndRenderLoanApplications;
     }
 
-    // ล้างค่าช่องค้นหา
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.value = '';
         searchInput.autocomplete = 'off';
     }
-}
 
-// แสดงข้อมูลผู้ใช้
-const initializeUserInfo = () => {
-    const user = JSON.parse(localStorage.getItem('currentUser'));
+};
 
-    if (user) {
-        const userName = user.name || 'ผู้ใช้ไม่ระบุ';
-        const userAvatar = user.avatar || userName.charAt(0).toUpperCase();
-       
-        document.getElementById('userName').textContent = 'ยินดีต้อนรับ ' + userName;
-        document.getElementById('userAvatar').textContent = userAvatar;
-    } else {
-        document.getElementById('userName').textContent = 'ไม่พบข้อมูลผู้ใช้';
-        document.getElementById('userAvatar').textContent = 'N/A';
-    }
+// ===============================
+// Utility Functions
+// ===============================
+const showError = (message) => {
+    Swal.fire({
+        icon: 'error',
+        title: 'เกิดข้อผิดพลาด',
+        text: message
+    });
+};
+
+const showSuccess = (message) => {
+    Swal.fire({
+        icon: 'success',
+        title: 'สำเร็จ',
+        text: message
+    });
+};
+
+const refreshTransactions = () => {
+    fetchPendingTransactions();
 };
