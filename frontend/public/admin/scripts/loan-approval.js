@@ -13,11 +13,10 @@ let currentReason = null;
 
 // เมื่อโหลดหน้าเว็บ
 document.addEventListener('DOMContentLoaded', () => {
+    initializeUserInfo();
     fetchAndRenderLoanApplications();
-    document.getElementById('searchInput').addEventListener('input', filterApplications);
-    document.getElementById('statusFilter').addEventListener('change', filterApplications);
-    initializeModal();
     initializeEventListeners();
+    initializeModal();
 });
 
 // ดึงข้อมูลคำขอกู้และแสดงผล
@@ -96,20 +95,6 @@ const renderLoanApplications = (applications) => {
             </button>
         `;
     });
-};
-
-// ฟังก์ชันกรองข้อมูล
-const filterApplications = () => {
-    const searchText = document.getElementById('searchInput').value.toLowerCase();
-    const statusFilter = document.getElementById('statusFilter').value;
-
-    const filteredApplications = allLoanApplications.filter(app => {
-        const matchesSearch = app.borrowerName.toLowerCase().includes(searchText);
-        const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
-        return matchesSearch && matchesStatus;
-    });
-
-    renderLoanApplications(filteredApplications);
 };
 
 // ฟังก์ชันแสดงรายละเอียดคำขอกู้
@@ -632,6 +617,7 @@ function getInitials(name) {
 
 // เริ่มต้น Event Listeners
 function initializeEventListeners() {
+    // จัดการ PIN Modal
     const pinModal = document.getElementById('pinModal');
     if (pinModal) {
         const closeButton = pinModal.querySelector('button[onclick="closePinModal()"]');
@@ -645,8 +631,32 @@ function initializeEventListeners() {
         }
     }
 
+    // จัดการปุ่มรีเฟรช
     const refreshButton = document.getElementById('refreshButton');
     if (refreshButton) {
         refreshButton.onclick = fetchAndRenderLoanApplications;
     }
-} 
+
+    // ล้างค่าช่องค้นหา
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.value = '';
+        searchInput.autocomplete = 'off';
+    }
+}
+
+// แสดงข้อมูลผู้ใช้
+const initializeUserInfo = () => {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+
+    if (user) {
+        const userName = user.name || 'ผู้ใช้ไม่ระบุ';
+        const userAvatar = user.avatar || userName.charAt(0).toUpperCase();
+       
+        document.getElementById('userName').textContent = 'ยินดีต้อนรับ ' + userName;
+        document.getElementById('userAvatar').textContent = userAvatar;
+    } else {
+        document.getElementById('userName').textContent = 'ไม่พบข้อมูลผู้ใช้';
+        document.getElementById('userAvatar').textContent = 'N/A';
+    }
+};
