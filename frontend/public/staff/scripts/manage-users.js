@@ -330,8 +330,6 @@ const openAddUserModal = () => {
         }
     };
 
-    fg
-
     // เพิ่ม event listener สำหรับปุ่มปิด (ถ้ามี)
     const closeButton = modal.querySelector('.close');
     if (closeButton) {
