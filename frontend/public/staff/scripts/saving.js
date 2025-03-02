@@ -20,6 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // รีเฟรชข้อมูลบัญชี
     fetchAccount();
+
+    // เรียกใช้ฟังก์ชันการค้นหา
+    setupSearch();
 });
 
 // Sidebar Functions
@@ -451,7 +454,15 @@ const handleTransaction = async (event, type, account) => {
     if (!confirmResult.isConfirmed) return;
 
     try {
-        // แก้ไข endpoint ให้ใช้ id ที่ถูกต้อง
+        // ดึงชื่อผู้ใช้ก่อนทำธุรกรรม
+        let userName = 'ไม่ระบุชื่อ';
+        try {
+            userName = await fetchUserName(account.id_member);
+        } catch (error) {
+            console.warn('Unable to fetch user name:', error);
+        }
+
+        // อัปเดตข้อมูลบัญชี
         const transactionResponse = await fetch(`/api/staff/saving/${account.id_member}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -465,24 +476,28 @@ const handleTransaction = async (event, type, account) => {
 
         if (!transactionResponse.ok) {
             const errorData = await transactionResponse.json();
-            console.error('API Error Response:', errorData);
             throw new Error(errorData.message || 'Failed to process transaction');
         }
 
-        const updatedData = await transactionResponse.json();
+        // บันทึกประวัติธุรกรรม
         const historyResponse = await fetch('/api/staff/transactions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 user: account._id,
+                userName: userName,
                 type: type === 'deposit' ? 'Deposit' : 'Withdraw',
-                amount,
+                amount: amount,
                 status: 'Completed',
-                date: new Date().toISOString(),
+                date: new Date().toISOString()
             }),
         });
 
-        if (!historyResponse.ok) throw new Error('Failed to save transaction history');
+        if (!historyResponse.ok) {
+            const errorData = await historyResponse.json();
+            console.error('Transaction history error:', errorData);
+            throw new Error('Failed to save transaction history');
+        }
 
         // ถามผู้ใช้ว่าต้องการพิมพ์สลิปหรือไม่
         const printSlip = await Swal.fire({
@@ -523,7 +538,7 @@ const handleTransaction = async (event, type, account) => {
                             </tr>
                             <tr>
                                 <td style="padding: 6px 0;">ชื่อบัญชี:</td>
-                                <td style="text-align: left;">${await fetchUserName(account.id_member)}</td>
+                                <td style="text-align: left;">${userName}</td>
                             </tr>
                         </table>
                     </div>
@@ -638,7 +653,7 @@ const handleTransaction = async (event, type, account) => {
         Swal.fire({
             icon: 'error',
             title: 'เกิดข้อผิดพลาด!',
-            text: 'ไม่สามารถทำธุรกรรมได้ กรุณาลองใหม่อีกครั้ง',
+            text: error.message || 'ไม่สามารถทำธุรกรรมได้ กรุณาลองใหม่อีกครั้ง',
         });
     }
 };
@@ -745,4 +760,57 @@ const logout = async () => {
             text: 'There was an error while logging out.',
         });
     }
+};
+
+// เพิ่มฟังก์ชันการค้นหา
+const setupSearch = () => {
+    const searchInput = document.getElementById('searchInput');
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', async function() {
+        const searchTerm = this.value.toLowerCase();
+        const tableBody = document.getElementById('accountTableBody');
+        const rows = tableBody.getElementsByTagName('tr');
+
+        for (const row of rows) {
+            const accountId = row.cells[0]?.textContent || '';
+            const userName = row.cells[1]?.textContent || '';
+            
+            // ค้นหาทั้งจากเลขบัญชีและชื่อผู้ใช้
+            const matchesSearch = accountId.toLowerCase().includes(searchTerm) || 
+                                userName.toLowerCase().includes(searchTerm);
+
+            row.style.display = matchesSearch ? '' : 'none';
+        }
+
+        // แสดงข้อความเมื่อไม่พบข้อมูล
+        let visibleRows = 0;
+        for (const row of rows) {
+            if (row.style.display !== 'none') {
+                visibleRows++;
+            }
+        }
+
+        if (visibleRows === 0) {
+            const noDataRow = document.createElement('tr');
+            noDataRow.id = 'noDataRow';
+            noDataRow.innerHTML = `
+                <td colspan="6" class="text-center py-4">
+                    ไม่พบข้อมูลที่ค้นหา
+                </td>
+            `;
+            // ลบข้อความ "ไม่พบข้อมูล" เก่าออกก่อน (ถ้ามี)
+            const existingNoDataRow = document.getElementById('noDataRow');
+            if (existingNoDataRow) {
+                existingNoDataRow.remove();
+            }
+            tableBody.appendChild(noDataRow);
+        } else {
+            // ลบข้อความ "ไม่พบข้อมูล" ถ้ามีข้อมูลแสดง
+            const noDataRow = document.getElementById('noDataRow');
+            if (noDataRow) {
+                noDataRow.remove();
+            }
+        }
+    });
 };

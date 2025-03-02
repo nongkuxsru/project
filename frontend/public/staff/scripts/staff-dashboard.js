@@ -85,9 +85,7 @@ const observer = new MutationObserver((mutations) => {
 const fetchTransactions = async () => {
     try {
         const response = await fetch('/api/staff/transactions');
-        if (!response.ok) {
-            throw new Error(`Failed to fetch transactions. Status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error('Failed to fetch');
         const data = await response.json();
 
         const tableBody = document.getElementById('transactionTableBody');
@@ -96,18 +94,18 @@ const fetchTransactions = async () => {
         data.forEach(transaction => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${transaction._id}</td>
-                <td>${transaction.date}</td>
-                <td>${transaction.user}</td>
-                <td>${transaction.type}</td>
-                <td>${transaction.amount}</td>
-                <td>${transaction.status}</td>
+                <td class="border px-3 py-2 text-center">${transaction._id}</td>
+                <td class="border px-3 py-2 text-center">${new Date(transaction.date).toLocaleString('th-TH')}</td>
+                <td class="border px-3 py-2 text-center">${transaction.userName}</td>
+                <td class="border px-3 py-2 text-center">${transaction.type === 'Deposit' ? 'ฝากเงิน' : 'ถอนเงิน'}</td>
+                <td class="border px-3 py-2 text-center">${transaction.amount.toLocaleString()} บาท</td>
+                <td class="border px-3 py-2 text-center">${transaction.status}</td>
             `;
             tableBody.appendChild(row);
         });
     } catch (error) {
-        console.error('Error fetching transactions:', error);
-        alert('Error fetching transactions: ' + error.message);
+        console.error('Error:', error);
+        alert('ไม่สามารถโหลดข้อมูลได้');
     }
 };
 

@@ -1,4 +1,3 @@
-// เรียกใช้ฟังก์ชันเมื่อหน้าเว็บโหลดเสร็จ
 window.onload = () => {
     fetchAndRenderUsers(); // ดึงข้อมูลผู้ใช้และแสดงผลในตาราง
     document.getElementById('searchInput').addEventListener('input', filterUsers);
@@ -221,21 +220,67 @@ const fetchAndRenderUsers = async () => {
 // ฟังก์ชันสำหรับแสดงข้อมูลผู้ใช้ในตาราง
 const renderUsers = (users) => {
     const usersTable = document.getElementById('usersTable').getElementsByTagName('tbody')[0];
-    usersTable.innerHTML = ''; // ล้างข้อมูลเก่า
+    usersTable.innerHTML = '';
 
     users.forEach(user => {
         const row = usersTable.insertRow();
-        row.insertCell().textContent = user.name;
-        row.insertCell().textContent = user.email;
-        row.insertCell().textContent = user.permission;
+        
+        // เพิ่ม class ให้กับทุก cell เพื่อให้เส้นขอบต่อเนื่อง
+        const nameCell = row.insertCell();
+        nameCell.className = 'border px-4 py-2';
+        nameCell.textContent = user.name;
 
-        // เพิ่มปุ่ม Actions โดยใช้ HTML
-        const actionsCell = row.insertCell();
-        actionsCell.className = 'actions';
-        actionsCell.innerHTML = `
-            <button class="edit-btn" data-user-id="${user._id}"><i class="fas fa-edit"></i></button>
-            <button class="delete-btn" data-user-id="${user._id}"><i class="fas fa-trash"></i></button>
+        const emailCell = row.insertCell();
+        emailCell.className = 'border px-4 py-2';
+        emailCell.textContent = user.email;
+        
+        // เซลล์สำหรับสิทธิ์ผู้ใช้
+        const permissionCell = row.insertCell();
+        permissionCell.className = 'border px-4 py-2';
+        permissionCell.innerHTML = `
+            <span class="px-2 py-1 rounded-full text-sm font-semibold inline-block
+                ${user.permission === 'admin' ? 'bg-purple-100 text-purple-700' : 
+                user.permission === 'staff' ? 'bg-blue-100 text-blue-700' : 
+                'bg-green-100 text-green-700'}">
+                ${user.permission === 'admin' ? 'ผู้ดูแล' : 
+                user.permission === 'staff' ? 'พนักงาน' : 'ผู้ใช้'}
+            </span>
         `;
+
+        // เซลล์สำหรับปุ่ม Actions
+        const actionsCell = row.insertCell();
+        actionsCell.className = 'border px-4 py-2';
+        const actionWrapper = document.createElement('div');
+        actionWrapper.className = 'flex justify-center gap-2';
+        actionWrapper.innerHTML = `
+            <button 
+                class="edit-btn bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
+                data-user-id="${user._id}"
+                title="แก้ไขข้อมูล">
+                <i class="fas fa-edit"></i>
+                <span>แก้ไข</span>
+            </button>
+            ${user.permission !== 'admin' ? `
+                <button 
+                    class="delete-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
+                    data-user-id="${user._id}"
+                    title="ลบผู้ใช้">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>ลบ</span>
+                </button>
+            ` : ''}
+            ${user.permission === 'admin' ? `
+                <button 
+                    class="reset-pin-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
+                    data-user-id="${user._id}"
+                    onclick="resetPin('${user._id}')"
+                    title="รีเซ็ต PIN">
+                    <i class="fas fa-key"></i>
+                    <span>รีเซ็ต PIN</span>
+                </button>
+            ` : ''}
+        `;
+        actionsCell.appendChild(actionWrapper);
     });
 
     // เพิ่ม event listener ให้กับปุ่ม Actions
@@ -250,6 +295,13 @@ const addActionButtonListeners = () => {
 
     document.querySelectorAll('.delete-btn').forEach(button => {
         button.addEventListener('click', () => deleteUser(button.getAttribute('data-user-id')));
+    });
+
+    document.querySelectorAll('.reset-pin-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetPin(button.getAttribute('data-user-id'));
+        });
     });
 };
 
@@ -433,6 +485,103 @@ const openAddUserModal = () => {
     };
 };
 
+const resetPin = async (userId) => {
+    try {
+        const result = await Swal.fire({
+            title: 'รีเซ็ต PIN',
+            html: `
+                <div class="mb-4">
+                    <input type="password" 
+                        id="newPin" 
+                        class="swal2-input" 
+                        maxlength="4" 
+                        pattern="\\d{4}"
+                        inputmode="numeric"
+                        placeholder="กรุณากรอก PIN ใหม่ 4 หลัก">
+                    <div id="pinError" class="text-red-500 text-sm mt-2"></div>
+                </div>
+                <div>
+                    <input type="password" 
+                        id="confirmPin" 
+                        class="swal2-input" 
+                        maxlength="4" 
+                        pattern="\\d{4}"
+                        inputmode="numeric"
+                        placeholder="ยืนยัน PIN ใหม่">
+                    <div id="confirmPinError" class="text-red-500 text-sm mt-2"></div>
+                </div>
+            `,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'ยืนยัน',
+            cancelButtonText: 'ยกเลิก',
+            preConfirm: () => {
+                const newPin = document.getElementById('newPin').value;
+                const confirmPin = document.getElementById('confirmPin').value;
+
+                if (!newPin || newPin.length !== 4 || !/^\d+$/.test(newPin)) {
+                    Swal.showValidationMessage('PIN ต้องเป็นตัวเลข 4 หลักเท่านั้น');
+                    return false;
+                }
+
+                if (newPin !== confirmPin) {
+                    Swal.showValidationMessage('PIN ไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง');
+                    return false;
+                }
+
+                return newPin;
+            }
+        });
+
+        if (result.isConfirmed) {
+            const response = await fetch(`/api/admin/users/${userId}/pin`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pin: result.value })
+            });
+
+            if (!response.ok) {
+                throw new Error('ไม่สามารถรีเซ็ต PIN ได้');
+            }
+
+            // ล้างค่าช่องค้นหาและดึงข้อมูลใหม่
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            await fetchAndRenderUsers();
+
+            await Swal.fire({
+                icon: 'success',
+                title: 'รีเซ็ต PIN สำเร็จ',
+                text: 'PIN ได้ถูกเปลี่ยนเรียบร้อยแล้ว',
+            });
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+            // ล้างค่าช่องค้นหาและดึงข้อมูลใหม่
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            await fetchAndRenderUsers();
+            
+            await Swal.fire({
+                icon: 'info',
+                title: 'ยกเลิกการรีเซ็ต PIN',
+                text: 'การรีเซ็ต PIN ถูกยกเลิก',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+    } catch (error) {
+        console.error('Error resetting PIN:', error);
+        await Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
+            text: 'ไม่สามารถรีเซ็ต PIN ได้ กรุณาลองใหม่',
+        });
+    }
+};
+
 // เพิ่มฟังก์ชันสำหรับแสดง modal ตั้ง PIN
 const showSetPinModal = async (userId) => {
     const result = await Swal.fire({
@@ -473,7 +622,6 @@ const showSetPinModal = async (userId) => {
                 throw new Error('ไม่สามารถตั้ง PIN ได้');
             }
 
-            await fetchAndRenderUsers();
             Swal.fire({
                 icon: 'success',
                 title: 'เพิ่มผู้ใช้และตั้ง PIN สำเร็จ',
