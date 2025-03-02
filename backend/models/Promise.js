@@ -35,7 +35,16 @@ const promiseSchema = new mongoose.Schema({
     }],
     totalPaid: { type: Number, default: 0 },
     remainingBalance: Number,
-    status: { type: String, default: 'active' } // active, completed, overdue
+    status: {// pending, completed, rejected
+        type: String,
+        required: true,
+        default: 'pending'
+    },
+    rejectedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    rejectionReason: String
 });
 
 

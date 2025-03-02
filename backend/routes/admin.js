@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/Users'); // นำเข้าโมเดล Users
 const Saving = require('../models/Saving'); // นำเข้าโมเดลบัญชีการออม
+const Promise = require('../models/Promise'); // นำเข้าโมเดล Promise
 
 
 // API สำหรับดึงข้อมูลสถิติ
@@ -207,5 +208,134 @@ router.post('/verify-pin', async (req, res) => {
         });
     }
 });
+
+// API สำหรับดึงรายการธุรกรรมที่รอการอนุมัติ
+router.get('/promise-status/pending', async (req, res) => {
+    try {
+        const pendingTransactions = await Promise.find({
+            status: 'pending'
+        }).select('id_saving Datepromise amount interestRate DueDate totalPaid payments status');
+
+        res.json(pendingTransactions);
+    } catch (error) {
+        console.error('Error fetching pending transactions:', error);
+        res.status(500).json({ 
+            message: 'เกิดข้อผิดพลาดในการดึงข้อมูลธุรกรรมที่รอการอนุมัติ', 
+            error: error.message 
+        });
+    }
+});
+
+// API สำหรับอนุมัติสัญญา
+router.put('/promise-status/:id/approve', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { adminId } = req.body;
+
+        // ตรวจสอบว่ามี adminId หรือไม่
+        if (!adminId) {
+            return res.status(400).json({ message: 'กรุณาระบุ ID ของผู้ดูแลระบบ' });
+        }
+
+        // ตรวจสอบว่าผู้ดูแลระบบมีอยู่จริงหรือไม่
+        const admin = await User.findById(adminId);
+        if (!admin || admin.permission !== 'admin') {
+            return res.status(403).json({ message: 'ไม่มีสิทธิ์ในการอนุมัติสัญญา' });
+        }
+
+        // ค้นหาและอัปเดตสัญญา
+        const promise = await Promise.findById(id);
+        if (!promise) {
+            return res.status(404).json({ message: 'ไม่พบสัญญา' });
+        }
+
+        if (promise.status !== 'pending') {
+            return res.status(400).json({ message: 'สัญญานี้ไม่อยู่ในสถานะรอการอนุมัติ' });
+        }
+
+        // อัปเดตสถานะสัญญา
+        promise.status = 'approved';
+        promise.approvedBy = adminId;
+        promise.approvedAt = new Date();
+        await promise.save();
+
+        res.json({ 
+            message: 'อนุมัติสัญญาเรียบร้อย',
+            promise: {
+                id: promise._id,
+                status: promise.status,
+                approvedBy: promise.approvedBy,
+                approvedAt: promise.approvedAt
+            }
+        });
+    } catch (error) {
+        console.error('Error approving promise:', error);
+        res.status(500).json({ 
+            message: 'เกิดข้อผิดพลาดในการอนุมัติสัญญา', 
+            error: error.message 
+        });
+    }
+});
+
+// API สำหรับปฏิเสธสัญญา
+router.put('/promise-status/:id/reject', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { adminId, reason } = req.body;
+
+        // ตรวจสอบข้อมูลที่จำเป็น
+        if (!adminId) {
+            return res.status(400).json({ message: 'กรุณาระบุ ID ของผู้ดูแลระบบ' });
+        }
+        if (!reason) {
+            return res.status(400).json({ message: 'กรุณาระบุเหตุผลในการปฏิเสธ' });
+        }
+
+        // ตรวจสอบว่าผู้ดูแลระบบมีอยู่จริงหรือไม่
+        const admin = await User.findById(adminId);
+        if (!admin || admin.permission !== 'admin') {
+            return res.status(403).json({ message: 'ไม่มีสิทธิ์ในการปฏิเสธสัญญา' });
+        }
+
+        // ค้นหาและอัปเดตสัญญา
+        const promise = await Promise.findById(id);
+        if (!promise) {
+            return res.status(404).json({ message: 'ไม่พบสัญญา' });
+        }
+
+        if (promise.status !== 'pending') {
+            return res.status(400).json({ message: 'สัญญานี้ไม่อยู่ในสถานะรอการอนุมัติ' });
+        }
+
+        // อัปเดตสถานะสัญญา
+        promise.status = 'rejected';
+        promise.rejectedBy = adminId;
+        promise.rejectedAt = new Date();
+        promise.rejectReason = reason;
+        await promise.save();
+
+        res.json({ 
+            message: 'ปฏิเสธสัญญาเรียบร้อย',
+            promise: {
+                id: promise._id,
+                status: promise.status,
+                rejectedBy: promise.rejectedBy,
+                rejectedAt: promise.rejectedAt,
+                rejectReason: promise.rejectReason
+            }
+        });
+    } catch (error) {
+        console.error('Error rejecting promise:', error);
+        res.status(500).json({ 
+            message: 'เกิดข้อผิดพลาดในการปฏิเสธสัญญา', 
+            error: error.message 
+        });
+    }
+});
+
+
+
+
+
 
 module.exports = router;

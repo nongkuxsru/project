@@ -170,7 +170,7 @@ const validateAndGetFormData = () => {
         DueDate: dueDate,
         interestRate: interestRate,
         totalAmount: totalWithInterest,
-        status: 'active'
+        status: 'pending'
     };
 };
 
