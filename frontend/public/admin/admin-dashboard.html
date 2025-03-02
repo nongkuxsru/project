@@ -1,61 +1,131 @@
 <!DOCTYPE html>
 <html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แดชบอร์ดผู้ดูแลระบบ</title>
-    <link rel="stylesheet" href="/styles/admin-dashboard.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-</head>
-<body>
-    <div class="dashboard-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header" style="display: flex; justify-content: center; align-items: center; height: 100px;">
-                <img src="/images/logo-sidebar.png" alt="" width="100" height="100" style="margin: 10px 0;">
-            </div>
-            <ul class="sidebar-menu">
-                <li><a href="/admin" class="active"><i class="fas fa-home"></i> หน้าหลัก</a></li>
-                <li><a href="/admin/manage-users.html"><i class="fas fa-users"></i> จัดการผู้ใช้</a></li>
-                <li><a href="/admin/setting.html"><i class="fas fa-cog"></i> การตั้งค่า</a></li>
-                <li><a href="/admin/reports.html"><i class="fas fa-chart-bar"></i> รายงาน</a></li>
-                <li><a href="/logout" id="logoutButton"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a></li>
-            </ul>
-        </aside>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/png" sizes="16x16" href="../images/logo.png"/>
+        <title>แดชบอร์ดผู้ดูแลระบบ - สหกรณ์ออมทรัพย์</title>
+        <link rel="stylesheet" href="/styles/setting.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: '#1B8F4C',
+                            secondary: '#264C3B',
+                            accent: '#D9D92E',
+                            background: '#F1F8F4',
+                            foreground: '#FFFFFF'
+                        },
+                        fontFamily: {
+                            sans: ['IBM Plex Sans Thai', 'sans-serif'],
+                            heading: ['Poppins', 'sans-serif']
+                        }
+                    }
+                }
+            }
+        </script>
+    </head>
 
+<body class="bg-background text-secondary font-sans">
+    <div class="flex h-screen">
         <!-- Main Content -->
-        <main class="main-content">
-            <header>
-                <nav>
-                    <ul>
-                        <li><button id="toggleSidebar"><i class="fas fa-bars"></i></button></li>
-                    </ul>
-                </nav>
+        <main class="flex-1 p-8">
+            <header class="flex justify-between items-center mb-6">
+                <button id="toggleSidebar" class="text-secondary hover:text-gray-600 transition duration-200 text-lg">
+                </button>
+                <!-- ส่วนแสดงโปรไฟล์ผู้ใช้ -->
+                <div class="flex items-center space-x-3">
+                    <div id="userAvatar" class="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 text-white font-bold border-2 border-green-500">
+                        <!-- แสดงอักษรย่อจากชื่อผู้ใช้ -->
+                    </div>
+                    <span id="userName" class="text-secondary font-medium">
+                        <!-- แสดงชื่อผู้ใช้ -->
+                    </span>
+                </div>
             </header>
 
-             <!-- ส่วนแสดงข้อมูลสถิติ -->
-            <section class="stats">
-                <h2>สถิติ</h2>
-                <div class="stats-container">
-                    <div class="stat-card">
-                        <h3>จำนวนผู้ใช้ทั้งหมด</h3>
-                        <p id="totalUsers">กำลังโหลด...</p>
+            <!-- Stats Section -->
+            <section class="bg-white p-6 shadow-lg rounded-lg w-full max-w-6xl mx-auto border-2 border-green-500">
+                <h2 class="text-2xl font-bold text-primary mb-6 flex items-center">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    สถิติภาพรวมระบบ
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- จำนวนผู้ใช้ทั้งหมด -->
+                    <div class="bg-gray-50 p-6 rounded-lg shadow-md border border-green-200">
+                        <div class="flex items-center space-x-2 mb-4">
+                            <i class="fas fa-users text-green-600 text-xl"></i>
+                            <h3 class="text-lg font-semibold">จำนวนผู้ใช้ทั้งหมด</h3>
+                        </div>
+                        <p id="totalUsers" class="text-3xl font-bold text-gray-800">กำลังโหลด...</p>
                     </div>
-                    <div class="stat-card">
-                        <h3>ผู้ใช้ที่ใช้งาน</h3>
-                        <p id="activeUsers">กำลังโหลด...</p>
+
+                    <!-- ผู้ใช้ที่ใช้งาน -->
+                    <div class="bg-green-50 p-6 rounded-lg shadow-md border border-green-200">
+                        <div class="flex items-center space-x-2 mb-4">
+                            <i class="fas fa-user-check text-green-600 text-xl"></i>
+                            <h3 class="text-lg font-semibold">ผู้ใช้ที่ใช้งาน</h3>
+                        </div>
+                        <p id="activeUsers" class="text-3xl font-bold text-green-600">กำลังโหลด...</p>
                     </div>
-                    <div class="stat-card">
-                        <h3>บัญชีเงินฝากรวม</h3>
-                        <p id="totalSavings">กำลังโหลด...</p>
+
+                    <!-- บัญชีเงินฝากรวม -->
+                    <div class="bg-blue-50 p-6 rounded-lg shadow-md border border-blue-200">
+                        <div class="flex items-center space-x-2 mb-4">
+                            <i class="fas fa-piggy-bank text-blue-600 text-xl"></i>
+                            <h3 class="text-lg font-semibold">บัญชีเงินฝากรวม</h3>
+                        </div>
+                        <p id="totalSavings" class="text-3xl font-bold text-blue-600">กำลังโหลด...</p>
                     </div>
                 </div>
             </section>
 
-            <!-- ส่วนอื่นๆ ของหน้า Dashboard -->
+            <!-- Quick Actions Section -->
+            <section class="mt-8 bg-white p-6 shadow-lg rounded-lg w-full max-w-6xl mx-auto border-2 border-green-500">
+                <h2 class="text-2xl font-bold text-primary mb-6 flex items-center">
+                    <i class="fas fa-bolt mr-3"></i>
+                    การดำเนินการด่วน
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <a href="/admin/manage-users.html" class="flex items-center p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200">
+                        <i class="fas fa-users text-green-600 text-2xl mr-3"></i>
+                        <div>
+                            <h3 class="font-semibold">จัดการผู้ใช้</h3>
+                            <p class="text-sm text-gray-600">เพิ่ม/แก้ไข/ลบ ผู้ใช้</p>
+                        </div>
+                    </a>
+                    <a href="/admin/setting.html" class="flex items-center p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200">
+                        <i class="fas fa-cog text-green-600 text-2xl mr-3"></i>
+                        <div>
+                            <h3 class="font-semibold">การตั้งค่า</h3>
+                            <p class="text-sm text-gray-600">ตั้งค่าระบบ</p>
+                        </div>
+                    </a>
+                    <a href="/admin/reports.html" class="flex items-center p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200">
+                        <i class="fas fa-chart-bar text-green-600 text-2xl mr-3"></i>
+                        <div>
+                            <h3 class="font-semibold">รายงาน</h3>
+                            <p class="text-sm text-gray-600">ดูรายงานสรุป</p>
+                        </div>
+                    </a>
+                    <button id="logoutButton" class="flex items-center p-4 bg-white rounded-lg border border-gray-200 hover:bg-red-50 transition-colors duration-200">
+                        <i class="fas fa-sign-out-alt text-red-600 text-2xl mr-3"></i>
+                        <div>
+                            <h3 class="font-semibold">ออกจากระบบ</h3>
+                            <p class="text-sm text-gray-600">ออกจากระบบผู้ดูแล</p>
+                        </div>
+                    </button>
+                </div>
+            </section>
         </main>
     </div>
 
+    <script src="/admin/components/load-sidebar.js"></script>
     <script src="/admin/scripts/admin-dashboard.js"></script>
 </body>
 </html>

@@ -3,141 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แดชบอร์ดผู้ดูแลระบบ</title>
-    <link rel="stylesheet" href="/styles/manage-users.css">
+    <link rel="icon" type="image/png" sizes="16x16" href="../images/logo.png"/>
+    <title>จัดการผู้ใช้ - สหกรณ์ออมทรัพย์</title>
+    <link rel="stylesheet" href="/styles/setting.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1B8F4C',
+                        secondary: '#264C3B',
+                        accent: '#D9D92E',
+                        background: '#F1F8F4',
+                        foreground: '#FFFFFF'
+                    },
+                    fontFamily: {
+                        sans: ['IBM Plex Sans Thai', 'sans-serif'],
+                        heading: ['Poppins', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body>
-    <div class="dashboard-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header" style="display: flex; justify-content: center; align-items: center; height: 100px;">
-                <img src="/images/logo-sidebar.png" alt="" width="100" height="100" style="margin: 10px 0;">
-            </div>
-            <ul class="sidebar-menu">
-                <li><a href="/admin"><i class="fas fa-home"></i> หน้าหลัก</a></li>
-                <li><a href="/admin/manage-users.html" class="active"><i class="fas fa-users"></i> จัดการผู้ใช้</a></li>
-                <li><a href="/admin/setting.html"><i class="fas fa-cog"></i> การตั้งค่า</a></li>
-                <li><a href="/admin/reports.html"><i class="fas fa-chart-bar"></i> รายงาน</a></li>
-                <li><a href="/logout" id="logoutButton"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a></li>
-            </ul>
-        </aside>
-
+<body class="bg-background text-secondary font-sans">
+    <div class="flex h-screen">
         <!-- Main Content -->
-        <main class="main-content">
-            <header>
-                <nav><ul><li><button id="toggleSidebar"><i class="fas fa-bars"></i></button></li></ul></nav>
+        <main class="flex-1 p-8">
+            <header class="flex justify-between items-center mb-6">
+                <button id="toggleSidebar" class="text-secondary hover:text-gray-600 transition duration-200 text-lg">
+                </button>
+                <!-- ส่วนแสดงโปรไฟล์ผู้ใช้ -->
+                <div class="flex items-center space-x-3">
+                    <div id="userAvatar" class="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 text-white font-bold border-2 border-green-500">
+                        <!-- แสดงอักษรย่อจากชื่อผู้ใช้ -->
+                    </div>
+                    <span id="userName" class="text-secondary font-medium">
+                        <!-- แสดงชื่อผู้ใช้ -->
+                    </span>
+                </div>
             </header>
 
-            <!-- ส่วนค้นหาและ filter -->
-            <section class="filters">
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="ค้นหาตามชื่อหรืออีเมล...">
-                    <button id="searchButton"><i class="fas fa-search"></i></button>
+            <!-- Search and Filter Section -->
+            <section class="bg-white p-6 shadow-lg rounded-lg w-full max-w-6xl mx-auto border-2 border-green-500 mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="flex-1 w-full">
+                        <div class="relative">
+                            <input type="text" id="searchInput" placeholder="ค้นหาตามชื่อหรืออีเมล..."
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <button id="addUserButton" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            <i class="fas fa-plus mr-2"></i>เพิ่มผู้ใช้
+                        </button>
+                    </div>
                 </div>
-                <div class="filter-box">
-                    <label for="permissionFilter">กรองตามสิทธิ์:</label>
-                    <select id="permissionFilter">
-                        <option value="all">ทั้งหมด</option>
-                        <option value="admin">ผู้ดูแลระบบ</option>
-                        <option value="staff">เจ้าหน้าที่</option>
-                        <option value="user">ผู้ใช้</option>
-                    </select>
-                </div>
-            </section>
-        
-            <!-- ส่วนแสดงตารางผู้ใช้ -->
-            <section class="user-table">
-                <h2>ผู้ใช้ทั้งหมด</h2><button id="addUserButton">เพิ่มผู้ใช้</button><h2></h2>
-                <table id="usersTable">
-                    <thead>
-                        <tr>
-                            <th>ชื่อ</th>
-                            <th>อีเมล</th>
-                            <th>สิทธิ์</th>
-                            <th></th>
-                            <th>การกระทำ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- ข้อมูลผู้ใช้จะถูกเพิ่มโดย JavaScript -->
-                    </tbody>
-                </table>
             </section>
 
-            <!-- Modal สำหรับแก้ไขผู้ใช้ -->
-            <div id="editUserModal" class="modal">
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <h2>แก้ไขผู้ใช้</h2>
-                    <form id="editUserForm">
-                        <label for="editName">ชื่อ:</label>
-                        <input type="text" id="editName" name="name" required>
-                    
-                        <label for="editEmail">อีเมล:</label>
-                        <input type="email" id="editEmail" name="email" required>
-                    
-                        <label for="editPassword">รหัสผ่าน:</label>
-                        <input type="password" id="editPassword" name="password" required>
-                    
-                        <label for="editAddress">ที่อยู่:</label>
-                        <input type="text" id="editAddress" name="address" required>
-                    
-                        <label for="editPhone">โทรศัพท์:</label>
-                        <input type="text" id="editPhone" name="phone" required>
-                    
-                        <label for="editBirthday">วันเกิด:</label>
-                        <input type="date" id="editBirthday" name="birthday" required>
-                    
-                        <label for="editPermission">สิทธิ์:</label>
-                        <select id="editPermission" name="permission" required>
-                            <option value="admin">ผู้ดูแลระบบ</option>
-                            <option value="staff">เจ้าหน้าที่</option>
-                            <option value="user">ผู้ใช้</option>
-                        </select>
-                        <button type="submit">บันทึกการเปลี่ยนแปลง</button>
+            <!-- Users Table Section -->
+            <section class="bg-white p-6 shadow-lg rounded-lg w-full max-w-6xl mx-auto border-2 border-green-500">
+                <h2 class="text-2xl font-bold text-primary mb-6 flex items-center">
+                    <i class="fas fa-users mr-3"></i>
+                    ผู้ใช้ทั้งหมด
+                </h2>
+                <div class="overflow-x-auto">
+                    <table id="usersTable" class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อ</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">อีเมล</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สิทธิ์</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">การกระทำ</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <!-- ข้อมูลผู้ใช้จะถูกเพิ่มโดย JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Edit User Modal -->
+            <div id="editUserModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full">
+                <div class="relative top-20 mx-auto p-5 border max-w-4xl shadow-lg rounded-md bg-white">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-gray-900">แก้ไขข้อมูลผู้ใช้</h3>
+                        <button class="close text-gray-400 hover:text-gray-500">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <form id="editUserForm" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="editName" class="block text-sm font-medium text-gray-700">ชื่อ</label>
+                                <input type="text" id="editName" name="name" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                            </div>
+                            <div>
+                                <label for="editEmail" class="block text-sm font-medium text-gray-700">อีเมล</label>
+                                <input type="email" id="editEmail" name="email" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                            </div>
+                            <div>
+                                <label for="editPassword" class="block text-sm font-medium text-gray-700">รหัสผ่าน</label>
+                                <input type="password" id="editPassword" name="password"
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                            </div>
+                            <div>
+                                <label for="editPhone" class="block text-sm font-medium text-gray-700">โทรศัพท์</label>
+                                <input type="text" id="editPhone" name="phone" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                            </div>
+                            <div>
+                                <label for="editBirthday" class="block text-sm font-medium text-gray-700">วันเกิด</label>
+                                <input type="date" id="editBirthday" name="birthday" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                            </div>
+                            <div>
+                                <label for="editPermission" class="block text-sm font-medium text-gray-700">สิทธิ์</label>
+                                <select id="editPermission" name="permission" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                                    <option value="admin">ผู้ดูแลระบบ</option>
+                                    <option value="staff">เจ้าหน้าที่</option>
+                                    <option value="user">ผู้ใช้</option>
+                                </select>
+                            </div>
+                            <div class="col-span-2">
+                                <label for="editAddress" class="block text-sm font-medium text-gray-700">ที่อยู่</label>
+                                <textarea id="editAddress" name="address" required rows="2"
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"></textarea>
+                            </div>
+                        </div>
+                        <div class="flex justify-end space-x-3 mt-4">
+                            <button type="button" class="close text-sm px-4 py-2 border border-gray-300 rounded-md text-gray-600 bg-white hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300">
+                                ยกเลิก
+                            </button>
+                            <button type="submit" class="text-sm px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                บันทึกการเปลี่ยนแปลง
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
-            <!-- Modal สำหรับเพิ่มผู้ใช้ -->
-            <div id="addUserModal" class="modal">
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <h2>เพิ่มผู้ใช้ใหม่</h2>
-                    <form id="addUserForm">
-                        <label for="addName">ชื่อ:</label>
-                        <input type="text" id="addName" name="name" required>
-                    
-                        <label for="addEmail">อีเมล:</label>
-                        <input type="email" id="addEmail" name="email" required>
-                    
-                        <label for="addPassword">รหัสผ่าน:</label>
-                        <input type="password" id="addPassword" name="password" required>
-                    
-                        <label for="addAddress">ที่อยู่:</label>
-                        <input type="text" id="addAddress" name="address" required>
-                    
-                        <label for="addPhone">โทรศัพท์:</label>
-                        <input type="text" id="addPhone" name="phone" required>
-                    
-                        <label for="addBirthday">วันเกิด:</label>
-                        <input type="date" id="addBirthday" name="birthday" required>
-                    
-                        <label for="addPermission">สิทธิ์:</label>
-                        <select id="addPermission" name="permission" required>
-                            <option value="admin">ผู้ดูแลระบบ</option>
-                            <option value="staff">เจ้าหน้าที่</option>
-                            <option value="user">ผู้ใช้</option>
-                        </select>
-                    
-                        <button type="submit">เพิ่มผู้ใช้</button>
+
+            <!-- Add User Modal -->
+            <div id="addUserModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full">
+                <div class="relative top-20 mx-auto p-5 border max-w-4xl shadow-lg rounded-md bg-white">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-gray-900">เพิ่มผู้ใช้ใหม่</h3>
+                        <button class="close text-gray-400 hover:text-gray-500">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <form id="addUserForm" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="addName" class="block text-sm font-medium text-gray-700">ชื่อ</label>
+                                <input type="text" id="addName" name="name" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                            </div>
+                            <div>
+                                <label for="addEmail" class="block text-sm font-medium text-gray-700">อีเมล</label>
+                                <input type="email" id="addEmail" name="email" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                            </div>
+                            <div>
+                                <label for="addPassword" class="block text-sm font-medium text-gray-700">รหัสผ่าน</label>
+                                <input type="password" id="addPassword" name="password" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                            </div>
+                            <div>
+                                <label for="addPhone" class="block text-sm font-medium text-gray-700">โทรศัพท์</label>
+                                <input type="text" id="addPhone" name="phone" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                            </div>
+                            <div>
+                                <label for="addBirthday" class="block text-sm font-medium text-gray-700">วันเกิด</label>
+                                <input type="date" id="addBirthday" name="birthday" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                            </div>
+                            <div>
+                                <label for="addPermission" class="block text-sm font-medium text-gray-700">สิทธิ์</label>
+                                <select id="addPermission" name="permission" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                                    <option value="admin">ผู้ดูแลระบบ</option>
+                                    <option value="staff">เจ้าหน้าที่</option>
+                                    <option value="user">ผู้ใช้</option>
+                                </select>
+                            </div>
+                            <div class="col-span-2">
+                                <label for="addAddress" class="block text-sm font-medium text-gray-700">ที่อยู่</label>
+                                <textarea id="addAddress" name="address" required rows="2"
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"></textarea>
+                            </div>
+                        </div>
+                        <div class="flex justify-end space-x-3 mt-4">
+                            <button type="button" class="close text-sm px-4 py-2 border border-gray-300 rounded-md text-gray-600 bg-white hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300">
+                                ยกเลิก
+                            </button>
+                            <button type="submit" class="text-sm px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                เพิ่มผู้ใช้
+                            </button>
+                        </div>
                     </form>
-                    
                 </div>
             </div>
-            <!-- ส่วนอื่นๆ ของหน้า Dashboard -->
+            
         </main>
     </div>
+
+    <script src="/admin/components/load-sidebar.js"></script>
     <script src="/admin/scripts/manage-users.js"></script>
 </body>
 </html>

@@ -3,77 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>การตั้งค่า</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="../images/logo.png"/>
+    <title>การตั้งค่า - สหกรณ์ออมทรัพย์</title>
     <link rel="stylesheet" href="/styles/setting.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1B8F4C',
+                        secondary: '#264C3B',
+                        accent: '#D9D92E',
+                        background: '#F1F8F4',
+                        foreground: '#FFFFFF'
+                    },
+                    fontFamily: {
+                        sans: ['IBM Plex Sans Thai', 'sans-serif'],
+                        heading: ['Poppins', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body>
-    <div class="dashboard-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header" style="display: flex; justify-content: center; align-items: center; height: 100px;">
-                <img src="/images/logo-sidebar.png" alt="" width="100" height="100" style="margin: 10px 0;">
-            </div>
-            <ul class="sidebar-menu">
-                <li><a href="/admin"><i class="fas fa-home"></i> หน้าหลัก</a></li>
-                <li><a href="/admin/manage-users.html"><i class="fas fa-users"></i> จัดการผู้ใช้</a></li>
-                <li><a href="/admin/setting.html" class="active"><i class="fas fa-cog"></i> การตั้งค่า</a></li>
-                <li><a href="/admin/reports.html"><i class="fas fa-chart-bar"></i> รายงาน</a></li>
-                <li><a href="/logout" id="logoutButton"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a></li>
-            </ul>
-        </aside>
-
+<body class="bg-background text-secondary font-sans">
+    <div class="flex h-screen">
         <!-- Main Content -->
-        <main class="main-content">
-            <header>
-                <h1>การตั้งค่า</h1>
-                <nav>
-                    <ul>
-                        <li><button id="toggleSidebar"><i class="fas fa-bars"></i></button></li>
-                    </ul>
-                </nav>
+        <main class="flex-1 p-8">
+            <header class="flex justify-between items-center mb-6">
+                <button id="toggleSidebar" class="text-secondary hover:text-gray-600 transition duration-200 text-lg">
+                </button>
+                <!-- ส่วนแสดงโปรไฟล์ผู้ใช้ -->
+                <div class="flex items-center space-x-3">
+                    <div id="userAvatar" class="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 text-white font-bold border-2 border-green-500">
+                        <!-- แสดงอักษรย่อจากชื่อผู้ใช้ -->
+                    </div>
+                    <span id="userName" class="text-secondary font-medium">
+                        <!-- แสดงชื่อผู้ใช้ -->
+                    </span>
+                </div>
             </header>
-        
-            <section class="edit-personal-info">
-                <h2>ข้อมูลผู้ใช้</h2>
-                <form id="personalInfoForm">
-                    <div class="form-group">
-                        <label for="userId">รหัสผู้ใช้:</label>
-                        <input type="text" id="userId" name="userId" readonly>
+
+            <!-- Personal Information Section -->
+            <section class="bg-white p-6 shadow-lg rounded-lg w-full max-w-3xl mx-auto border-2 border-green-500">
+                <h2 class="text-2xl font-bold text-primary mb-6 flex items-center">
+                    <i class="fas fa-user-edit mr-3"></i>
+                    ข้อมูลส่วนตัว
+                </h2>
+                
+                <form id="personalInfoForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- รหัสผู้ใช้ -->
+                        <div class="form-group">
+                            <label for="userId" class="block text-sm font-medium text-gray-700 mb-1">รหัสผู้ใช้</label>
+                            <input type="text" id="userId" name="userId" readonly
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500">
+                        </div>
+
+                        <!-- ชื่อเต็ม -->
+                        <div class="form-group">
+                            <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">ชื่อเต็ม</label>
+                            <input type="text" id="fullName" name="fullName" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        </div>
+
+                        <!-- อีเมล -->
+                        <div class="form-group">
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">อีเมล</label>
+                            <input type="email" id="email" name="email" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        </div>
+
+                        <!-- โทรศัพท์ -->
+                        <div class="form-group">
+                            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">โทรศัพท์</label>
+                            <input type="text" id="phone" name="phone" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        </div>
+
+                        <!-- วันเกิด -->
+                        <div class="form-group">
+                            <label for="birthday" class="block text-sm font-medium text-gray-700 mb-1">วันเกิด</label>
+                            <input type="date" id="birthday" name="birthday" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        </div>
+
+                        <!-- สิทธิ์ -->
+                        <div class="form-group">
+                            <label for="permission" class="block text-sm font-medium text-gray-700 mb-1">สิทธิ์</label>
+                            <input type="text" id="permission" name="permission" readonly
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="fullName">ชื่อเต็ม:</label>
-                        <input type="text" id="fullName" name="fullName" required>
+
+                    <!-- ที่อยู่ -->
+                    <div class="form-group col-span-2">
+                        <label for="address" class="block text-sm font-medium text-gray-700 mb-1">ที่อยู่</label>
+                        <textarea id="address" name="address" required rows="3"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"></textarea>
                     </div>
-                    <div class="form-group">
-                        <label for="email">อีเมล:</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="address">ที่อยู่:</label>
-                        <input type="text" id="address" name="address" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="phone">โทรศัพท์:</label>
-                        <input type="text" id="phone" name="phone" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="birthday">วันเกิด:</label>
-                        <input type="date" id="birthday" name="birthday" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="permission">สิทธิ์:</label>
-                        <input type="text" id="permission" name="permission" readonly>
-                    </div>
-                    <div class="form-group">
-                        <button type="submit" class="save-button">บันทึกการเปลี่ยนแปลง</button>
-                        <button type="button" class="cancel-button" onclick="resetForm()">ยกเลิก</button>
+
+                    <!-- ปุ่มดำเนินการ -->
+                    <div class="flex justify-end space-x-4 mt-6">
+                        <button type="submit"
+                            class="px-4 py-2 border border-transparent rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            บันทึกการเปลี่ยนแปลง
+                        </button>
                     </div>
                 </form>
             </section>
         </main>
     </div>
 
+    <script src="/admin/components/load-sidebar.js"></script>
     <script src="/admin/scripts/setting.js"></script>
 </body>
 </html>

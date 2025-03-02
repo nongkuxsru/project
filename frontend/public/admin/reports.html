@@ -3,48 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แดชบอร์ดสำหรับพนักงาน</title>
-    <link rel="stylesheet" href="/styles/staff-dashboard.css">
+    <link rel="icon" type="image/png" sizes="16x16" href="../images/logo.png"/>
+    <title>รายงาน - สหกรณ์ออมทรัพย์</title>
+    <link rel="stylesheet" href="/styles/setting.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1B8F4C',
+                        secondary: '#264C3B',
+                        accent: '#D9D92E',
+                        background: '#F1F8F4',
+                        foreground: '#FFFFFF'
+                    },
+                    fontFamily: {
+                        sans: ['IBM Plex Sans Thai', 'sans-serif'],
+                        heading: ['Poppins', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body>
-    <div class="dashboard-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header" style="display: flex; justify-content: center; align-items: center; height: 100px;">
-                <img src="/images/logo-sidebar.png" alt="" width="100" height="100" style="margin: 10px 0;">
-            </div>
-            <ul class="sidebar-menu">
-                <li><a href="/admin"><i class="fas fa-home"></i> หน้าหลัก</a></li>
-                <li><a href="/admin/manage-users.html"><i class="fas fa-users"></i> จัดการผู้ใช้</a></li>
-                <li><a href="/admin/setting.html"><i class="fas fa-cog"></i> การตั้งค่า</a></li>
-                <li><a href="/admin/reports.html" class="active"><i class="fas fa-chart-bar"></i> รายงาน</a></li>
-                <li><a href="/logout" id="logoutButton"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a></li>
-            </ul>
-        </aside>
-
+<body class="bg-background text-secondary font-sans">
+    <div class="flex h-screen">
         <!-- Main Content -->
-        <main class="main-content">
-            <header>
-                <nav>
-                    <ul>
-                        <li><button id="toggleSidebar"><i class="fas fa-bars"></i></button></li>
-                    </ul>
-                </nav>
+        <main class="flex-1 p-8">
+            <header class="flex justify-between items-center mb-6">
+                <button id="toggleSidebar" class="text-secondary hover:text-gray-600 transition duration-200 text-lg">
+                </button>
+                <!-- ส่วนแสดงโปรไฟล์ผู้ใช้ -->
+                <div class="flex items-center space-x-3">
+                    <div id="userAvatar" class="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 text-white font-bold border-2 border-green-500">
+                        <!-- แสดงอักษรย่อจากชื่อผู้ใช้ -->
+                    </div>
+                    <span id="userName" class="text-secondary font-medium">
+                        <!-- แสดงชื่อผู้ใช้ -->
+                    </span>
+                </div>
             </header>
 
-            <section class="account-list">
-                <h2>รายงาน</h2>
-                <div class="usersTable">
-                    <table>
-                        <thead>
+            <!-- Reports Section -->
+            <section class="bg-white p-6 shadow-lg rounded-lg w-full max-w-6xl mx-auto border-2 border-green-500">
+                <h2 class="text-2xl font-bold text-primary mb-6 flex items-center">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    รายงาน
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
                             <tr>
-                                <th>รายงาน</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รายงาน</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">การกระทำ</th>
                             </tr>
                         </thead>
-                        <tbody id="reportTableBody">
+                        <tbody id="reportTableBody" class="bg-white divide-y divide-gray-200">
                             <tr>
-                                <td colspan="6">กำลังโหลดรายงาน ...</td>
+                                <td colspan="2" class="px-6 py-4 text-center text-sm text-gray-500">
+                                    กำลังโหลดรายงาน...
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -52,6 +74,8 @@
             </section>
         </main>
     </div>
-    <script src="/staff/scripts/promise.js"></script>
+
+    <script src="/admin/components/load-sidebar.js"></script>
+    <script src="/admin/scripts/reports.js"></script>
 </body>
 </html>
