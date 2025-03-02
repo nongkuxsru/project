@@ -26,7 +26,16 @@ const promiseSchema = new mongoose.Schema({
     DueDate: { // วันที่ครบกำหนด
         type: Date,
         required: true
-    }
+    },
+    payments: [{
+        paymentDate: Date,
+        amount: Number,
+        status: String,
+        remainingBalance: Number
+    }],
+    totalPaid: { type: Number, default: 0 },
+    remainingBalance: Number,
+    status: { type: String, default: 'active' } // active, completed, overdue
 });
 
 

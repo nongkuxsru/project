@@ -255,4 +255,47 @@ router.get('/promise/:id_saving', async (req, res) => {
     }
 });
 
+// API สำหรับการชำระเงินสัญญา
+router.post('/promise/:id/payment', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { amount, paymentDate } = req.body;
+
+        const promise = await Promise.findById(id);
+        if (!promise) {
+            return res.status(404).json({ error: 'ไม่พบสัญญาเงินกู้' });
+        }
+
+        // คำนวณดอกเบี้ยและยอดรวม
+        const totalAmount = promise.amount + (promise.amount * promise.interestRate / 100);
+        const newPayment = {
+            paymentDate: paymentDate || new Date(),
+            amount: amount,
+            status: 'completed',
+            remainingBalance: totalAmount - (promise.totalPaid + amount)
+        };
+
+        // เพิ่มประวัติการชำระเงิน
+        promise.payments.push(newPayment);
+        promise.totalPaid += amount;
+        promise.remainingBalance = newPayment.remainingBalance;
+
+        // อัพเดตสถานะสัญญา
+        if (promise.remainingBalance <= 0) {
+            promise.status = 'completed';
+        }
+
+        await promise.save();
+
+        res.json({
+            message: 'บันทึกการชำระเงินสำเร็จ',
+            payment: newPayment,
+            promise: promise
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'เกิดข้อผิดพลาดในการบันทึกการชำระเงิน' });
+    }
+});
+
+
 module.exports = router;
