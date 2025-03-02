@@ -350,7 +350,7 @@ const printPromiseDetails = () => {
     const template = document.getElementById('promiseDetailsTemplate');
     
     // สร้างหน้าต่างใหม่สำหรับพิมพ์
-    const printWindow = window.open('', '', 'width=800,height=600');
+    const printWindow = window.open('', '_blank');
     
     // กำหนดสไตล์สำหรับการพิมพ์
     const printStyles = `
@@ -372,9 +372,6 @@ const printPromiseDetails = () => {
             .contract-container {
                 page-break-inside: avoid;
             }
-            #printControls {
-                display: none !important;
-            }
         }
     `;
 
@@ -385,52 +382,49 @@ const printPromiseDetails = () => {
                 <title>สัญญาเงินกู้</title>
                 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
                 <style>${printStyles}</style>
+                <script>
+                    // พิมพ์ทันทีเมื่อโหลดเสร็จ
+                    window.onload = function() {
+                        // อัพเดตข้อมูลในเอกสาร
+                        document.getElementById('contractId').textContent = '${promiseDetails._id}';
+                        document.getElementById('memberId').textContent = '${promiseDetails.id_saving}';
+                        document.getElementById('amount').textContent = '${promiseDetails.amount}';
+                        document.getElementById('startDate').textContent = '${new Date(promiseDetails.Datepromise).toLocaleDateString()}';
+                        document.getElementById('dueDate').textContent = '${new Date(promiseDetails.DueDate).toLocaleDateString()}';
+                        
+                        // สั่งพิมพ์
+                        window.print();
+                    }
+
+                    // ปิดหน้าต่างหลังจากพิมพ์เสร็จ
+                    window.addEventListener('afterprint', function() {
+                        window.close();
+                        if (window.opener && !window.opener.closed) {
+                            window.opener.focus();
+                        }
+                    });
+                </script>
             </head>
             <body>
-                <div id="printControls" style="position: fixed; top: 20px; right: 20px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1000;">
-                    <button onclick="window.print()" style="padding: 8px 16px; background: #1B8F4C; color: white; border: none; border-radius: 4px; margin-right: 8px; cursor: pointer;">
-                        พิมพ์สัญญา
-                    </button>
-                    <button onclick="window.close()" style="padding: 8px 16px; background: #6B7280; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                        ยกเลิก
-                    </button>
-                </div>
                 ${template.innerHTML}
             </body>
         </html>
     `);
-
-    // รอให้หน้าเว็บโหลดเสร็จก่อนอัพเดตข้อมูล
-    setTimeout(() => {
-        try {
-            const contractIdElement = printWindow.document.getElementById('contractId');
-            const memberIdElement = printWindow.document.getElementById('memberId');
-            const amountElement = printWindow.document.getElementById('amount');
-            const startDateElement = printWindow.document.getElementById('startDate');
-            const dueDateElement = printWindow.document.getElementById('dueDate');
-
-            if (contractIdElement) contractIdElement.textContent = promiseDetails._id;
-            if (memberIdElement) memberIdElement.textContent = promiseDetails.id_saving;
-            if (amountElement) amountElement.textContent = promiseDetails.amount;
-            if (startDateElement) startDateElement.textContent = new Date(promiseDetails.Datepromise).toLocaleDateString();
-            if (dueDateElement) dueDateElement.textContent = new Date(promiseDetails.DueDate).toLocaleDateString();
-        } catch (error) {
-            console.error('Error updating print window content:', error);
-        }
-    }, 100);
-
-    // เพิ่ม event listeners สำหรับการพิมพ์และปิดหน้าต่าง
-    printWindow.addEventListener('afterprint', () => {
-        printWindow.close();
-    });
-
-    printWindow.addEventListener('unload', () => {
-        if (window.opener && !window.opener.closed) {
-            window.opener.focus();
-        }
-    });
-
+    
     printWindow.document.close();
+
+    // จัดการข้อผิดพลาด
+    printWindow.onerror = function(error) {
+        console.error('Print preview error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
+            text: 'ไม่สามารถแสดงตัวอย่างสัญญาได้',
+            timer: 1500,
+            showConfirmButton: false
+        });
+        printWindow.close();
+    };
 };
 
 // =============================================
@@ -613,7 +607,7 @@ const printEmptyLoanForm = () => {
         body {
             font-family: 'Sarabun', sans-serif;
             margin: 0;
-            padding: 15mm;
+            padding: 10mm;
             background: white;
         }
         @media print {
@@ -625,10 +619,67 @@ const printEmptyLoanForm = () => {
                 page-break-inside: avoid;
             }
         }
+        .loan-form-container {
+            max-width: 190mm;
+            margin: 0 auto;
+        }
+        .loan-form-container img {
+            height: 80px;
+            width: auto;
+            margin-bottom: 10px;
+        }
+        h1, h2 {
+            margin: 5px 0;
+            font-size: 20px;
+        }
+        h3 {
+            font-size: 18px;
+            margin: 10px 0 5px 0;
+            border-bottom: 1px solid #000;
+        }
+        p {
+            margin: 5px 0;
+            line-height: 1.5;
+        }
+        strong {
+            display: inline-block;
+            min-width: 100px;
+        }
         .form-field {
             display: inline-block;
-            min-width: 150px;
             border-bottom: 1px dotted #000;
+            min-width: 180px;
+            height: 18px;
+            vertical-align: middle;
+            margin-left: 5px;
+        }
+        .checkbox-group {
+            margin: 5px 0;
+        }
+        .checkbox-group div {
+            display: inline-block;
+            margin-right: 20px;
+        }
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        .signature-box {
+            text-align: center;
+            width: 45%;
+        }
+        .signature-box p {
+            margin: 3px 0;
+        }
+        .staff-section {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px dashed #000;
+        }
+        .staff-section h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
         }
     `;
 
