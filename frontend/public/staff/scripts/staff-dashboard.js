@@ -89,24 +89,110 @@ const fetchTransactions = async () => {
         const data = await response.json();
 
         const tableBody = document.getElementById('transactionTableBody');
-        tableBody.innerHTML = ''; 
+        tableBody.innerHTML = '';
+
+        if (data.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-gray-500">
+                        <div class="flex flex-col items-center justify-center space-y-2">
+                            <i class="fas fa-history text-4xl"></i>
+                            <p>ไม่พบประวัติการทำรายการ</p>
+                        </div>
+                    </td>
+                </tr>`;
+            return;
+        }
 
         data.forEach(transaction => {
             const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50 transition-colors duration-200';
+
+            // กำหนดสีและไอคอนตามประเภทธุรกรรม
+            const transactionType = transaction.type === 'Deposit' 
+                ? `<span class="flex items-center justify-center gap-1">
+                     <i class="fas fa-arrow-up text-green-500"></i>
+                     <span class="text-green-600">ฝากเงิน</span>
+                   </span>`
+                : `<span class="flex items-center justify-center gap-1">
+                     <i class="fas fa-arrow-down text-red-500"></i>
+                     <span class="text-red-600">ถอนเงิน</span>
+                   </span>`;
+
+            // กำหนดสีและสถานะการแสดงผล
+            const statusDisplay = getStatusDisplay(transaction.status);
+
+            // กำหนดรูปแบบการแสดงจำนวนเงิน
+            const amountDisplay = `
+                <span class="font-semibold ${transaction.type === 'Deposit' ? 'text-green-600' : 'text-red-600'}">
+                    ${transaction.type === 'Deposit' ? '+' : '-'}
+                    ${transaction.amount.toLocaleString()} บาท
+                </span>`;
+
             row.innerHTML = `
-                <td class="border px-3 py-2 text-center">${transaction._id}</td>
-                <td class="border px-3 py-2 text-center">${new Date(transaction.date).toLocaleString('th-TH')}</td>
-                <td class="border px-3 py-2 text-center">${transaction.userName}</td>
-                <td class="border px-3 py-2 text-center">${transaction.type === 'Deposit' ? 'ฝากเงิน' : 'ถอนเงิน'}</td>
-                <td class="border px-3 py-2 text-center">${transaction.amount.toLocaleString()} บาท</td>
-                <td class="border px-3 py-2 text-center">${transaction.status}</td>
+                <td class="border px-4 py-2 text-center text-sm text-gray-600">${transaction._id}</td>
+                <td class="border px-4 py-2 text-center">
+                    <div class="flex flex-col">
+                        <span class="font-medium">
+                            ${new Date(transaction.date).toLocaleDateString('th-TH', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            })}
+                        </span>
+                        <span class="text-sm text-gray-500">
+                            ${new Date(transaction.date).toLocaleTimeString('th-TH')}
+                        </span>
+                    </div>
+                </td>
+                <td class="border px-4 py-2 text-center font-medium">${transaction.userName}</td>
+                <td class="border px-4 py-2 text-center">${transactionType}</td>
+                <td class="border px-4 py-2 text-center">${amountDisplay}</td>
+                <td class="border px-4 py-2 text-center">${statusDisplay}</td>
             `;
             tableBody.appendChild(row);
         });
     } catch (error) {
         console.error('Error:', error);
-        alert('ไม่สามารถโหลดข้อมูลได้');
+        const tableBody = document.getElementById('transactionTableBody');
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center py-4">
+                    <div class="flex flex-col items-center justify-center space-y-2 text-red-500">
+                        <i class="fas fa-exclamation-circle text-4xl"></i>
+                        <p>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>
+                    </div>
+                </td>
+            </tr>`;
     }
+};
+
+// เพิ่มฟังก์ชันสำหรับกำหนดการแสดงผลสถานะ
+const getStatusDisplay = (status) => {
+    const statusConfig = {
+        'Completed': {
+            color: 'bg-green-100 text-green-800',
+            icon: 'fas fa-check-circle',
+            text: 'สำเร็จ'
+        },
+        'Pending': {
+            color: 'bg-yellow-100 text-yellow-800',
+            icon: 'fas fa-clock',
+            text: 'รอดำเนินการ'
+        },
+        'Failed': {
+            color: 'bg-red-100 text-red-800',
+            icon: 'fas fa-times-circle',
+            text: 'ไม่สำเร็จ'
+        }
+    };
+
+    const config = statusConfig[status] || statusConfig['Pending'];
+    return `
+        <span class="inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-full text-sm font-medium ${config.color}">
+            <i class="${config.icon}"></i>
+            ${config.text}
+        </span>`;
 };
 
 // ===============================

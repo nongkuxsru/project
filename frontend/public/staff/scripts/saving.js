@@ -140,38 +140,83 @@ const fetchAccount = async () => {
         tableBody.innerHTML = '';
 
         if (data.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4">ไม่พบข้อมูลบัญชี</td></tr>';
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-gray-500">
+                        <div class="flex flex-col items-center justify-center space-y-2">
+                            <i class="fas fa-inbox text-4xl"></i>
+                            <p>ไม่พบข้อมูลบัญชี</p>
+                        </div>
+                    </td>
+                </tr>`;
         } else {
             for (const account of data) {
                 const userName = await fetchUserName(account.id_member);
                 const staffName = await fetchUserName(account.id_staff);
                 const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="px-4 py-2">${account.id_account}</td>
-                    <td class="px-4 py-2">${userName}</td>
-                    <td class="px-4 py-2 text-right">${formatCurrency(account.balance)}</td>
-                    <td class="px-4 py-2">${staffName}</td>
-                    <td class="px-4 py-2">${convertToBuddhistYear(account.createdAt)}</td>
-                    <td class="px-4 py-2 space-x-2">
-                        <button class="deposit-btn bg-green-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-green-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50" 
-                                data-user-id="${account.id_member}" 
-                                onclick="openTransactionModal('${account.id_member}', 'deposit')">
-                            <i class="fas fa-money-bill-wave"></i> ฝาก
-                        </button>
-                        <button class="withdraw-btn bg-red-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-red-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-opacity-50"
-                                data-user-id="${account.id_member}"
-                                onclick="openTransactionModal('${account.id_member}', 'withdraw')">
-                            <i class="fas fa-money-bill-wave"></i> ถอน
-                        </button>
-                    </td>
+                row.className = 'hover:bg-gray-50 transition-colors duration-200';
+
+                // สร้าง cells พร้อม classes
+                const cells = [
+                    { content: account.id_account, class: 'border px-4 py-2' },
+                    { content: userName, class: 'border px-4 py-2' },
+                    { 
+                        content: formatCurrency(account.balance), 
+                        class: 'border px-4 py-2 text-right font-semibold text-gray-700' 
+                    },
+                    { content: staffName, class: 'border px-4 py-2' },
+                    { 
+                        content: convertToBuddhistYear(account.createdAt), 
+                        class: 'border px-4 py-2' 
+                    }
+                ];
+
+                // เพิ่ม cells ปกติ
+                cells.forEach(cell => {
+                    const td = document.createElement('td');
+                    td.className = cell.class;
+                    td.textContent = cell.content;
+                    row.appendChild(td);
+                });
+
+                // เพิ่ม cell สำหรับปุ่มดำเนินการ
+                const actionsCell = document.createElement('td');
+                actionsCell.className = 'border px-4 py-2';
+                const actionWrapper = document.createElement('div');
+                actionWrapper.className = 'flex justify-center gap-2';
+                actionWrapper.innerHTML = `
+                    <button 
+                        class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
+                        onclick="openTransactionModal('${account.id_member}', 'deposit')"
+                        title="ฝากเงิน">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span>ฝาก</span>
+                    </button>
+                    <button 
+                        class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
+                        onclick="openTransactionModal('${account.id_member}', 'withdraw')"
+                        title="ถอนเงิน">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span>ถอน</span>
+                    </button>
                 `;
+                actionsCell.appendChild(actionWrapper);
+                row.appendChild(actionsCell);
                 tableBody.appendChild(row);
             }
         }
     } catch (error) {
         console.error('Error fetching account data:', error);
         const tableBody = document.getElementById('accountTableBody');
-        tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-red-500">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center py-4">
+                    <div class="flex flex-col items-center justify-center space-y-2 text-red-500">
+                        <i class="fas fa-exclamation-circle text-4xl"></i>
+                        <p>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>
+                    </div>
+                </td>
+            </tr>`;
     }
 };
 
@@ -437,12 +482,63 @@ const handleTransaction = async (event, type, account) => {
         return;
     }
 
+    // ตรวจสอบว่าต้องใช้ PIN ของ admin หรือไม่
+    if (amount > 50000) {
+        try {
+            const { value: adminPin } = await Swal.fire({
+                title: 'ต้องการการอนุมัติจาก Admin',
+                text: 'กรุณากรอก PIN ของ Admin เพื่อดำเนินการ',
+                input: 'password',
+                inputAttributes: {
+                    maxlength: 4,
+                    pattern: '[0-9]*',
+                    inputmode: 'numeric',
+                    autocomplete: 'new-password',
+                    placeholder: 'กรอก PIN 4 หลัก'
+                },
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยัน',
+                cancelButtonText: 'ยกเลิก',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'กรุณากรอก PIN!';
+                    }
+                    if (value.length !== 4 || !/^\d+$/.test(value)) {
+                        return 'PIN ต้องเป็นตัวเลข 4 หลัก!';
+                    }
+                }
+            });
+
+            if (!adminPin) {
+                return; // ผู้ใช้กดยกเลิก
+            }
+
+            // ตรวจสอบ PIN กับ API
+            const verifyResponse = await fetch('/api/admin/verify-pin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pin: adminPin })
+            });
+
+            if (!verifyResponse.ok) {
+                throw new Error('PIN ไม่ถูกต้อง');
+            }
+        } catch (error) {
+            await Swal.fire({
+                icon: 'error',
+                title: 'การยืนยันล้มเหลว',
+                text: error.message || 'ไม่สามารถยืนยัน PIN ได้ กรุณาลองใหม่อีกครั้ง',
+            });
+            return;
+        }
+    }
+
     const newBalance = type === 'deposit' ? currentBalance + amount : currentBalance - amount;
 
     // ยืนยันการทำธุรกรรม
     const confirmResult = await Swal.fire({
         title: 'ยืนยันการทำธุรกรรม?',
-        text: `คุณต้องการ${type === 'deposit' ? 'ฝาก' : 'ถอน'}เงินจำนวน ${amount} บาท หรือไม่?`,
+        text: `คุณต้องการ${type === 'deposit' ? 'ฝาก' : 'ถอน'}เงินจำนวน ${formatCurrency(amount)} บาท หรือไม่?`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#28a745',

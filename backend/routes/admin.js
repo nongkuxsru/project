@@ -166,4 +166,46 @@ router.put('/users/:userId/pin', async (req, res) => {
     }
 });
 
+// API สำหรับตรวจสอบ PIN ของ admin
+router.post('/verify-pin', async (req, res) => {
+    try {
+        const { pin } = req.body;
+
+        // ตรวจสอบว่ามีการส่ง PIN มาหรือไม่
+        if (!pin) {
+            return res.status(400).json({ message: 'กรุณาระบุ PIN' });
+        }
+
+        // ตรวจสอบรูปแบบ PIN
+        if (pin.length !== 4 || !/^\d+$/.test(pin)) {
+            return res.status(400).json({ 
+                message: 'PIN ไม่ถูกต้อง กรุณาระบุตัวเลข 4 หลัก' 
+            });
+        }
+
+        // ค้นหา admin ที่มี PIN ตรงกับที่ส่งมา
+        const admin = await User.findOne({ 
+            permission: 'admin',
+            pin: pin
+        });
+
+        if (!admin) {
+            return res.status(401).json({ message: 'PIN ไม่ถูกต้อง' });
+        }
+
+        // ถ้า PIN ถูกต้อง
+        res.json({ 
+            message: 'PIN ถูกต้อง',
+            verified: true
+        });
+
+    } catch (error) {
+        console.error('Error verifying PIN:', error);
+        res.status(500).json({ 
+            message: 'เกิดข้อผิดพลาดในการตรวจสอบ PIN', 
+            error: error.message 
+        });
+    }
+});
+
 module.exports = router;
