@@ -6,6 +6,10 @@ window.onload = () => {
 
 let allUsers = []; // เก็บข้อมูลผู้ใช้ทั้งหมด
 
+// เพิ่มตัวแปรสำหรับจัดการ pagination
+let currentPage = 1;
+const rowsPerPage = 8;
+let totalPages = 1;
 
 document.addEventListener('DOMContentLoaded', () => {
     observer.observe(document.body, {
@@ -222,7 +226,17 @@ const renderUsers = (users) => {
     const usersTable = document.getElementById('usersTable').getElementsByTagName('tbody')[0];
     usersTable.innerHTML = '';
 
-    users.forEach(user => {
+    // คำนวณ index เริ่มต้นและสิ้นสุดของข้อมูลที่จะแสดงในหน้าปัจจุบัน
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    
+    // กรองข้อมูลที่จะแสดงในหน้าปัจจุบัน
+    const usersToDisplay = users.slice(startIndex, endIndex);
+    
+    // คำนวณจำนวนหน้าทั้งหมด
+    totalPages = Math.ceil(users.length / rowsPerPage);
+
+    usersToDisplay.forEach(user => {
         const row = usersTable.insertRow();
         
         // เพิ่ม class ให้กับทุก cell เพื่อให้เส้นขอบต่อเนื่อง
@@ -285,6 +299,9 @@ const renderUsers = (users) => {
 
     // เพิ่ม event listener ให้กับปุ่ม Actions
     addActionButtonListeners();
+
+    // สร้าง pagination controls
+    renderPagination();
 };
 
 // ฟังก์ชันสำหรับเพิ่ม event listener ให้กับปุ่ม Actions
@@ -362,6 +379,7 @@ const filterUsers = () => {
                user.email.toLowerCase().includes(searchText);
     });
 
+    currentPage = 1; // รีเซ็ตกลับไปหน้าแรกเมื่อมีการค้นหา
     renderUsers(filteredUsers);
 };
 
@@ -761,3 +779,39 @@ const logout = async () => {
 
 // เพิ่ม event listener ให้กับปุ่ม Add User
 document.getElementById('addUserButton').addEventListener('click', openAddUserModal);
+
+// เพิ่มฟังก์ชันสำหรับสร้าง pagination controls
+const renderPagination = () => {
+    const paginationContainer = document.getElementById('pagination');
+    if (!paginationContainer) {
+        // สร้าง container สำหรับ pagination ถ้ายังไม่มี
+        const container = document.createElement('div');
+        container.id = 'pagination';
+        container.className = 'flex justify-center items-center space-x-2 mt-4';
+        document.querySelector('section.bg-white').appendChild(container);
+    }
+
+    paginationContainer.innerHTML = `
+        <button 
+            class="px-3 py-1 rounded-md ${currentPage === 1 ? 'bg-gray-200 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 text-white'}"
+            ${currentPage === 1 ? 'disabled' : ''}
+            onclick="changePage(${currentPage - 1})">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <span class="px-4 py-1">หน้า ${currentPage} จาก ${totalPages}</span>
+        <button 
+            class="px-3 py-1 rounded-md ${currentPage === totalPages ? 'bg-gray-200 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 text-white'}"
+            ${currentPage === totalPages ? 'disabled' : ''}
+            onclick="changePage(${currentPage + 1})">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    `;
+};
+
+// เพิ่มฟังก์ชันสำหรับเปลี่ยนหน้า
+const changePage = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+        currentPage = newPage;
+        renderUsers(allUsers);
+    }
+};

@@ -1,140 +1,14 @@
 [{
   "_id": {
-    "$oid": "678fd2f22fd6ee4d2bd5f461"
-  },
-  "name": "กาญจนา รัตนวลี",
-  "email": "kanjana@example.com",
-  "password": "kanjana789",
-  "address": "303 ซอยรามคำแหง กรุงเทพฯ",
-  "phone": "+66855443322",
-  "birthday": {
-    "$date": "1995-10-08T00:00:00.000Z"
-  },
-  "permission": "staff",
-  "createdAt": {
-    "$date": "2025-01-21T09:50:00.000Z"
-  },
-  "__v": 0
-},
-{
-  "_id": {
-    "$oid": "678fd2f22fd6ee4d2bd5f462"
-  },
-  "name": "ดำรงค์ ศิริชัย",
-  "email": "damrong@example.com",
-  "password": "damrong123",
-  "address": "404 หมู่บ้านแสงทอง หาดใหญ่",
-  "phone": "+66899887766",
-  "birthday": {
-    "$date": "1987-12-22T00:00:00.000Z"
-  },
-  "permission": "user",
-  "createdAt": {
-    "$date": "2025-01-21T10:00:00.000Z"
-  },
-  "__v": 0
-},
-{
-  "_id": {
-    "$oid": "678fd2f22fd6ee4d2bd5f45e"
-  },
-  "name": "วิทยา ศรีสุข",
-  "email": "witthaya@example.com",
-  "password": "password789",
-  "address": "789 หมู่บ้านสวนสยาม เชียงใหม่",
-  "phone": "+66811223344",
-  "birthday": {
-    "$date": "1988-11-05T00:00:00.000Z"
-  },
-  "permission": "user",
-  "createdAt": {
-    "$date": "2025-01-21T09:20:00.000Z"
-  },
-  "__v": 0
-},
-{
-  "_id": {
-    "$oid": "678fd2f22fd6ee4d2bd5f464"
-  },
-  "name": "วรวิทย์ ชัยมงคล",
-  "email": "worawit@example.com",
-  "password": "worawit789",
-  "address": "606 ถนนมิตรภาพ ขอนแก่น",
-  "phone": "+66877665544",
-  "birthday": {
-    "$date": "1989-09-09T00:00:00.000Z"
-  },
-  "permission": "user",
-  "createdAt": {
-    "$date": "2025-01-21T10:20:00.000Z"
-  },
-  "__v": 0
-},
-{
-  "_id": {
-    "$oid": "678fd2f22fd6ee4d2bd5f465"
-  },
-  "name": "สุจิตรา ทองคำ",
-  "email": "sujitra@example.com",
-  "password": "sujitra456",
-  "address": "707 ถนนพระราม 4 กรุงเทพฯ",
-  "phone": "+66822334455",
-  "birthday": {
-    "$date": "1991-08-25T00:00:00.000Z"
-  },
-  "permission": "user",
-  "createdAt": {
-    "$date": "2025-01-21T10:30:00.000Z"
-  },
-  "__v": 0
-},
-{
-  "_id": {
-    "$oid": "678fd2f22fd6ee4d2bd5f460"
-  },
-  "name": "อรรถพล ทวีทรัพย์",
-  "email": "attapol@example.com",
-  "password": "attapol456",
-  "address": "202 ถนนเพชรบุรี นครราชสีมา",
-  "phone": "+66844556677",
-  "birthday": {
-    "$date": "1983-04-18T00:00:00.000Z"
-  },
-  "permission": "user",
-  "createdAt": {
-    "$date": "2025-01-21T09:40:00.000Z"
-  },
-  "__v": 0
-},
-{
-  "_id": {
-    "$oid": "678fd2f22fd6ee4d2bd5f463"
-  },
-  "name": "บุษบา แก้วมณี",
-  "email": "butsaba@example.com",
-  "password": "butsaba456",
-  "address": "505 ถนนสันติสุข อุดรธานี",
-  "phone": "+66811235813",
-  "birthday": {
-    "$date": "1993-02-14T00:00:00.000Z"
-  },
-  "permission": "user",
-  "createdAt": {
-    "$date": "2025-01-21T10:10:00.000Z"
-  },
-  "__v": 0
-},
-{
-  "_id": {
     "$oid": "678fd30d2fd6ee4d2bd5f470"
   },
-  "name": "staff",
+  "name": "ผู้ดูแล",
   "email": "staff@example.com",
   "password": "staff",
-  "address": "123 ถนนราชดำเนิน กรุงเทพฯ",
-  "phone": "+66812345678",
+  "address": "303 ซอยรามคำแหง กรุงเทพฯ",
+  "phone": "+66855443320",
   "birthday": {
-    "$date": "1985-06-15T00:00:00.000Z"
+    "$date": "1995-10-08T00:00:00.000Z"
   },
   "permission": "staff",
   "createdAt": {
@@ -144,145 +18,256 @@
 },
 {
   "_id": {
-    "$oid": "67906dbdf0a39c38033704d7"
+    "$oid": "67c33e0e69e3b3f88b7fa3d1"
   },
-  "name": "Priya Sharma",
-  "email": "priya.sharma@example.com",
-  "password": "password456",
-  "address": "456 Gandhi Street, Delhi, India",
-  "phone": "876-543-2109",
+  "name": "BOSS",
+  "email": "admin@admin.com",
+  "password": "admin",
+  "address": "locahost",
+  "phone": "0977777777",
   "birthday": {
-    "$date": "1985-08-25T00:00:00.000Z"
-  },
-  "permission": "staff",
-  "createdAt": {
-    "$date": "2025-01-22T00:00:00.000Z"
-  },
-  "__v": 0
-},
-{
-  "_id": {
-    "$oid": "67906dbdf0a39c38033704d8"
-  },
-  "name": "Rajesh Kumar",
-  "email": "rajesh.kumar@example.com",
-  "password": "password789",
-  "address": "789 Connaught Place, New Delhi, India",
-  "phone": "555-123-4567",
-  "birthday": {
-    "$date": "1988-03-30T00:00:00.000Z"
-  },
-  "permission": "staff",
-  "createdAt": {
-    "$date": "2025-01-22T00:00:00.000Z"
-  },
-  "__v": 0
-},
-{
-  "_id": {
-    "$oid": "67906dbdf0a39c38033704d6"
-  },
-  "name": "Arjun Patel",
-  "email": "arjun.patel@example.com",
-  "password": "password123",
-  "address": "123 MG Road, Mumbai, India",
-  "phone": "987-654-3210",
-  "birthday": {
-    "$date": "1990-05-15T00:00:00.000Z"
-  },
-  "permission": "staff",
-  "createdAt": {
-    "$date": "2025-01-22T00:00:00.000Z"
-  },
-  "__v": 0
-},
-{
-  "_id": {
-    "$oid": "67908f58b12271c7733c3afa"
-  },
-  "name": "Arjun Sharma",
-  "email": "arjun.sharma@example.com",
-  "password": "password123",
-  "address": "45 MG Road, Bengaluru, India",
-  "phone": "+91 9876543210",
-  "birthday": {
-    "$date": "1992-08-15T00:00:00.000Z"
-  },
-  "permission": "user",
-  "createdAt": {
-    "$date": "2025-01-22T06:25:28.323Z"
-  },
-  "__v": 0
-},
-{
-  "_id": {
-    "$oid": "6790913373b2f8c763553bce"
-  },
-  "name": "Sanya Malik",
-  "email": "sanya.malik@example.com",
-  "password": "sanyaPass123",
-  "address": "12 Rajiv Chowk, Delhi, India",
-  "phone": "+91 9876123450",
-  "birthday": {
-    "$date": "1993-09-15T00:00:00.000Z"
-  },
-  "permission": "user",
-  "createdAt": {
-    "$date": "2025-01-22T06:33:23.638Z"
-  },
-  "__v": 0
-},
-{
-  "_id": {
-    "$oid": "67909386d28c75133e25ae13"
-  },
-  "name": "nongku",
-  "email": "nongku@example.com",
-  "password": "nongku",
-  "address": "123 Main Street, New Delhi, India",
-  "phone": "+91-9876543210",
-  "birthday": {
-    "$date": "1985-06-15T00:00:00.000Z"
+    "$date": {
+      "$numberLong": "-15392851200000"
+    }
   },
   "permission": "admin",
   "createdAt": {
-    "$date": "2025-01-22T06:43:18.994Z"
+    "$date": "2025-03-01T17:04:14.419Z"
+  },
+  "__v": 0,
+  "pin": "8888"
+},
+{
+  "_id": {
+    "$oid": "67d001001234567890abcde1"
+  },
+  "name": "สมชาย มั่นคง",
+  "email": "somchai@example.com",
+  "password": "user123",
+  "address": "123 ถนนสุขุมวิท กรุงเทพฯ",
+  "phone": "+66891234567",
+  "birthday": {
+    "$date": "1990-05-15T00:00:00.000Z"
+  },
+  "permission": "user",
+  "createdAt": {
+    "$date": "2025-03-06T09:00:00.000Z"
   },
   "__v": 0
 },
 {
   "_id": {
-    "$oid": "6796818718419b521c583a56"
+    "$oid": "67d001001234567890abcde2"
   },
-  "name": "สมหญิง หญิง",
-  "email": "somying@example.com",
-  "password": "somying",
-  "address": "collect",
-  "phone": "0999999999",
+  "name": "วิภา สุขสวัสดิ์",
+  "email": "wipa@example.com",
+  "password": "user456",
+  "address": "456 ถนนเพชรเกษม กรุงเทพฯ",
+  "phone": "+66812345678",
   "birthday": {
-    "$date": "2025-01-27T00:00:00.000Z"
+    "$date": "1992-08-20T00:00:00.000Z"
   },
   "permission": "user",
   "createdAt": {
-    "$date": "2025-01-26T18:40:07.618Z"
+    "$date": "2025-03-06T09:15:00.000Z"
   },
   "__v": 0
 },
 {
   "_id": {
-    "$oid": "67990200898859caa6e087a8"
+    "$oid": "67d001001234567890abcde3"
   },
-  "name": "สมพงศ์ คนใจดี",
-  "email": "sompong@example.com",
-  "password": "sompong",
-  "address": "collect",
-  "phone": "0900000000",
+  "name": "ประสิทธิ์ ใจดี",
+  "email": "prasit@example.com",
+  "password": "user789",
+  "address": "789 ถนนรามคำแหง กรุงเทพฯ",
+  "phone": "+66923456789",
   "birthday": {
-    "$date": "2025-01-28T00:00:00.000Z"
+    "$date": "1988-12-10T00:00:00.000Z"
   },
   "permission": "user",
   "createdAt": {
-    "$date": "2025-01-28T16:12:48.011Z"
+    "$date": "2025-03-06T09:30:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67d001001234567890abcde4"
+  },
+  "name": "รัตนา วงศ์สวัสดิ์",
+  "email": "rattana@example.com",
+  "password": "user101",
+  "address": "101 ซอยลาดพร้าว 71 กรุงเทพฯ",
+  "phone": "+66834567890",
+  "birthday": {
+    "$date": "1991-03-25T00:00:00.000Z"
+  },
+  "permission": "user",
+  "createdAt": {
+    "$date": "2025-03-06T10:00:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67d001001234567890abcde5"
+  },
+  "name": "สมศักดิ์ รุ่งเรือง",
+  "email": "somsak@example.com",
+  "password": "user102",
+  "address": "102 ถนนพระราม 2 กรุงเทพฯ",
+  "phone": "+66945678901",
+  "birthday": {
+    "$date": "1993-06-18T00:00:00.000Z"
+  },
+  "permission": "user",
+  "createdAt": {
+    "$date": "2025-03-06T10:15:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67d001001234567890abcde6"
+  },
+  "name": "วิไลวรรณ สมบูรณ์",
+  "email": "wilaiwan@example.com",
+  "password": "user103",
+  "address": "103 ถนนเพชรบุรี กรุงเทพฯ",
+  "phone": "+66856789012",
+  "birthday": {
+    "$date": "1987-09-30T00:00:00.000Z"
+  },
+  "permission": "user",
+  "createdAt": {
+    "$date": "2025-03-06T10:30:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67d001001234567890abcde7"
+  },
+  "name": "ธนพล ศรีวิไล",
+  "email": "thanapon@example.com",
+  "password": "user104",
+  "address": "104 ถนนสาทร กรุงเทพฯ",
+  "phone": "+66967890123",
+  "birthday": {
+    "$date": "1994-11-12T00:00:00.000Z"
+  },
+  "permission": "user",
+  "createdAt": {
+    "$date": "2025-03-06T10:45:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67d001001234567890abcde8"
+  },
+  "name": "นภาพร ใจเย็น",
+  "email": "napaporn@example.com",
+  "password": "user105",
+  "address": "105 ถนนสีลม กรุงเทพฯ",
+  "phone": "+66878901234",
+  "birthday": {
+    "$date": "1989-04-05T00:00:00.000Z"
+  },
+  "permission": "user",
+  "createdAt": {
+    "$date": "2025-03-06T11:00:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67d001001234567890abcde9"
+  },
+  "name": "ชัยวัฒน์ พงษ์ไพบูลย์",
+  "email": "chaiwat@example.com",
+  "password": "user106",
+  "address": "106 ถนนเจริญกรุง กรุงเทพฯ",
+  "phone": "+66989012345",
+  "birthday": {
+    "$date": "1992-07-22T00:00:00.000Z"
+  },
+  "permission": "user",
+  "createdAt": {
+    "$date": "2025-03-06T11:15:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67d001001234567890abcdf0"
+  },
+  "name": "มณีรัตน์ แสงทอง",
+  "email": "maneerat@example.com",
+  "password": "user107",
+  "address": "107 ถนนพหลโยธิน กรุงเทพฯ",
+  "phone": "+66890123456",
+  "birthday": {
+    "$date": "1995-02-14T00:00:00.000Z"
+  },
+  "permission": "user",
+  "createdAt": {
+    "$date": "2025-03-06T11:30:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67d001001234567890abcdf1"
+  },
+  "name": "ประพันธ์ วิจิตร",
+  "email": "prapan@example.com",
+  "password": "user108",
+  "address": "108 ถนนรัชดาภิเษก กรุงเทพฯ",
+  "phone": "+66812345679",
+  "birthday": {
+    "$date": "1986-10-08T00:00:00.000Z"
+  },
+  "permission": "user",
+  "createdAt": {
+    "$date": "2025-03-06T11:45:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67d001001234567890abcdf2"
+  },
+  "name": "สุนิสา มั่นใจ",
+  "email": "sunisa@example.com",
+  "password": "user109",
+  "address": "109 ถนนวิภาวดี กรุงเทพฯ",
+  "phone": "+66923456780",
+  "birthday": {
+    "$date": "1990-12-30T00:00:00.000Z"
+  },
+  "permission": "user",
+  "createdAt": {
+    "$date": "2025-03-06T12:00:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67d001001234567890abcdf3"
+  },
+  "name": "อนุชา ศรีสุข",
+  "email": "anucha@example.com",
+  "password": "user110",
+  "address": "110 ถนนบางนา-ตราด กรุงเทพฯ",
+  "phone": "+66834567891",
+  "birthday": {
+    "$date": "1988-05-15T00:00:00.000Z"
+  },
+  "permission": "user",
+  "createdAt": {
+    "$date": "2025-03-06T12:15:00.000Z"
   },
   "__v": 0
 }]

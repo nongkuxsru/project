@@ -128,6 +128,11 @@ const formatCurrency = (amount) => {
     return new Intl.NumberFormat('th-TH', { minimumFractionDigits: 0 }).format(amount);
 };
 
+// เพิ่มตัวแปรสำหรับจัดการ pagination
+let currentPage = 1;
+const rowsPerPage = 8;
+let totalPages = 1;
+
 const fetchAccount = async () => {
     try {
         const response = await fetch('/api/staff/saving');
@@ -149,62 +154,76 @@ const fetchAccount = async () => {
                         </div>
                     </td>
                 </tr>`;
-        } else {
-            for (const account of data) {
-                const userName = await fetchUserName(account.id_member);
-                const staffName = await fetchUserName(account.id_staff);
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-50 transition-colors duration-200';
-
-                // สร้าง cells พร้อม classes
-                const cells = [
-                    { content: account.id_account, class: 'border px-4 py-2' },
-                    { content: userName, class: 'border px-4 py-2' },
-                    { 
-                        content: formatCurrency(account.balance), 
-                        class: 'border px-4 py-2 text-right font-semibold text-gray-700' 
-                    },
-                    { content: staffName, class: 'border px-4 py-2' },
-                    { 
-                        content: convertToBuddhistYear(account.createdAt), 
-                        class: 'border px-4 py-2' 
-                    }
-                ];
-
-                // เพิ่ม cells ปกติ
-                cells.forEach(cell => {
-                    const td = document.createElement('td');
-                    td.className = cell.class;
-                    td.textContent = cell.content;
-                    row.appendChild(td);
-                });
-
-                // เพิ่ม cell สำหรับปุ่มดำเนินการ
-                const actionsCell = document.createElement('td');
-                actionsCell.className = 'border px-4 py-2';
-                const actionWrapper = document.createElement('div');
-                actionWrapper.className = 'flex justify-center gap-2';
-                actionWrapper.innerHTML = `
-                    <button 
-                        class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
-                        onclick="openTransactionModal('${account.id_member}', 'deposit')"
-                        title="ฝากเงิน">
-                        <i class="fas fa-money-bill-wave"></i>
-                        <span>ฝาก</span>
-                    </button>
-                    <button 
-                        class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
-                        onclick="openTransactionModal('${account.id_member}', 'withdraw')"
-                        title="ถอนเงิน">
-                        <i class="fas fa-money-bill-wave"></i>
-                        <span>ถอน</span>
-                    </button>
-                `;
-                actionsCell.appendChild(actionWrapper);
-                row.appendChild(actionsCell);
-                tableBody.appendChild(row);
-            }
+            return;
         }
+
+        // คำนวณจำนวนหน้าทั้งหมด
+        totalPages = Math.ceil(data.length / rowsPerPage);
+
+        // คำนวณ index เริ่มต้นและสิ้นสุดของข้อมูลที่จะแสดงในหน้าปัจจุบัน
+        const startIndex = (currentPage - 1) * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+        
+        // กรองข้อมูลที่จะแสดงในหน้าปัจจุบัน
+        const accountsToDisplay = data.slice(startIndex, endIndex);
+
+        for (const account of accountsToDisplay) {
+            const userName = await fetchUserName(account.id_member);
+            const staffName = await fetchUserName(account.id_staff);
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50 transition-colors duration-200';
+
+            // สร้าง cells พร้อม classes
+            const cells = [
+                { content: account.id_account, class: 'border px-4 py-2' },
+                { content: userName, class: 'border px-4 py-2' },
+                { 
+                    content: formatCurrency(account.balance), 
+                    class: 'border px-4 py-2 text-right font-semibold text-gray-700' 
+                },
+                { content: staffName, class: 'border px-4 py-2' },
+                { 
+                    content: convertToBuddhistYear(account.createdAt), 
+                    class: 'border px-4 py-2' 
+                }
+            ];
+
+            // เพิ่ม cells ปกติ
+            cells.forEach(cell => {
+                const td = document.createElement('td');
+                td.className = cell.class;
+                td.textContent = cell.content;
+                row.appendChild(td);
+            });
+
+            // เพิ่ม cell สำหรับปุ่มดำเนินการ
+            const actionsCell = document.createElement('td');
+            actionsCell.className = 'border px-4 py-2';
+            const actionWrapper = document.createElement('div');
+            actionWrapper.className = 'flex justify-center gap-2';
+            actionWrapper.innerHTML = `
+                <button 
+                    class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
+                    onclick="openTransactionModal('${account.id_member}', 'deposit')"
+                    title="ฝากเงิน">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span>ฝาก</span>
+                </button>
+                <button 
+                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
+                    onclick="openTransactionModal('${account.id_member}', 'withdraw')"
+                    title="ถอนเงิน">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span>ถอน</span>
+                </button>
+            `;
+            actionsCell.appendChild(actionWrapper);
+            row.appendChild(actionsCell);
+            tableBody.appendChild(row);
+        }
+
+        // สร้าง pagination controls
+        renderPagination();
     } catch (error) {
         console.error('Error fetching account data:', error);
         const tableBody = document.getElementById('accountTableBody');
@@ -217,6 +236,42 @@ const fetchAccount = async () => {
                     </div>
                 </td>
             </tr>`;
+    }
+};
+
+// เพิ่มฟังก์ชันสำหรับสร้าง pagination controls
+const renderPagination = () => {
+    const paginationContainer = document.getElementById('pagination');
+    if (!paginationContainer) {
+        // สร้าง container สำหรับ pagination ถ้ายังไม่มี
+        const container = document.createElement('div');
+        container.id = 'pagination';
+        container.className = 'flex justify-center items-center space-x-2 mt-4';
+        document.querySelector('section.bg-white').appendChild(container);
+    }
+
+    paginationContainer.innerHTML = `
+        <button 
+            class="px-3 py-1 rounded-md ${currentPage === 1 ? 'bg-gray-200 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 text-white'}"
+            ${currentPage === 1 ? 'disabled' : ''}
+            onclick="changePage(${currentPage - 1})">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <span class="px-4 py-1">หน้า ${currentPage} จาก ${totalPages}</span>
+        <button 
+            class="px-3 py-1 rounded-md ${currentPage === totalPages ? 'bg-gray-200 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 text-white'}"
+            ${currentPage === totalPages ? 'disabled' : ''}
+            onclick="changePage(${currentPage + 1})">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    `;
+};
+
+// เพิ่มฟังก์ชันสำหรับเปลี่ยนหน้า
+const changePage = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+        currentPage = newPage;
+        fetchAccount();
     }
 };
 

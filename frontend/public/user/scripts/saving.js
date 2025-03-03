@@ -134,6 +134,168 @@ const fetchUserName = async (userId) => {
     }
 };
 
+// เพิ่มตัวแปรสำหรับจัดการ pagination
+let currentPage = 1;
+const rowsPerPage = 8;
+let totalPages = 1;
+let allTransactions = []; // เก็บข้อมูลธุรกรรมทั้งหมด
+
+document.addEventListener("DOMContentLoaded", function() {
+    const storedUserName = localStorage.getItem('currentUser');
+    const localStorageName = JSON.parse(storedUserName).name;
+
+    // ดึงข้อมูลประวัติการทำรายการจาก API
+    fetch('/api/staff/transactions')
+        .then(response => response.json())
+        .then(data => {
+            allTransactions = data.filter(transaction => String(transaction.userName) === localStorageName);
+            populateTransactionTable(allTransactions);
+        })
+        .catch(error => {
+            console.error("Error fetching transactions:", error);
+        });
+});
+
+// ฟังก์ชั่นในการแสดงข้อมูลในตาราง
+function populateTransactionTable(transactions) {
+    const tableBody = document.querySelector("#transactionTable tbody");
+    tableBody.innerHTML = "";
+
+    if (!transactions || transactions.length === 0) {
+        // ถ้าไม่มีข้อมูล
+        const emptyRow = document.createElement("tr");
+        const emptyCell = document.createElement("td");
+        emptyCell.colSpan = 3;
+        emptyCell.classList.add("px-4", "py-8", "text-center", "text-gray-500", "border-b", "border-gray-200");
+        emptyCell.innerHTML = `
+            <div class="flex flex-col items-center justify-center">
+                <i class="fas fa-inbox text-gray-400 text-4xl mb-3"></i>
+                <p class="text-lg">ไม่พบรายการธุรกรรม</p>
+            </div>
+        `;
+        emptyRow.appendChild(emptyCell);
+        tableBody.appendChild(emptyRow);
+        return;
+    }
+
+    // คำนวณจำนวนหน้าทั้งหมด
+    totalPages = Math.ceil(transactions.length / rowsPerPage);
+
+    // คำนวณ index เริ่มต้นและสิ้นสุดของข้อมูลที่จะแสดงในหน้าปัจจุบัน
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    
+    // กรองข้อมูลที่จะแสดงในหน้าปัจจุบัน
+    const transactionsToDisplay = transactions.slice(startIndex, endIndex);
+
+    transactionsToDisplay.forEach(transaction => {
+        const row = document.createElement("tr");
+        row.classList.add("hover:bg-gray-50", "transition-colors", "duration-150");
+
+        // จัดรูปแบบวันที่
+        const date = new Date(transaction.date);
+        const formattedDate = date.toLocaleDateString('th-TH', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'long'
+        });
+
+        // สร้างและจัดรูปแบบเซลล์วันที่
+        const dateCell = document.createElement("td");
+        dateCell.classList.add("px-4", "py-3", "text-sm", "text-gray-700", "border-b", "border-gray-200");
+        dateCell.innerHTML = `
+            <div class="flex items-center">
+                <i class="far fa-calendar-alt text-green-500 mr-2"></i>
+                ${formattedDate}
+            </div>
+        `;
+
+        // สร้างและจัดรูปแบบเซลล์ประเภทรายการ
+        const typeCell = document.createElement("td");
+        typeCell.classList.add("px-4", "py-3", "text-sm", "border-b", "border-gray-200", "text-center");
+        
+        // ตรวจสอบประเภทรายการและกำหนดไอคอนและสี
+        const isDeposit = transaction.type.toLowerCase() === 'deposit';
+        const typeSpan = document.createElement("span");
+        typeSpan.classList.add("px-3", "py-1", "rounded-full", "text-sm", "font-medium", "inline-flex", "items-center");
+        
+        if (isDeposit) {
+            typeSpan.classList.add("bg-green-100", "text-green-800");
+            typeSpan.innerHTML = `
+                <i class="fas fa-arrow-up text-green-600 mr-2"></i>
+                ฝากเงิน
+            `;
+        } else {
+            typeSpan.classList.add("bg-red-100", "text-red-800");
+            typeSpan.innerHTML = `
+                <i class="fas fa-arrow-down text-red-600 mr-2"></i>
+                ถอนเงิน
+            `;
+        }
+        typeCell.appendChild(typeSpan);
+
+        // สร้างและจัดรูปแบบเซลล์จำนวนเงิน
+        const amountCell = document.createElement("td");
+        amountCell.classList.add("px-4", "py-3", "text-sm", "border-b", "border-gray-200", "font-medium", "text-right");
+        
+        const amount = isDeposit ? 
+            `+${transaction.amount.toLocaleString('th-TH')}` : 
+            `-${transaction.amount.toLocaleString('th-TH')}`;
+        
+        amountCell.innerHTML = `
+            <span class="${isDeposit ? 'text-green-600' : 'text-red-600'}">
+                ${amount} บาท
+            </span>
+        `;
+
+        // เพิ่มเซลล์ทั้งหมดลงในแถว
+        row.appendChild(dateCell);
+        row.appendChild(typeCell);
+        row.appendChild(amountCell);
+        tableBody.appendChild(row);
+    });
+
+    // สร้าง pagination controls
+    renderPagination();
+}
+
+// เพิ่มฟังก์ชันสำหรับสร้าง pagination controls
+const renderPagination = () => {
+    const paginationContainer = document.getElementById('pagination');
+    if (!paginationContainer) {
+        // สร้าง container สำหรับ pagination ถ้ายังไม่มี
+        const container = document.createElement('div');
+        container.id = 'pagination';
+        container.className = 'flex justify-center items-center space-x-2 mt-4';
+        document.querySelector('#transactionTable').parentNode.appendChild(container);
+    }
+
+    paginationContainer.innerHTML = `
+        <button 
+            class="px-3 py-1 rounded-md ${currentPage === 1 ? 'bg-gray-200 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 text-white'}"
+            ${currentPage === 1 ? 'disabled' : ''}
+            onclick="changePage(${currentPage - 1})">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <span class="px-4 py-1">หน้า ${currentPage} จาก ${totalPages}</span>
+        <button 
+            class="px-3 py-1 rounded-md ${currentPage === totalPages ? 'bg-gray-200 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 text-white'}"
+            ${currentPage === totalPages ? 'disabled' : ''}
+            onclick="changePage(${currentPage + 1})">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    `;
+};
+
+// เพิ่มฟังก์ชันสำหรับเปลี่ยนหน้า
+const changePage = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+        currentPage = newPage;
+        populateTransactionTable(allTransactions);
+    }
+};
+
 document.addEventListener("DOMContentLoaded", function() {
     const storedUserName = localStorage.getItem('currentUser');
     const localStorageName = JSON.parse(storedUserName).name;
@@ -149,96 +311,6 @@ document.addEventListener("DOMContentLoaded", function() {
             console.error("Error fetching transactions:", error);
         });
 });
-
-// ฟังก์ชั่นในการแสดงข้อมูลในตาราง
-function populateTransactionTable(transactions) {
-    const tableBody = document.querySelector("#transactionTable tbody");
-    tableBody.innerHTML = "";
-
-    if (transactions && transactions.length > 0) {
-        transactions.forEach(transaction => {
-            const row = document.createElement("tr");
-            row.classList.add("hover:bg-gray-50", "transition-colors", "duration-150");
-
-            // จัดรูปแบบวันที่
-            const date = new Date(transaction.date);
-            const formattedDate = date.toLocaleDateString('th-TH', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                weekday: 'long'
-            });
-
-            // สร้างและจัดรูปแบบเซลล์วันที่
-            const dateCell = document.createElement("td");
-            dateCell.classList.add("px-4", "py-3", "text-sm", "text-gray-700", "border-b", "border-gray-200");
-            dateCell.innerHTML = `
-                <div class="flex items-center">
-                    <i class="far fa-calendar-alt text-green-500 mr-2"></i>
-                    ${formattedDate}
-                </div>
-            `;
-
-            // สร้างและจัดรูปแบบเซลล์ประเภทรายการ
-            const typeCell = document.createElement("td");
-            typeCell.classList.add("px-4", "py-3", "text-sm", "border-b", "border-gray-200", "text-center");
-            
-            // ตรวจสอบประเภทรายการและกำหนดไอคอนและสี
-            const isDeposit = transaction.type.toLowerCase() === 'deposit';
-            const typeSpan = document.createElement("span");
-            typeSpan.classList.add("px-3", "py-1", "rounded-full", "text-sm", "font-medium", "inline-flex", "items-center");
-            
-            if (isDeposit) {
-                typeSpan.classList.add("bg-green-100", "text-green-800");
-                typeSpan.innerHTML = `
-                    <i class="fas fa-arrow-up text-green-600 mr-2"></i>
-                    ฝากเงิน
-                `;
-            } else {
-                typeSpan.classList.add("bg-red-100", "text-red-800");
-                typeSpan.innerHTML = `
-                    <i class="fas fa-arrow-down text-red-600 mr-2"></i>
-                    ถอนเงิน
-                `;
-            }
-            typeCell.appendChild(typeSpan);
-
-            // สร้างและจัดรูปแบบเซลล์จำนวนเงิน
-            const amountCell = document.createElement("td");
-            amountCell.classList.add("px-4", "py-3", "text-sm", "border-b", "border-gray-200", "font-medium", "text-right");
-            
-            const amount = isDeposit ? 
-                `+${transaction.amount.toLocaleString('th-TH')}` : 
-                `-${transaction.amount.toLocaleString('th-TH')}`;
-            
-            amountCell.innerHTML = `
-                <span class="${isDeposit ? 'text-green-600' : 'text-red-600'}">
-                    ${amount} บาท
-                </span>
-            `;
-
-            // เพิ่มเซลล์ทั้งหมดลงในแถว
-            row.appendChild(dateCell);
-            row.appendChild(typeCell);
-            row.appendChild(amountCell);
-            tableBody.appendChild(row);
-        });
-    } else {
-        // ถ้าไม่มีข้อมูล
-        const emptyRow = document.createElement("tr");
-        const emptyCell = document.createElement("td");
-        emptyCell.colSpan = 3;
-        emptyCell.classList.add("px-4", "py-8", "text-center", "text-gray-500", "border-b", "border-gray-200");
-        emptyCell.innerHTML = `
-            <div class="flex flex-col items-center justify-center">
-                <i class="fas fa-inbox text-gray-400 text-4xl mb-3"></i>
-                <p class="text-lg">ไม่พบรายการธุรกรรม</p>
-            </div>
-        `;
-        emptyRow.appendChild(emptyCell);
-        tableBody.appendChild(emptyRow);
-    }
-}
 
 document.addEventListener("DOMContentLoaded", function() {
     // ดึงข้อมูลผู้ใช้จาก localStorage
