@@ -158,7 +158,7 @@ const displayLoanDetails = (loanDetails) => {
 
     displayAttachedDocuments(loanDetails.documents);
     updateActionButtons(loanDetails.status);
-};n
+};
 
 // ===============================
 // Document Management Functions

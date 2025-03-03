@@ -230,6 +230,16 @@ const openPromiseDetailsModal = async (id_saving) => {
             throw new Error('ไม่ได้รับข้อมูลจาก API');
         }
 
+        // ตรวจสอบสถานะสัญญา
+        if (promiseDetails.status !== 'approved') {
+            Swal.fire({
+                icon: 'warning',
+                title: 'ไม่สามารถดูข้อมูลได้',
+                text: 'สัญญานี้ยังไม่ได้รับการอนุมัติ'
+            });
+            return;
+        }
+
         const modal = document.getElementById('promiseDetailsModal');
         const modalContent = document.getElementById('promiseDetailsContent');
         

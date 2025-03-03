@@ -35,7 +35,7 @@ const promiseSchema = new mongoose.Schema({
     }],
     totalPaid: { type: Number, default: 0 },
     remainingBalance: Number,
-    status: {// pending, completed, rejected
+    status: { // กำหนดให้มีค่าเป็น pending, approved, rejected
         type: String,
         required: true,
         default: 'pending'

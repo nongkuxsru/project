@@ -6,6 +6,9 @@ window.onload = () => {
 // Constants & Global Variables
 // ===============================
 let allUsers = []; // เก็บข้อมูลผู้ใช้ทั้งหมด
+let currentPage = 1;
+const rowsPerPage = 8;
+let totalPages = 1;
 
 const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
@@ -139,11 +142,31 @@ const fetchAndRenderUsers = async () => {
 };
 
 const renderUsers = (users) => {
-    const usersTable = document.getElementById('usersTable').getElementsByTagName('tbody')[0];
-    usersTable.innerHTML = '';
+    const tableBody = document.querySelector('#usersTable tbody');
+    if (!tableBody) return;
 
-    users.forEach(user => {
-        const row = usersTable.insertRow();
+    // คำนวณ index เริ่มต้นและสิ้นสุดสำหรับหน้าปัจจุบัน
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    const usersToShow = users.slice(startIndex, endIndex);
+
+    // คำนวณจำนวนหน้าทั้งหมด
+    totalPages = Math.ceil(users.length / rowsPerPage);
+
+    tableBody.innerHTML = '';
+    
+    if (usersToShow.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-4">ไม่พบข้อมูลผู้ใช้</td>
+            </tr>
+        `;
+        return;
+    }
+
+    usersToShow.forEach(user => {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-50';
         
         // ชื่อผู้ใช้
         const nameCell = row.insertCell();
@@ -164,9 +187,15 @@ const renderUsers = (users) => {
         const actionsCell = row.insertCell();
         actionsCell.className = 'border px-4 py-2';
         actionsCell.appendChild(createActionButtons(user));
+
+        tableBody.appendChild(row);
     });
 
+    // เพิ่มการเรียกใช้ addActionButtonListeners
     addActionButtonListeners();
+
+    // เรียกใช้ฟังก์ชันสร้าง pagination
+    renderPagination();
 };
 
 const getPermissionBadgeHTML = (permission) => {
@@ -457,11 +486,17 @@ const debounce = (func, wait) => {
 };
 
 const filterUsers = () => {
-    const searchText = document.getElementById('searchInput').value.toLowerCase();
+    const searchInput = document.getElementById('searchInput');
+    const searchTerm = searchInput.value.toLowerCase();
+    
     const filteredUsers = allUsers.filter(user => {
-        return user.name.toLowerCase().includes(searchText) || 
-               user.email.toLowerCase().includes(searchText);
+        return user.name.toLowerCase().includes(searchTerm) ||
+               user.email.toLowerCase().includes(searchTerm) ||
+               user.phone.toLowerCase().includes(searchTerm);
     });
+
+    // รีเซ็ตหน้าเป็นหน้าแรกเมื่อมีการค้นหา
+    currentPage = 1;
     renderUsers(filteredUsers);
 };
 
@@ -582,4 +617,37 @@ const showPinPrompt = (title, text) => {
             return pin;
         }
     });
+};
+
+// ฟังก์ชันสร้าง pagination controls
+const renderPagination = () => {
+    const paginationContainer = document.getElementById('pagination');
+    if (!paginationContainer) return;
+
+    paginationContainer.innerHTML = `
+        <button id="prevPage" class="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <span class="mx-4 text-gray-600">หน้า ${currentPage} จาก ${totalPages}</span>
+        <button id="nextPage" class="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    `;
+
+    const prevButton = document.getElementById('prevPage');
+    const nextButton = document.getElementById('nextPage');
+
+    prevButton.disabled = currentPage === 1;
+    nextButton.disabled = currentPage === totalPages;
+
+    prevButton.addEventListener('click', () => changePage(currentPage - 1));
+    nextButton.addEventListener('click', () => changePage(currentPage + 1));
+};
+
+// ฟังก์ชันเปลี่ยนหน้า
+const changePage = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+        currentPage = newPage;
+        renderUsers(allUsers); // ใช้ข้อมูลที่มีอยู่แล้วใน allUsers
+    }
 };
