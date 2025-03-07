@@ -1,7 +1,3 @@
-window.onload = () => {
-    document.getElementById('logoutButton').addEventListener('click', logout);
-};
-
 // ===============================
 // Constants & Global Variables
 // ===============================
@@ -272,40 +268,6 @@ const addActionButtonListeners = () => {
     });
 };
 
-const logout = async () => {
-    try {
-        const result = await Swal.fire({
-            title: 'ยืนยันการออกจากระบบ',
-            text: 'คุณต้องการออกจากระบบใช่หรือไม่?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'ใช่, ออกจากระบบ',
-            cancelButtonText: 'ยกเลิก'
-        });
-
-        if (result.isConfirmed) {
-            const response = await fetch('/api/auth/logout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            if (response.ok) {
-                localStorage.removeItem('currentUser');
-                localStorage.removeItem('selectedTheme');
-
-                await showSuccess('ออกจากระบบสำเร็จ', 'กำลังนำคุณไปยังหน้าเข้าสู่ระบบ...', 1500);
-                window.location.href = '/';
-            } else {
-                throw new Error('Logout failed');
-            }
-        }
-    } catch (error) {
-        console.error('Error during logout:', error);
-        showError('ไม่สามารถออกจากระบบได้ กรุณาลองใหม่อีกครั้ง');
-    }
-};
 
 // ===============================
 // User CRUD Operations
@@ -486,17 +448,15 @@ const debounce = (func, wait) => {
 };
 
 const filterUsers = () => {
-    const searchInput = document.getElementById('searchInput');
-    const searchTerm = searchInput.value.toLowerCase();
-    
+    const searchText = document.getElementById('searchInput').value.toLowerCase();
+
     const filteredUsers = allUsers.filter(user => {
-        return user.name.toLowerCase().includes(searchTerm) ||
-               user.email.toLowerCase().includes(searchTerm) ||
-               user.phone.toLowerCase().includes(searchTerm);
+        return (user.name?.toLowerCase() || '').includes(searchText) || 
+               (user.email?.toLowerCase() || '').includes(searchText) ||
+               (user.phone?.toLowerCase() || '').includes(searchText);
     });
 
-    // รีเซ็ตหน้าเป็นหน้าแรกเมื่อมีการค้นหา
-    currentPage = 1;
+    currentPage = 1; // รีเซ็ตกลับไปหน้าแรกเมื่อมีการค้นหา
     renderUsers(filteredUsers);
 };
 

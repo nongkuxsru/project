@@ -1,7 +1,3 @@
-window.onload = () => {
-    document.getElementById('logoutButton').addEventListener('click', logout);
-};
-
 // ===============================
 // Constants & Global Variables
 // ===============================
@@ -26,7 +22,6 @@ const observer = new MutationObserver((mutations) => {
         }
     });
 });
-
 
 // ===============================
 // Event Listeners & Initialization
@@ -480,48 +475,6 @@ const initializeUserInfo = () => {
     } else {
         document.getElementById('userName').textContent = 'ไม่พบข้อมูลผู้ใช้';
         document.getElementById('userAvatar').textContent = 'N/A';
-    }
-};
-
-const logout = async () => {
-    try {
-        const result = await Swal.fire({
-            title: 'ยืนยันการออกจากระบบ',
-            text: 'คุณต้องการออกจากระบบใช่หรือไม่?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'ใช่, ออกจากระบบ',
-            cancelButtonText: 'ยกเลิก'
-        });
-
-        if (result.isConfirmed) {
-            const response = await fetch('/api/auth/logout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            if (response.ok) {
-                localStorage.removeItem('currentUser');
-                localStorage.removeItem('selectedTheme');
-
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'ออกจากระบบสำเร็จ',
-                    text: 'กำลังนำคุณไปยังหน้าเข้าสู่ระบบ...',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-
-                window.location.href = '/';
-            } else {
-                throw new Error('Logout failed');
-            }
-        }
-    } catch (error) {
-        console.error('Error during logout:', error);
-        showError('ไม่สามารถออกจากระบบได้ กรุณาลองใหม่อีกครั้ง');
     }
 };
 

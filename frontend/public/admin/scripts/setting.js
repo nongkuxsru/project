@@ -1,6 +1,3 @@
-window.onload = () => {
-    document.getElementById('logoutButton').addEventListener('click', logout);
-};
 
 // ===============================
 // Constants & Configurations
@@ -44,11 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // แสดงข้อมูลในฟอร์ม
     populateForm(userData);
 
-    // Event listener สำหรับการ logout
-    const logoutButton = document.getElementById('logoutButton');
-    if (logoutButton) {
-        logoutButton.addEventListener('click', logout);
-    }
+    
 
     // Event listener สำหรับการอัปเดตข้อมูล
     const form = document.getElementById("personalInfoForm");
@@ -222,40 +215,6 @@ const updateUserDisplay = (userData) => {
     }
 };
 
-const logout = async () => {
-    try {
-        const result = await Swal.fire({
-            title: 'ยืนยันการออกจากระบบ',
-            text: 'คุณต้องการออกจากระบบใช่หรือไม่?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'ใช่, ออกจากระบบ',
-            cancelButtonText: 'ยกเลิก'
-        });
-
-        if (result.isConfirmed) {
-            const response = await fetch('/api/auth/logout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            if (response.ok) {
-                localStorage.removeItem('currentUser');
-                localStorage.removeItem('selectedTheme');
-
-                await showSuccess('ออกจากระบบสำเร็จ', 'กำลังนำคุณไปยังหน้าเข้าสู่ระบบ...', 1500);
-                window.location.href = '/';
-            } else {
-                throw new Error('Logout failed');
-            }
-        }
-    } catch (error) {
-        console.error('Error during logout:', error);
-        showError('ไม่สามารถออกจากระบบได้ กรุณาลองใหม่อีกครั้ง');
-    }
-};
 
 // ===============================
 // Utility Functions

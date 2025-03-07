@@ -1,7 +1,3 @@
-window.onload = () => {
-    document.getElementById('logoutButton').addEventListener('click', logout);
-};
-
 const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
         if (mutation.addedNodes.length) {
@@ -22,12 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // เริ่มต้นการทำงานหลัก
     initializeUserInfo();
     fetchStats();
-    
-    // เพิ่ม Event Listeners
-    const logoutButton = document.getElementById('logoutButton');
-    if (logoutButton) {
-        logoutButton.addEventListener('click', logout);
-    }
     
     // เริ่มการสังเกตการณ์ DOM
     observer.observe(document.body, {
@@ -99,51 +89,7 @@ const initializeUserInfo = () => {
     }
 };
 
-const logout = async () => {
-    try {
-        const result = await Swal.fire({
-            title: 'ยืนยันการออกจากระบบ',
-            text: 'คุณต้องการออกจากระบบใช่หรือไม่?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'ใช่, ออกจากระบบ',
-            cancelButtonText: 'ยกเลิก'
-        });
 
-        if (result.isConfirmed) {
-            const response = await fetch('/api/auth/logout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            if (response.ok) {
-                localStorage.removeItem('currentUser');
-                localStorage.removeItem('selectedTheme');
-
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'ออกจากระบบสำเร็จ',
-                    text: 'กำลังนำคุณไปยังหน้าเข้าสู่ระบบ...',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-
-                window.location.href = '/';
-            } else {
-                throw new Error('Logout failed');
-            }
-        }
-    } catch (error) {
-        console.error('Error during logout:', error);
-        await Swal.fire({
-            icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถออกจากระบบได้ กรุณาลองใหม่อีกครั้ง'
-        });
-    }
-};
 
 // ===============================
 // Data Fetching Functions
