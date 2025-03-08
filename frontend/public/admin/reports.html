@@ -1,37 +1,41 @@
 <!DOCTYPE html>
 <html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" sizes="16x16" href="../images/logo.png"/>
-    <title>รายงาน - สหกรณ์ออมทรัพย์</title>
-    <link rel="stylesheet" href="/styles/setting.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#1B8F4C',
-                        secondary: '#264C3B',
-                        accent: '#D9D92E',
-                        background: '#F1F8F4',
-                        foreground: '#FFFFFF'
-                    },
-                    fontFamily: {
-                        sans: ['IBM Plex Sans Thai', 'sans-serif'],
-                        heading: ['Poppins', 'sans-serif']
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/png" sizes="16x16" href="../images/logo.png"/>
+        <title>รายงานทางการเงิน - สหกรณ์ออมทรัพย์</title>
+        <link rel="stylesheet" href="/styles/setting.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: '#1B8F4C',
+                            secondary: '#264C3B',
+                            accent: '#D9D92E',
+                            background: '#F1F8F4',
+                            foreground: '#FFFFFF'
+                        },
+                        fontFamily: {
+                            sans: ['IBM Plex Sans Thai', 'sans-serif'],
+                            heading: ['Poppins', 'sans-serif']
+                        }
                     }
                 }
             }
-        }
-    </script>
-</head>
+        </script>
+    </head>
+
 <body class="bg-background text-secondary font-sans">
     <div class="flex h-screen">
+        <!-- Sidebar Container -->
+        <div id="sidebarContainer"></div>
+
         <!-- Main Content -->
         <main class="flex-1 p-8">
             <header class="flex justify-between items-center mb-6">
@@ -48,34 +52,92 @@
                 </div>
             </header>
 
-            <!-- Reports Section -->
-            <section class="bg-white p-6 shadow-lg rounded-lg w-full max-w-6xl mx-auto border-2 border-green-500">
-                <h2 class="text-2xl font-bold text-primary mb-6 flex items-center">
-                    <i class="fas fa-chart-bar mr-3"></i>
-                    รายงาน
-                </h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รายงาน</th>
-                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">การกระทำ</th>
-                            </tr>
-                        </thead>
-                        <tbody id="reportTableBody" class="bg-white divide-y divide-gray-200">
-                            <tr>
-                                <td colspan="2" class="px-6 py-4 text-center text-sm text-gray-500">
-                                    กำลังโหลดรายงาน...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <!-- Main Content Area -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-background p-6">
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-primary">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-primary bg-opacity-10">
+                                <i class="fas fa-piggy-bank text-primary text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-sm font-medium text-gray-500">เงินฝากรวมเดือนนี้</h3>
+                                <p class="text-2xl font-semibold text-secondary" id="totalDeposits">฿0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-green-500">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-green-100">
+                                <i class="fas fa-exchange-alt text-green-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-sm font-medium text-gray-500">ธุรกรรมทั้งหมด</h3>
+                                <p class="text-2xl font-semibold text-secondary" id="totalTransactions">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-blue-500">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-blue-100">
+                                <i class="fas fa-chart-line text-blue-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-sm font-medium text-gray-500">อัตราการเติบโต</h3>
+                                <p class="text-2xl font-semibold text-secondary" id="growthRate">0%</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </section>
-        </main>
+
+                <!-- Charts Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <!-- Monthly Savings Chart -->
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h3 class="text-lg font-semibold mb-4 text-secondary">เงินฝากรายเดือน</h3>
+                        <div class="h-80">
+                            <canvas id="monthlySavingsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Transaction Types Chart -->
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h3 class="text-lg font-semibold mb-4 text-secondary">สัดส่วนประเภทธุรกรรม</h3>
+                        <div class="h-80">
+                            <canvas id="transactionTypeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transactions Table -->
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-secondary">รายละเอียดธุรกรรม</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ประเภท</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวนรายการ</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">มูลค่ารวม</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">การเปลี่ยนแปลง</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionTableBody" class="bg-white divide-y divide-gray-200">
+                                <!-- Table rows will be inserted here by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/admin/components/load-sidebar.js"></script>
+    <script src="/admin/scripts/auth.js"></script>
     <script src="/admin/scripts/reports.js"></script>
 </body>
 </html>

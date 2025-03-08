@@ -89,8 +89,6 @@ const initializeUserInfo = () => {
     }
 };
 
-
-
 // ===============================
 // Data Fetching Functions
 // ===============================

@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/Users'); // นำเข้าโมเดล Users
 const Saving = require('../models/Saving'); // นำเข้าโมเดลบัญชีการออม
 const Promise = require('../models/Promise'); // นำเข้าโมเดล Promise
+const Transaction = require('../models/Transaction'); // นำเข้าโมเดล Transaction
 
 
 // API สำหรับดึงข้อมูลสถิติ
@@ -333,9 +334,256 @@ router.put('/promise-status/:id/reject', async (req, res) => {
     }
 });
 
+// API สำหรับรายงานทางการเงิน
+router.get('/financial-reports', async (req, res) => {
+    try {
+        // 1. ดึงข้อมูลเงินฝากรายเดือน
+        const monthlySavings = await Saving.aggregate([
+            {
+                $group: {
+                    _id: {
+                        year: { $year: "$createdAt" },
+                        month: { $month: "$createdAt" }
+                    },
+                    amount: { $sum: "$balance" }
+                }
+            },
+            { $sort: { "_id.year": 1, "_id.month": 1 } },
+            { $limit: 12 }
+        ]);
 
+        // 2. ดึงข้อมูลประเภทธุรกรรม
+        const currentMonthStart = new Date();
+        currentMonthStart.setDate(1);
+        currentMonthStart.setHours(0, 0, 0, 0);
 
+        const lastMonthStart = new Date(currentMonthStart);
+        lastMonthStart.setMonth(lastMonthStart.getMonth() - 1);
 
+        const currentMonthSavings = await Saving.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: currentMonthStart }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: "$balance" }
+                }
+            }
+        ]);
 
+        const lastMonthSavings = await Saving.aggregate([
+            {
+                $match: {
+                    createdAt: {
+                        $gte: lastMonthStart,
+                        $lt: currentMonthStart
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: "$balance" }
+                }
+            }
+        ]);
+
+        // แปลงข้อมูลให้อยู่ในรูปแบบที่ต้องการ
+        const thaiMonths = [
+            'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.',
+            'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.',
+            'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+        ];
+
+        const formattedMonthlySavings = monthlySavings.map(item => ({
+            month: thaiMonths[item._id.month - 1],
+            amount: item.amount
+        }));
+
+        // 3. คำนวณข้อมูลสรุปทางการเงิน
+        const currentTotal = currentMonthSavings[0]?.total || 0;
+        const lastTotal = lastMonthSavings[0]?.total || 0;
+        const percentChange = lastTotal === 0 ? 100 : 
+            ((currentTotal - lastTotal) / lastTotal) * 100;
+
+        // 2. ดึงข้อมูลประเภทธุรกรรม
+        const transactionTypes = await Transaction.aggregate([
+            {
+                $facet: {
+                    // ธุรกรรมในเดือนนี้
+                    currentMonth: [
+                        {
+                            $match: {
+                                date: { $gte: currentMonthStart }
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$type",
+                                count: { $sum: 1 },
+                                total: { $sum: "$amount" }
+                            }
+                        }
+                    ],
+                    // ธุรกรรมในเดือนที่แล้ว
+                    lastMonth: [
+                        {
+                            $match: {
+                                date: {
+                                    $gte: lastMonthStart,
+                                    $lt: currentMonthStart
+                                }
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$type",
+                                count: { $sum: 1 },
+                                total: { $sum: "$amount" }
+                            }
+                        }
+                    ]
+                }
+            }
+        ]);
+
+        // แปลงชื่อประเภทธุรกรรมและคำนวณการเปลี่ยนแปลง
+        const getTransactionInfo = (type) => {
+            const types = {
+                'deposit': {
+                    name: 'เงินฝาก',
+                    color: '#1B8F4C', // สีเขียว
+                    bgColor: '#E3F5E9',
+                    icon: 'fa-arrow-circle-down'
+                },
+                'withdraw': {
+                    name: 'ถอนเงิน',
+                    color: '#DC2626', // สีแดง
+                    bgColor: '#FEE2E2',
+                    icon: 'fa-arrow-circle-up'
+                },
+                'transfer': {
+                    name: 'โอนเงิน',
+                    color: '#2563EB', // สีน้ำเงิน
+                    bgColor: '#EFF6FF',
+                    icon: 'fa-exchange-alt'
+                },
+                'loan_payment': {
+                    name: 'ชำระเงินกู้',
+                    color: '#7C3AED', // สีม่วง
+                    bgColor: '#F5F3FF',
+                    icon: 'fa-hand-holding-usd'
+                },
+                'interest': {
+                    name: 'ดอกเบี้ย',
+                    color: '#F59E0B', // สีส้ม
+                    bgColor: '#FEF3C7',
+                    icon: 'fa-percentage'
+                }
+            };
+            return types[type] || {
+                name: type,
+                color: '#6B7280', // สีเทาสำหรับประเภทที่ไม่ได้กำหนด
+                bgColor: '#F3F4F6',
+                icon: 'fa-circle'
+            };
+        };
+
+        const currentMonthData = transactionTypes[0].currentMonth.reduce((acc, curr) => {
+            acc[curr._id] = curr;
+            return acc;
+        }, {});
+
+        const lastMonthData = transactionTypes[0].lastMonth.reduce((acc, curr) => {
+            acc[curr._id] = curr;
+            return acc;
+        }, {});
+
+        // รวมประเภทธุรกรรมทั้งหมดที่มี
+        const allTypes = [...new Set([
+            ...transactionTypes[0].currentMonth.map(t => t._id),
+            ...transactionTypes[0].lastMonth.map(t => t._id)
+        ])];
+
+        const formattedTransactionTypes = allTypes.map(type => {
+            const current = currentMonthData[type] || { count: 0, total: 0 };
+            const last = lastMonthData[type] || { count: 0, total: 0 };
+            const info = getTransactionInfo(type);
+            
+            // คำนวณเปอร์เซ็นต์การเปลี่ยนแปลง
+            const countChange = last.count === 0 ? 100 :
+                ((current.count - last.count) / last.count) * 100;
+            
+            const amountChange = last.total === 0 ? 100 :
+                ((current.total - last.total) / last.total) * 100;
+
+            return {
+                type: info.name,
+                count: current.count,
+                amount: current.total,
+                countChange: parseFloat(countChange.toFixed(2)),
+                amountChange: parseFloat(amountChange.toFixed(2)),
+                color: info.color,
+                bgColor: info.bgColor,
+                icon: info.icon,
+                chartColor: info.color // เพิ่มสีสำหรับกราฟ
+            };
+        });
+
+        // จัดกลุ่มข้อมูลสำหรับกราฟวงกลม
+        const chartData = {
+            labels: formattedTransactionTypes.map(t => t.type),
+            datasets: [{
+                data: formattedTransactionTypes.map(t => t.count),
+                backgroundColor: formattedTransactionTypes.map(t => t.color),
+                borderColor: formattedTransactionTypes.map(t => t.color),
+                borderWidth: 1
+            }]
+        };
+
+        // เพิ่มข้อมูลธุรกรรมในส่วนสรุป
+        const totalTransactions = formattedTransactionTypes.reduce((acc, curr) => acc + curr.count, 0);
+        const totalAmount = formattedTransactionTypes.reduce((acc, curr) => acc + curr.amount, 0);
+        
+        // อัปเดต summary array
+        const summary = [
+            {
+                name: 'เงินฝากรวมเดือนนี้',
+                amount: currentTotal,
+                change: parseFloat(percentChange.toFixed(2)),
+                icon: 'fa-piggy-bank'
+            },
+            {
+                name: 'มูลค่าธุรกรรมรวม',
+                amount: totalAmount,
+                change: formattedTransactionTypes.reduce((acc, curr) => acc + curr.amountChange, 0) / formattedTransactionTypes.length,
+                icon: 'fa-money-bill-wave'
+            },
+            {
+                name: 'จำนวนธุรกรรมทั้งหมด',
+                amount: totalTransactions,
+                change: formattedTransactionTypes.reduce((acc, curr) => acc + curr.countChange, 0) / formattedTransactionTypes.length,
+                icon: 'fa-exchange-alt'
+            }
+        ];
+
+        res.json({
+            monthlySavings: formattedMonthlySavings,
+            transactionTypes: formattedTransactionTypes,
+            chartData, // ส่งข้อมูลกราฟแยกออกมา
+            summary
+        });
+
+    } catch (error) {
+        console.error('Error generating financial reports:', error);
+        res.status(500).json({
+            message: 'เกิดข้อผิดพลาดในการสร้างรายงานทางการเงิน',
+            error: error.message
+        });
+    }
+});
 
 module.exports = router;
