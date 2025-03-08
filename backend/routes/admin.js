@@ -586,4 +586,114 @@ router.get('/financial-reports', async (req, res) => {
     }
 });
 
+// API สำหรับดึงข้อมูลสัญญากู้ยืมทั้งหมด
+router.get('/promise-status', async (req, res) => {
+    try {
+        const { status } = req.query;
+        let query = {};
+        
+        if (status && status !== 'all') {
+            query.status = status;
+        }
+
+        const promises = await Promise.find(query)
+            .select('id_saving Datepromise amount interestRate DueDate totalPaid payments status')
+            .populate({
+                path: 'id_saving',
+                select: 'id_member balance',
+                populate: {
+                    path: 'id_member',
+                    select: 'name'
+                }
+            })
+            .sort({ Datepromise: -1 });
+
+        const formattedPromises = promises.map(promise => {
+            // ตรวจสอบและจัดการกรณีที่ข้อมูลอาจจะไม่สมบูรณ์
+            const borrowerName = promise.id_saving?.id_member?.name || 'ไม่ระบุชื่อ';
+            const savingId = promise.id_saving?._id || 'ไม่ระบุ';
+
+            return {
+                _id: promise._id,
+                id_saving: savingId,
+                borrowerName: borrowerName,
+                Datepromise: promise.Datepromise,
+                amount: promise.amount || 0,
+                interestRate: promise.interestRate || 0,
+                DueDate: promise.DueDate,
+                totalPaid: promise.totalPaid || 0,
+                payments: promise.payments || {},
+                status: promise.status || 'pending'
+            };
+        });
+
+        res.json({ 
+            success: true,
+            promises: formattedPromises
+        });
+    } catch (error) {
+        console.error('Error fetching promises:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'เกิดข้อผิดพลาดในการดึงข้อมูลสัญญากู้ยืม',
+            error: error.message 
+        });
+    }
+});
+
+// API สำหรับดึงรายละเอียดสัญญากู้ยืม
+router.get('/promise-status/:id/details', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const promise = await Promise.findById(id);
+
+        if (!promise) {
+            return res.status(404).json({
+                success: false,
+                message: 'ไม่พบข้อมูลสัญญากู้ยืม'
+            });
+        }
+
+        // ดึงข้อมูลจากตาราง saving ที่เชื่อมโยงกัน
+        const saving = await Saving.findOne({ id_account: promise.id_saving })
+            .populate('id_member')
+            .populate('id_staff');
+
+        // จัดรูปแบบข้อมูลให้ตรงตามโครงสร้าง
+        const formattedPromise = {
+            _id: promise._id,
+            id_saving: promise.id_saving,
+            Datepromise: promise.Datepromise,
+            amount: promise.amount,
+            interestRate: promise.interestRate,
+            DueDate: promise.DueDate,
+            totalPaid: promise.totalPaid,
+            status: promise.status,
+            payments: promise.payments || [],
+            saving: saving ? {
+                _id: saving._id,
+                id_account: saving.id_account,
+                id_member: saving.id_member,
+                balance: saving.balance,
+                id_staff: saving.id_staff,
+                status: saving.status,
+                createdAt: saving.createdAt
+            } : null
+        };
+
+        res.json({
+            success: true,
+            data: formattedPromise
+        });
+    } catch (error) {
+        console.error('Error fetching promise details:', error);
+        res.status(500).json({
+            success: false,
+            message: 'เกิดข้อผิดพลาดในการดึงข้อมูลสัญญากู้ยืม',
+            error: error.message
+        });
+    }
+});
+    
+
 module.exports = router;

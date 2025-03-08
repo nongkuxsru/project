@@ -2,15 +2,17 @@ const express = require('express');
 const mongoose = require('mongoose');
 const { readdirSync, read } = require('fs');
 const path = require('path');
+const cors = require('cors');
 
 const app = express();
 const PORT = 5000;
 
 // Middleware เพื่อ parse JSON body
+app.use(cors());
 app.use(express.json());
 app.use(require('morgan')('dev'));
 
-// Serve static files จากโฟลเดอร์ frontend/public
+// Serve static files from frontend/public
 app.use(express.static(path.join(__dirname, '../frontend/public')));
 
 app.set('view engine', 'ejs');

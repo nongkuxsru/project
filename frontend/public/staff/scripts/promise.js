@@ -94,20 +94,23 @@ const fetchPromise = async () => {
         const tableBody = document.getElementById('promiseTableBody');
         tableBody.innerHTML = '';
 
-        if (data.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="7">ไม่พบข้อมูลสัญญาเงินกู้</td></tr>';
+        // กรองเฉพาะสัญญาที่มีสถานะ approved
+        const approvedAccounts = data.filter(account => account.status === 'approved');
+
+        if (approvedAccounts.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-gray-500">ไม่พบข้อมูลสัญญาเงินกู้ที่อนุมัติแล้ว</td></tr>';
             return;
         }
 
-        data.forEach(account => {
+        approvedAccounts.forEach(account => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${account._id}</td>
-                <td>${account.id_saving}</td>
-                <td>${account.amount.toLocaleString('th-TH')} บาท</td>
-                <td>${new Date(account.Datepromise).toLocaleDateString('th-TH')}</td>
-                <td>${new Date(account.DueDate).toLocaleDateString('th-TH')}</td>
-                <td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-gray-900">${account._id}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-gray-900">${account.id_saving}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-gray-900">${account.amount.toLocaleString('th-TH')} บาท</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-gray-900">${new Date(account.Datepromise).toLocaleDateString('th-TH')}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-gray-900">${new Date(account.DueDate).toLocaleDateString('th-TH')}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center">
                     <button onclick="openPromiseDetailsModal('${account.id_saving}')" 
                         class="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-none focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
                         <i class="fas fa-eye"></i>
@@ -120,7 +123,7 @@ const fetchPromise = async () => {
     } catch (error) {
         console.error('Error fetching loan promise data:', error);
         const tableBody = document.getElementById('promiseTableBody');
-        tableBody.innerHTML = '<tr><td colspan="7">ไม่สามารถโหลดข้อมูลได้</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-red-500"><i class="fas fa-exclamation-circle mr-2"></i>ไม่สามารถโหลดข้อมูลได้</td></tr>';
     }
 };
 
@@ -519,54 +522,6 @@ const printPromiseDetails = () => {
     };
 };
 
-// ... existing code ...
-const logout = async () => {
-    try {
-        // แสดง SweetAlert2 เพื่อยืนยันการออกจากระบบ
-        const result = await Swal.fire({
-            title: 'ยืนยันการออกจากระบบ',
-            text: 'คุณต้องการออกจากระบบใช่หรือไม่?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'ใช่, ออกจากระบบ',
-            cancelButtonText: 'ยกเลิก'
-        });
-
-        // ถ้าผู้ใช้กดยืนยัน
-        if (result.isConfirmed) {
-            const response = await fetch('/api/auth/logout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            if (response.ok) {
-                localStorage.removeItem('currentUser');
-                localStorage.removeItem('selectedTheme');
-
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'ออกจากระบบสำเร็จ',
-                    text: 'กำลังนำคุณไปยังหน้าเข้าสู่ระบบ...',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-
-                window.location.href = '/';
-            } else {
-                throw new Error('Logout failed');
-            }
-        }
-    } catch (error) {
-        console.error('Error during logout:', error);
-        await Swal.fire({
-            icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถออกจากระบบได้ กรุณาลองใหม่อีกครั้ง'
-        });
-    }
-};
 
 // Event Listeners เมื่อโหลดหน้าเว็บ
 document.addEventListener("DOMContentLoaded", () => {

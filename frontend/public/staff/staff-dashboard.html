@@ -41,7 +41,19 @@
             <!-- Main Content -->
             <main class="flex-1 p-8">
                 <!-- Header -->
-                <header class="flex justify-end items-center mb-6">
+                <header class="flex justify-between items-center mb-6">
+                    <div>
+                        <nav class="text-sm mb-1">
+                            <ol class="list-none p-0 inline-flex text-gray-500">
+                                <li class="flex items-center">
+                                    <i class="fas fa-home text-primary"></i>
+                                    <span class="mx-2">/</span>
+                                </li>
+                                <li class="text-primary font-medium">แดชบอร์ด</li>
+                            </ol>
+                        </nav>
+                        <h1 class="text-2xl font-bold text-secondary">แดชบอร์ดพนักงาน</h1>
+                    </div>
                     <!-- ส่วนแสดงโปรไฟล์ผู้ใช้ -->
                     <div class="flex items-center space-x-3">
                         <div id="userAvatar" class="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 text-white font-bold border-2 border-green-500">
@@ -50,6 +62,12 @@
                         <span id="userName" class="text-secondary font-medium">
                             <!-- แสดงชื่อผู้ใช้ -->
                         </span>
+                        <button id="logoutButton" class="relative group p-2  hover:bg-red-50 text-red-600 hover:text-red-700 transition-all duration-200">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span class="absolute -bottom-8 right-0 w-24 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                ออกจากระบบ
+                            </span>
+                        </button>
                     </div>
                 </header>
                 
@@ -80,6 +98,7 @@
             </main>
         </div>
         <script src="/staff/components/load-sidebar.js"></script>
+        <script src="/admin/scripts/auth.js"></script>
         <script src="/staff/scripts/staff-dashboard.js"></script>
     </body>
 </html>

@@ -1,46 +1,42 @@
-<aside class="w-64 h-full bg-gradient-to-b from-primary to-green-700 text-white flex flex-col shadow-xl rounded-r-lg ">
+<aside class="w-64 h-full bg-gradient-to-b from-primary to-green-700 flex flex-col shadow-xl rounded-r-lg">
     <div class="relative flex justify-center items-center h-24 border-b border-white/20 px-4">
         <img src="/images/logo-sidebar.png" alt="" class="w-20 h-20">
     </div>
-    <ul class="space-y-4 p-4">
+    <ul class="space-y-2 p-4">
         <li>
-            <a href="/admin/" class="flex items-center space-x-3 text-gray-300 hover:text-gray-700 transition duration-200 p-3 rounded-lg hover:bg-green-600">
-                <i class="fas fa-home"></i><span>หน้าหลัก</span>
+            <a href="/admin/" class="flex items-center space-x-3 text-black p-3 rounded-lg hover:bg-green-50 hover:text-primary group transition-all duration-200">
+                <i class="fas fa-home w-5 text-black group-hover:text-primary transition-colors"></i>
+                <span class="font-medium">หน้าหลัก</span>
             </a>
         </li>
         <li>
-            <a href="/admin/setting.html" class="flex items-center space-x-3 text-gray-300 hover:text-gray-700 transition duration-200 p-3 rounded-lg hover:bg-green-600">
-                <i class="fas fa-cog"></i><span>การตั้งค่า</span>
+            <a href="/admin/setting.html" class="flex items-center space-x-3 text-black p-3 rounded-lg hover:bg-green-50 hover:text-primary group transition-all duration-200">
+                <i class="fas fa-cog w-5 text-black group-hover:text-primary transition-colors"></i>
+                <span class="font-medium">การตั้งค่า</span>
             </a>
         </li>
         <li>
-            <a href="/admin/manage-users.html" class="flex items-center space-x-3 text-gray-300 hover:text-gray-700 transition duration-200 p-3 rounded-lg hover:bg-green-600">
-                <i class="fas fa-users"></i><span>จัดการผู้ใช้</span>
+            <a href="/admin/manage-users.html" class="flex items-center space-x-3 text-black p-3 rounded-lg hover:bg-green-50 hover:text-primary group transition-all duration-200">
+                <i class="fas fa-users w-5 text-black group-hover:text-primary transition-colors"></i>
+                <span class="font-medium">จัดการผู้ใช้</span>
             </a>
         </li>
         <li>
-            <a href="/admin/loan-approval.html" class="flex items-center space-x-3 text-gray-300 hover:text-gray-700 transition duration-200 p-3 rounded-lg hover:bg-green-600">
-                <i class="fas fa-money-check-dollar"></i><span>จัดการบัญชีกู้ยืม</span>
-            </a>
-        </li>
-        <!--<li>
-            <a href="/admin/promise.html" class="flex items-center space-x-3 text-gray-300 hover:text-gray-700 transition duration-200 p-3 rounded-lg hover:bg-green-600">
-                <i class="fa-solid fa-money-check-dollar"></i><span>สัญญา</span>
-            </a>
-        </li> -->
-        <li>
-            <a href="/admin/reports.html" class="flex items-center space-x-3 text-gray-300 hover:text-gray-700 transition duration-200 p-3 rounded-lg hover:bg-green-600">
-                <i class="fas fa-chart-bar"></i><span>รายงานการเงิน</span>
-            </a>
-        </li> 
-        <li>
-            <a id="logoutButton" class="flex items-center space-x-3 text-red-500 hover:text-red-400 transition duration-200 p-3 rounded-lg hover:bg-green-600">
-                <i class="fas fa-sign-out-alt"></i><span>ออกจากระบบ</span>
+            <a href="/admin/loan-approval.html" class="flex items-center space-x-3 text-black p-3 rounded-lg hover:bg-green-50 hover:text-primary group transition-all duration-200">
+                <i class="fas fa-money-check-dollar w-5 text-black group-hover:text-primary transition-colors"></i>
+                <span class="font-medium">จัดการบัญชีกู้ยืม</span>
             </a>
         </li>
         <li>
-            <button id="toggleSidebar" class="w-full flex items-center space-x-3 text-white hover:text-white transition duration-200 p-3 rounded-lg hover:bg-green-600">
-                <i class="fas fa-angles-left"></i><span>ซ่อนเมนู</span>
+            <a href="/admin/reports.html" class="flex items-center space-x-3 text-black p-3 rounded-lg hover:bg-green-50 hover:text-primary group transition-all duration-200">
+                <i class="fas fa-chart-bar w-5 text-black group-hover:text-primary transition-colors"></i>
+                <span class="font-medium">รายงานการเงิน</span>
+            </a>
+        </li>
+        <li class="pt-4 mt-4 border-t border-gray-200">
+            <button id="toggleSidebar" class="w-full flex items-center space-x-3 text-black p-3 rounded-lg hover:bg-green-50 hover:text-primary group transition-all duration-200">
+                <i class="fas fa-angles-left w-5 text-black group-hover:text-primary transition-colors"></i>
+                <span class="font-medium">ซ่อนเมนู</span>
             </button>
         </li>
     </ul>

@@ -78,9 +78,6 @@ const observer = new MutationObserver((mutations) => {
 
 // เพิ่ม Event Listener สำหรับปุ่ม Toggle Sidebar เมื่อ DOM โหลดเสร็จ
 document.addEventListener('DOMContentLoaded', function () {
-    // เพิ่ม Event Listener สำหรับปุ่ม Toggle Sidebar
-    document.getElementById('toggleSidebar').addEventListener('click', toggleSidebar);
-
     // ฟังก์ชันแสดงข่าว
     const newsList = document.getElementById("newsList");
     
@@ -89,15 +86,63 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(data => {
             newsList.innerHTML = "";
             data.forEach(news => {
-                const li = document.createElement("li");
-                li.textContent = news.title + " - " + news.content;
-                li.classList.add("news-item");
-                newsList.appendChild(li);
+                const newsCard = document.createElement("div");
+                newsCard.className = "bg-white rounded-lg overflow-hidden shadow-lg border border-gray-200 transition-transform duration-300 hover:transform hover:scale-105";
+                
+                // สร้าง HTML สำหรับการ์ดข่าว
+                newsCard.innerHTML = `
+                    <div class="relative">
+                        <img src="${news.image || '/images/default-news.jpg'}" 
+                             alt="${news.title}"
+                             class="w-full h-48 object-cover">
+                        <div class="absolute top-0 right-0 bg-green-500 text-white px-2 py-1 text-sm rounded-bl-lg">
+                            ${new Date(news.createdAt).toLocaleDateString('th-TH')}
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">
+                            ${news.title}
+                        </h3>
+                        <p class="text-gray-600 text-sm line-clamp-3 mb-4">
+                            ${news.content}
+                        </p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-user-edit mr-2"></i>
+                                <span>${news.author || 'ผู้ดูแลระบบ'}</span>
+                            </div>
+                            ${news.link ? `
+                                <a href="${news.link}" target="_blank" 
+                                   class="text-primary hover:text-green-600 text-sm flex items-center">
+                                    อ่านเพิ่มเติม
+                                    <i class="fas fa-arrow-right ml-1"></i>
+                                </a>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+
+                newsList.appendChild(newsCard);
             });
+
+            // ถ้าไม่มีข่าว
+            if (data.length === 0) {
+                newsList.innerHTML = `
+                    <div class="col-span-full flex flex-col items-center justify-center py-8 text-gray-500">
+                        <i class="fas fa-newspaper text-4xl mb-2"></i>
+                        <p>ไม่มีข่าวสารในขณะนี้</p>
+                    </div>
+                `;
+            }
         })
         .catch(error => {
             console.error("Error fetching news:", error);
-            newsList.innerHTML = "<li class='error-message'>Failed to load news.</li>";
+            newsList.innerHTML = `
+                <div class="col-span-full flex flex-col items-center justify-center py-8 text-red-500">
+                    <i class="fas fa-exclamation-circle text-4xl mb-2"></i>
+                    <p>ไม่สามารถโหลดข่าวสารได้</p>
+                </div>
+            `;
         });
 });
 

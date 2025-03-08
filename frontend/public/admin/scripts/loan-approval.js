@@ -44,15 +44,67 @@ document.addEventListener('DOMContentLoaded', () => {
 // ===============================
 const fetchAndRenderLoanApplications = async () => {
     try {
-        const response = await fetch('/api/admin/promise-status/pending');
-        if (!response.ok) {
-            throw new Error('ไม่สามารถดึงข้อมูลคำขอกู้ได้');
+        const statusFilter = document.getElementById('statusFilter').value;
+        let endpoint = '/api/admin/promise-status';
+        
+        if (statusFilter !== 'all') {
+            endpoint += `?status=${statusFilter}`;
         }
-        allLoanApplications = await response.json();
-        renderLoanApplications(allLoanApplications);
+
+        const response = await fetch(endpoint, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        // ตรวจสอบโครงสร้างข้อมูลที่ได้รับ
+        if (!data.success) {
+            throw new Error(data.message || 'ไม่สามารถดึงข้อมูลคำขอกู้ได้');
+        }
+
+        if (!Array.isArray(data.promises)) {
+            throw new Error('ข้อมูลที่ได้รับไม่ถูกต้อง');
+        }
+
+        // ตรวจสอบและจัดการข้อมูลที่ขาดหาย
+        const validatedPromises = data.promises.map(promise => ({
+            _id: promise._id,
+            id_saving: promise.id_saving || 'ไม่ระบุ',
+            borrowerName: promise.borrowerName || 'ไม่ระบุชื่อ',
+            Datepromise: promise.Datepromise || new Date(),
+            amount: promise.amount || 0,
+            interestRate: promise.interestRate || 0,
+            DueDate: promise.DueDate || new Date(),
+            totalPaid: promise.totalPaid || 0,
+            payments: promise.payments || {},
+            status: promise.status || 'pending'
+        }));
+
+        allLoanApplications = validatedPromises;
+        renderLoanApplications(validatedPromises);
     } catch (error) {
         console.error('Error fetching loan applications:', error);
-        showError('ไม่สามารถดึงข้อมูลคำขอกู้ได้ กรุณาลองใหม่อีกครั้ง');
+        showError(error.message || 'ไม่สามารถดึงข้อมูลคำขอกู้ได้ กรุณาลองใหม่อีกครั้ง');
+        
+        // แสดงข้อความว่าไม่พบข้อมูลในตาราง
+        const tbody = document.querySelector('#loanApplicationsTable tbody');
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-red-500">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        ${error.message || 'ไม่สามารถดึงข้อมูลได้'}
+                    </td>
+                </tr>
+            `;
+        }
     }
 };
 
@@ -61,23 +113,22 @@ const renderLoanApplications = (applications) => {
     tbody.innerHTML = '';
 
     if (!applications || applications.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">ไม่พบรายการที่รออนุมัติ</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">ไม่พบรายการ</td></tr>';
         return;
     }
 
     applications.forEach(app => {
         const row = tbody.insertRow();
         
-        // วันที่
+        // วันที่ทำสัญญา
         const dateCell = row.insertCell();
         dateCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-900';
         const date = new Date(app.Datepromise);
-        dateCell.textContent = date.toLocaleDateString('th-TH');
-
-        // รหัสบัญชี
-        const accountCell = row.insertCell();
-        accountCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-900';
-        accountCell.textContent = app.id_saving;
+        dateCell.textContent = date.toLocaleDateString('th-TH', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
 
         // จำนวนเงิน
         const amountCell = row.insertCell();
@@ -85,33 +136,54 @@ const renderLoanApplications = (applications) => {
         amountCell.textContent = new Intl.NumberFormat('th-TH', {
             style: 'currency',
             currency: 'THB'
-        }).format(app.amount);
+        }).format(app.amount || 0);
 
-        // อัตราดอกเบี้ย
-        const interestCell = row.insertCell();
-        interestCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-900';
-        interestCell.textContent = `${app.interestRate}%`;
-
-        // วันครบกำหนด
-        const dueDateCell = row.insertCell();
-        dueDateCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-900';
+        // ระยะเวลา (คำนวณจากวันที่ทำสัญญาถึงวันครบกำหนด)
+        const termCell = row.insertCell();
+        termCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-900';
         const dueDate = new Date(app.DueDate);
-        dueDateCell.textContent = dueDate.toLocaleDateString('th-TH');
+        const months = Math.round((dueDate - date) / (30 * 24 * 60 * 60 * 1000));
+        termCell.textContent = `${months} เดือน`;
+
+        // สถานะ
+        const statusCell = row.insertCell();
+        statusCell.className = 'px-6 py-4 whitespace-nowrap text-sm';
+        const statusBadge = getStatusBadge(app.status);
+        statusCell.innerHTML = statusBadge;
 
         // การดำเนินการ
         const actionCell = row.insertCell();
-        actionCell.className = 'px-6 py-4 whitespace-nowrap text-right text-sm font-medium';
-        actionCell.innerHTML = `
-            <button onclick="handleApprove('${app._id}')" 
-                    class="text-green-600 hover:text-green-900 mr-3">
-                <i class="fas fa-check-circle mr-1"></i>อนุมัติ
-            </button>
-            <button onclick="handleReject('${app._id}')"
-                    class="text-red-600 hover:text-red-900">
-                <i class="fas fa-times-circle mr-1"></i>ปฏิเสธ
-            </button>
-        `;
+        actionCell.className = 'px-6 py-4 whitespace-nowrap text-center text-sm font-medium';
+        
+        if (app.status === 'pending') {
+            actionCell.innerHTML = `
+                <button onclick="handleApprove('${app._id}')" 
+                        class="text-green-600 hover:text-green-900 mr-3">
+                    <i class="fas fa-check-circle mr-1"></i>อนุมัติ
+                </button>
+                <button onclick="handleReject('${app._id}')"
+                        class="text-red-600 hover:text-red-900">
+                    <i class="fas fa-times-circle mr-1"></i>ปฏิเสธ
+                </button>
+            `;
+        } else {
+            actionCell.innerHTML = `
+                <button onclick="viewLoanDetails('${app._id}')"
+                        class="text-blue-600 hover:text-blue-900">
+                    <i class="fas fa-eye mr-1"></i>ดูรายละเอียด
+                </button>
+            `;
+        }
     });
+};
+
+const getStatusBadge = (status) => {
+    const badges = {
+        pending: '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">รอการอนุมัติ</span>',
+        approved: '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">อนุมัติแล้ว</span>',
+        rejected: '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">ปฏิเสธ</span>'
+    };
+    return badges[status] || '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">ไม่ระบุ</span>';
 };
 
 // ===============================
@@ -119,14 +191,24 @@ const renderLoanApplications = (applications) => {
 // ===============================
 const viewLoanDetails = async (loanId) => {
     try {
-        const response = await fetch(`/api/admin/loan-applications/${loanId}`);
+        const response = await fetch(`/api/admin/promise-status/${loanId}/details`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
         if (!response.ok) {
             throw new Error('ไม่สามารถดึงข้อมูลรายละเอียดคำขอกู้ได้');
         }
+        
         const loanDetails = await response.json();
+        if (!loanDetails.success) {
+            throw new Error(loanDetails.message || 'ไม่สามารถดึงข้อมูลรายละเอียดคำขอกู้ได้');
+        }
+        
         currentLoanId = loanId;
-
-        displayLoanDetails(loanDetails);
+        displayLoanDetails(loanDetails.data);
         document.getElementById('viewDetailsModal').style.display = 'flex';
     } catch (error) {
         console.error('Error fetching loan details:', error);
@@ -135,24 +217,28 @@ const viewLoanDetails = async (loanId) => {
 };
 
 const displayLoanDetails = (loanDetails) => {
-    // แสดงข้อมูลในโมดัล
-    document.getElementById('borrowerName').textContent = loanDetails.borrowerName;
-    document.getElementById('borrowerId').textContent = loanDetails.borrowerId;
-    document.getElementById('borrowerAddress').textContent = loanDetails.address;
-    document.getElementById('borrowerPhone').textContent = loanDetails.phone;
+    // แสดงข้อมูลผู้กู้
+    const borrower = loanDetails.saving?.id_member || {};
+    document.getElementById('borrowerName').textContent = borrower.name || 'ไม่ระบุ';
+    document.getElementById('borrowerAddress').textContent = borrower.address || 'ไม่ระบุ';
+    document.getElementById('borrowerPhone').textContent = borrower.phone || 'ไม่ระบุ';
+
+    // แสดงข้อมูลสัญญา
     document.getElementById('loanAmount').textContent = new Intl.NumberFormat('th-TH', {
         style: 'currency',
         currency: 'THB'
-    }).format(loanDetails.loanAmount);
-    document.getElementById('loanTerm').textContent = `${loanDetails.loanTerm} เดือน`;
-    document.getElementById('interestRate').textContent = `${loanDetails.interestRate}%`;
-    document.getElementById('monthlyPayment').textContent = new Intl.NumberFormat('th-TH', {
-        style: 'currency',
-        currency: 'THB'
-    }).format(loanDetails.monthlyPayment);
+    }).format(loanDetails.amount || 0);
 
-    displayAttachedDocuments(loanDetails.documents);
-    updateActionButtons(loanDetails.status);
+    // คำนวณระยะเวลาผ่อนชำระเป็นเดือน
+    const startDate = new Date(loanDetails.Datepromise);
+    const endDate = new Date(loanDetails.DueDate);
+    const months = Math.round((endDate - startDate) / (30 * 24 * 60 * 60 * 1000));
+    document.getElementById('loanTerm').textContent = `${months} เดือน`;
+
+    document.getElementById('interestRate').textContent = `${loanDetails.interestRate || 0}%`;
+
+    // อัปเดตปุ่มดำเนินการ
+    updateActionButtons(loanDetails.status || 'pending');
 };
 
 // ===============================
@@ -504,6 +590,11 @@ const initializeEventListeners = () => {
     if (searchInput) {
         searchInput.value = '';
         searchInput.autocomplete = 'off';
+    }
+
+    const statusFilter = document.getElementById('statusFilter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', fetchAndRenderLoanApplications);
     }
 
 };
