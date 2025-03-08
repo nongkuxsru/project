@@ -35,8 +35,18 @@
         <!-- Main Content -->
         <main class="flex-1 p-8">
             <header class="flex justify-between items-center mb-6">
-                <button id="toggleSidebar" class="text-secondary hover:text-gray-600 transition duration-200 text-lg">
-                </button>
+                <div>
+                    <nav class="text-sm mb-1">
+                        <ol class="list-none p-0 inline-flex text-gray-500">
+                            <li class="flex items-center">
+                                <i class="fas fa-home text-primary"></i>
+                                <span class="mx-2">/</span>
+                            </li>
+                            <li class="text-primary font-medium">จัดการผู้ใช้</li>
+                        </ol>
+                    </nav>
+                    <h1 class="text-2xl font-bold text-secondary">จัดการผู้ใช้ระบบ</h1>
+                </div>
                 <!-- ส่วนแสดงโปรไฟล์ผู้ใช้ -->
                 <div class="flex items-center space-x-3">
                     <div id="userAvatar" class="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 text-white font-bold border-2 border-green-500">
