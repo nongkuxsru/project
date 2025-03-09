@@ -404,7 +404,7 @@ const approvePromise = async () => {
         const response = await fetch(`/api/admin/promise-status/${currentLoanId}/approve`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ adminId: currentUser._id })
+            body: JSON.stringify({ directorId: currentUser._id })
         });
 
         if (!response.ok) {
@@ -444,7 +444,7 @@ const rejectPromise = async (reason) => {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                adminId: currentUser._id,
+                directorId: currentUser._id,
                 reason: reason
             })
         });

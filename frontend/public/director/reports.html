@@ -82,6 +82,48 @@
 
             <!-- Main Content Area -->
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-background p-6">
+                <!-- Report Controls -->
+                <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center space-x-4">
+                        <!-- ตัวเลือกช่วงเวลา -->
+                        <select id="reportPeriod" class="rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500">
+                            <option value="total">ข้อมูลรวมทั้งหมด</option>
+                            <option value="monthly">รายเดือน</option>
+                            <option value="yearly">รายปี</option>
+                        </select>
+                        <!-- ตัวเลือกปี -->
+                        <select id="yearSelect" class="rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500">
+                            <!-- จะถูกเติมด้วย JavaScript -->
+                        </select>
+                        <!-- ตัวเลือกเดือน (แสดงเฉพาะเมื่อเลือกรายเดือน) -->
+                        <select id="monthSelect" class="rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500">
+                            <option value="1">มกราคม</option>
+                            <option value="2">กุมภาพันธ์</option>
+                            <option value="3">มีนาคม</option>
+                            <option value="4">เมษายน</option>
+                            <option value="5">พฤษภาคม</option>
+                            <option value="6">มิถุนายน</option>
+                            <option value="7">กรกฎาคม</option>
+                            <option value="8">สิงหาคม</option>
+                            <option value="9">กันยายน</option>
+                            <option value="10">ตุลาคม</option>
+                            <option value="11">พฤศจิกายน</option>
+                            <option value="12">ธันวาคม</option>
+                        </select>
+                    </div>
+                    <!-- ปุ่ม Export -->
+                    <div class="flex items-center space-x-2">
+                        <button id="exportPDF" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                            <i class="fas fa-file-pdf mr-2"></i>
+                            Export PDF
+                        </button>
+                        <button id="exportExcel" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            <i class="fas fa-file-excel mr-2"></i>
+                            Export Excel
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Summary Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-primary">

@@ -64,6 +64,11 @@ const setupAuthEventListeners = () => {
             logoutButton.addEventListener('click', logout);
             logoutButton.hasListener = true;
         }
+        const quickActionLogoutButton = document.getElementById('quickActionLogoutButton');
+        if (quickActionLogoutButton && !quickActionLogoutButton.hasListener) {
+            quickActionLogoutButton.addEventListener('click', logout);
+            quickActionLogoutButton.hasListener = true;
+        }
     };
 
     // เรียกใช้ฟังก์ชันตั้งแต่เริ่มต้น

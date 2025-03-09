@@ -4,6 +4,8 @@ const User = require('../models/Users'); // นำเข้าโมเดล Us
 const Saving = require('../models/Saving'); // นำเข้าโมเดลบัญชีการออม
 const Promise = require('../models/Promise'); // นำเข้าโมเดล Promise
 const Transaction = require('../models/Transaction'); // นำเข้าโมเดล Transaction
+const PDFDocument = require('pdfkit');
+const ExcelJS = require('exceljs');
 
 
 // API สำหรับดึงข้อมูลสถิติ
@@ -129,7 +131,7 @@ router.put('/users/:id', async (req, res) => {
     }
 });
 
-// API สำหรับตั้ง PIN สำหรับผู้ดูแล
+// API สำหรับตั้ง PIN สำหรับผู้อำนวยการ
 router.put('/users/:userId/pin', async (req, res) => {
     try {
         const userId = req.params.userId;
@@ -142,15 +144,15 @@ router.put('/users/:userId/pin', async (req, res) => {
             });
         }
 
-        // ค้นหาผู้ใช้และตรวจสอบว่าเป็นผู้ดูแลหรือไม่
+        // ค้นหาผู้ใช้และตรวจสอบว่าเป็นผู้อำนวยการหรือไม่
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ message: 'ไม่พบผู้ใช้' });
         }
 
-        if (user.permission !== 'admin') {
+        if (user.permission !== 'director') {
             return res.status(400).json({ 
-                message: 'สามารถตั้ง PIN ได้เฉพาะผู้ดูแลระบบเท่านั้น' 
+                message: 'สามารถตั้ง PIN ได้เฉพาะผู้อำนวยการเท่านั้น' 
             });
         }
 
@@ -168,7 +170,7 @@ router.put('/users/:userId/pin', async (req, res) => {
     }
 });
 
-// API สำหรับตรวจสอบ PIN ของ admin
+// API สำหรับตรวจสอบ PIN ของผู้อำนวยการ
 router.post('/verify-pin', async (req, res) => {
     try {
         const { pin } = req.body;
@@ -185,13 +187,13 @@ router.post('/verify-pin', async (req, res) => {
             });
         }
 
-        // ค้นหา admin ที่มี PIN ตรงกับที่ส่งมา
-        const admin = await User.findOne({ 
-            permission: 'admin',
+        // ค้นหาผู้อำนวยการที่มี PIN ตรงกับที่ส่งมา
+        const director = await User.findOne({ 
+            permission: 'director',
             pin: pin
         });
 
-        if (!admin) {
+        if (!director) {
             return res.status(401).json({ message: 'PIN ไม่ถูกต้อง' });
         }
 
@@ -231,16 +233,16 @@ router.get('/promise-status/pending', async (req, res) => {
 router.put('/promise-status/:id/approve', async (req, res) => {
     try {
         const { id } = req.params;
-        const { adminId } = req.body;
+        const { directorId } = req.body;
 
-        // ตรวจสอบว่ามี adminId หรือไม่
-        if (!adminId) {
-            return res.status(400).json({ message: 'กรุณาระบุ ID ของผู้ดูแลระบบ' });
+        // ตรวจสอบว่ามี directorId หรือไม่
+        if (!directorId) {
+            return res.status(400).json({ message: 'กรุณาระบุ ID ของผู้อำนวยการ' });
         }
 
-        // ตรวจสอบว่าผู้ดูแลระบบมีอยู่จริงหรือไม่
-        const admin = await User.findById(adminId);
-        if (!admin || admin.permission !== 'admin') {
+        // ตรวจสอบว่าผู้อำนวยการมีอยู่จริงหรือไม่
+        const director = await User.findById(directorId);
+        if (!director || director.permission !== 'director') {
             return res.status(403).json({ message: 'ไม่มีสิทธิ์ในการอนุมัติสัญญา' });
         }
 
@@ -256,7 +258,7 @@ router.put('/promise-status/:id/approve', async (req, res) => {
 
         // อัปเดตสถานะสัญญา
         promise.status = 'approved';
-        promise.approvedBy = adminId;
+        promise.approvedBy = directorId;
         promise.approvedAt = new Date();
         await promise.save();
 
@@ -282,19 +284,19 @@ router.put('/promise-status/:id/approve', async (req, res) => {
 router.put('/promise-status/:id/reject', async (req, res) => {
     try {
         const { id } = req.params;
-        const { adminId, reason } = req.body;
+        const { directorId, reason } = req.body;
 
         // ตรวจสอบข้อมูลที่จำเป็น
-        if (!adminId) {
-            return res.status(400).json({ message: 'กรุณาระบุ ID ของผู้ดูแลระบบ' });
+        if (!directorId) {
+            return res.status(400).json({ message: 'กรุณาระบุ ID ของผู้อำนวยการ' });
         }
         if (!reason) {
             return res.status(400).json({ message: 'กรุณาระบุเหตุผลในการปฏิเสธ' });
         }
 
-        // ตรวจสอบว่าผู้ดูแลระบบมีอยู่จริงหรือไม่
-        const admin = await User.findById(adminId);
-        if (!admin || admin.permission !== 'admin') {
+        // ตรวจสอบว่าผู้อำนวยการมีอยู่จริงหรือไม่
+        const director = await User.findById(directorId);
+        if (!director || director.permission !== 'director') {
             return res.status(403).json({ message: 'ไม่มีสิทธิ์ในการปฏิเสธสัญญา' });
         }
 
@@ -310,7 +312,7 @@ router.put('/promise-status/:id/reject', async (req, res) => {
 
         // อัปเดตสถานะสัญญา
         promise.status = 'rejected';
-        promise.rejectedBy = adminId;
+        promise.rejectedBy = directorId;
         promise.rejectedAt = new Date();
         promise.rejectReason = reason;
         await promise.save();
@@ -330,258 +332,6 @@ router.put('/promise-status/:id/reject', async (req, res) => {
         res.status(500).json({ 
             message: 'เกิดข้อผิดพลาดในการปฏิเสธสัญญา', 
             error: error.message 
-        });
-    }
-});
-
-// API สำหรับรายงานทางการเงิน
-router.get('/financial-reports', async (req, res) => {
-    try {
-        // 1. ดึงข้อมูลเงินฝากรายเดือน
-        const monthlySavings = await Saving.aggregate([
-            {
-                $group: {
-                    _id: {
-                        year: { $year: "$createdAt" },
-                        month: { $month: "$createdAt" }
-                    },
-                    amount: { $sum: "$balance" }
-                }
-            },
-            { $sort: { "_id.year": 1, "_id.month": 1 } },
-            { $limit: 12 }
-        ]);
-
-        // 2. ดึงข้อมูลประเภทธุรกรรม
-        const currentMonthStart = new Date();
-        currentMonthStart.setDate(1);
-        currentMonthStart.setHours(0, 0, 0, 0);
-
-        const lastMonthStart = new Date(currentMonthStart);
-        lastMonthStart.setMonth(lastMonthStart.getMonth() - 1);
-
-        const currentMonthSavings = await Saving.aggregate([
-            {
-                $match: {
-                    createdAt: { $gte: currentMonthStart }
-                }
-            },
-            {
-                $group: {
-                    _id: null,
-                    total: { $sum: "$balance" }
-                }
-            }
-        ]);
-
-        const lastMonthSavings = await Saving.aggregate([
-            {
-                $match: {
-                    createdAt: {
-                        $gte: lastMonthStart,
-                        $lt: currentMonthStart
-                    }
-                }
-            },
-            {
-                $group: {
-                    _id: null,
-                    total: { $sum: "$balance" }
-                }
-            }
-        ]);
-
-        // แปลงข้อมูลให้อยู่ในรูปแบบที่ต้องการ
-        const thaiMonths = [
-            'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.',
-            'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.',
-            'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
-        ];
-
-        const formattedMonthlySavings = monthlySavings.map(item => ({
-            month: thaiMonths[item._id.month - 1],
-            amount: item.amount
-        }));
-
-        // 3. คำนวณข้อมูลสรุปทางการเงิน
-        const currentTotal = currentMonthSavings[0]?.total || 0;
-        const lastTotal = lastMonthSavings[0]?.total || 0;
-        const percentChange = lastTotal === 0 ? 100 : 
-            ((currentTotal - lastTotal) / lastTotal) * 100;
-
-        // 2. ดึงข้อมูลประเภทธุรกรรม
-        const transactionTypes = await Transaction.aggregate([
-            {
-                $facet: {
-                    // ธุรกรรมในเดือนนี้
-                    currentMonth: [
-                        {
-                            $match: {
-                                date: { $gte: currentMonthStart }
-                            }
-                        },
-                        {
-                            $group: {
-                                _id: "$type",
-                                count: { $sum: 1 },
-                                total: { $sum: "$amount" }
-                            }
-                        }
-                    ],
-                    // ธุรกรรมในเดือนที่แล้ว
-                    lastMonth: [
-                        {
-                            $match: {
-                                date: {
-                                    $gte: lastMonthStart,
-                                    $lt: currentMonthStart
-                                }
-                            }
-                        },
-                        {
-                            $group: {
-                                _id: "$type",
-                                count: { $sum: 1 },
-                                total: { $sum: "$amount" }
-                            }
-                        }
-                    ]
-                }
-            }
-        ]);
-
-        // แปลงชื่อประเภทธุรกรรมและคำนวณการเปลี่ยนแปลง
-        const getTransactionInfo = (type) => {
-            const types = {
-                'deposit': {
-                    name: 'เงินฝาก',
-                    color: '#1B8F4C', // สีเขียว
-                    bgColor: '#E3F5E9',
-                    icon: 'fa-arrow-circle-down'
-                },
-                'withdraw': {
-                    name: 'ถอนเงิน',
-                    color: '#DC2626', // สีแดง
-                    bgColor: '#FEE2E2',
-                    icon: 'fa-arrow-circle-up'
-                },
-                'transfer': {
-                    name: 'โอนเงิน',
-                    color: '#2563EB', // สีน้ำเงิน
-                    bgColor: '#EFF6FF',
-                    icon: 'fa-exchange-alt'
-                },
-                'loan_payment': {
-                    name: 'ชำระเงินกู้',
-                    color: '#7C3AED', // สีม่วง
-                    bgColor: '#F5F3FF',
-                    icon: 'fa-hand-holding-usd'
-                },
-                'interest': {
-                    name: 'ดอกเบี้ย',
-                    color: '#F59E0B', // สีส้ม
-                    bgColor: '#FEF3C7',
-                    icon: 'fa-percentage'
-                }
-            };
-            return types[type] || {
-                name: type,
-                color: '#6B7280', // สีเทาสำหรับประเภทที่ไม่ได้กำหนด
-                bgColor: '#F3F4F6',
-                icon: 'fa-circle'
-            };
-        };
-
-        const currentMonthData = transactionTypes[0].currentMonth.reduce((acc, curr) => {
-            acc[curr._id] = curr;
-            return acc;
-        }, {});
-
-        const lastMonthData = transactionTypes[0].lastMonth.reduce((acc, curr) => {
-            acc[curr._id] = curr;
-            return acc;
-        }, {});
-
-        // รวมประเภทธุรกรรมทั้งหมดที่มี
-        const allTypes = [...new Set([
-            ...transactionTypes[0].currentMonth.map(t => t._id),
-            ...transactionTypes[0].lastMonth.map(t => t._id)
-        ])];
-
-        const formattedTransactionTypes = allTypes.map(type => {
-            const current = currentMonthData[type] || { count: 0, total: 0 };
-            const last = lastMonthData[type] || { count: 0, total: 0 };
-            const info = getTransactionInfo(type);
-            
-            // คำนวณเปอร์เซ็นต์การเปลี่ยนแปลง
-            const countChange = last.count === 0 ? 100 :
-                ((current.count - last.count) / last.count) * 100;
-            
-            const amountChange = last.total === 0 ? 100 :
-                ((current.total - last.total) / last.total) * 100;
-
-            return {
-                type: info.name,
-                count: current.count,
-                amount: current.total,
-                countChange: parseFloat(countChange.toFixed(2)),
-                amountChange: parseFloat(amountChange.toFixed(2)),
-                color: info.color,
-                bgColor: info.bgColor,
-                icon: info.icon,
-                chartColor: info.color // เพิ่มสีสำหรับกราฟ
-            };
-        });
-
-        // จัดกลุ่มข้อมูลสำหรับกราฟวงกลม
-        const chartData = {
-            labels: formattedTransactionTypes.map(t => t.type),
-            datasets: [{
-                data: formattedTransactionTypes.map(t => t.count),
-                backgroundColor: formattedTransactionTypes.map(t => t.color),
-                borderColor: formattedTransactionTypes.map(t => t.color),
-                borderWidth: 1
-            }]
-        };
-
-        // เพิ่มข้อมูลธุรกรรมในส่วนสรุป
-        const totalTransactions = formattedTransactionTypes.reduce((acc, curr) => acc + curr.count, 0);
-        const totalAmount = formattedTransactionTypes.reduce((acc, curr) => acc + curr.amount, 0);
-        
-        // อัปเดต summary array
-        const summary = [
-            {
-                name: 'เงินฝากรวมเดือนนี้',
-                amount: currentTotal,
-                change: parseFloat(percentChange.toFixed(2)),
-                icon: 'fa-piggy-bank'
-            },
-            {
-                name: 'มูลค่าธุรกรรมรวม',
-                amount: totalAmount,
-                change: formattedTransactionTypes.reduce((acc, curr) => acc + curr.amountChange, 0) / formattedTransactionTypes.length,
-                icon: 'fa-money-bill-wave'
-            },
-            {
-                name: 'จำนวนธุรกรรมทั้งหมด',
-                amount: totalTransactions,
-                change: formattedTransactionTypes.reduce((acc, curr) => acc + curr.countChange, 0) / formattedTransactionTypes.length,
-                icon: 'fa-exchange-alt'
-            }
-        ];
-
-        res.json({
-            monthlySavings: formattedMonthlySavings,
-            transactionTypes: formattedTransactionTypes,
-            chartData, // ส่งข้อมูลกราฟแยกออกมา
-            summary
-        });
-
-    } catch (error) {
-        console.error('Error generating financial reports:', error);
-        res.status(500).json({
-            message: 'เกิดข้อผิดพลาดในการสร้างรายงานทางการเงิน',
-            error: error.message
         });
     }
 });
@@ -732,5 +482,360 @@ router.put('/users/:id/password', async (req, res) => {
         });
     }
 });
+
+// API สำหรับรายงานทางการเงิน
+router.get('/financial-reports', async (req, res) => {
+    try {
+        // ดึงข้อมูลทั้งหมด
+        const transactions = await Transaction.aggregate([
+            {
+                $group: {
+                    _id: {
+                        type: '$type',
+                        month: { $month: '$createdAt' },
+                        year: { $year: '$createdAt' }
+                    },
+                    count: { $sum: 1 },
+                    amount: { $sum: '$amount' }
+                }
+            }
+        ]);
+
+        // คำนวณข้อมูลสรุป
+        const summary = calculateSummary(transactions);
+        
+        // จัดเตรียมข้อมูลกราฟ
+        const monthlySavings = prepareMonthlySavingsData(transactions);
+        const transactionTypes = prepareTransactionTypesData(transactions);
+
+        res.json({
+            summary,
+            monthlySavings,
+            transactionTypes
+        });
+
+    } catch (error) {
+        console.error('Error fetching total financial reports:', error);
+        res.status(500).json({ message: 'เกิดข้อผิดพลาดในการดึงข้อมูลรายงานรวม' });
+    }
+});
+
+/**
+ * @route GET /api/admin/financial-reports/:period/:year/:month?
+ * @desc ดึงข้อมูลรายงานทางการเงินตามช่วงเวลา
+ * @access Private (Admin only)
+ */
+router.get('/financial-reports/:period/:year/:month?', async (req, res) => {
+    try {
+        const { period, year } = req.params;
+        const month = req.params.month ? parseInt(req.params.month) : null;
+        
+        // ตรวจสอบความถูกต้องของข้อมูล
+        if (!['monthly', 'yearly'].includes(period)) {
+            return res.status(400).json({ message: 'รูปแบบช่วงเวลาไม่ถูกต้อง' });
+        }
+
+        const currentYear = new Date().getFullYear();
+        if (year < currentYear - 5 || year > currentYear) {
+            return res.status(400).json({ message: 'ปีที่ระบุไม่อยู่ในช่วงที่กำหนด' });
+        }
+
+        if (month && (month < 1 || month > 12)) {
+            return res.status(400).json({ message: 'เดือนที่ระบุไม่ถูกต้อง' });
+        }
+
+        // สร้าง query conditions
+        let matchConditions = {
+            createdAt: {
+                $gte: new Date(year, period === 'monthly' && month ? month - 1 : 0, 1),
+                $lt: new Date(year, period === 'monthly' && month ? month : 12, 31)
+            }
+        };
+
+        // ดึงข้อมูลธุรกรรมจาก MongoDB
+        const transactions = await Transaction.aggregate([
+            { $match: matchConditions },
+            {
+                $group: {
+                    _id: {
+                        type: '$type',
+                        month: { $month: '$createdAt' }
+                    },
+                    count: { $sum: 1 },
+                    amount: { $sum: '$amount' }
+                }
+            }
+        ]);
+
+        // คำนวณข้อมูลสรุป
+        const summary = calculateSummary(transactions);
+        
+        // จัดเตรียมข้อมูลกราฟ
+        const monthlySavings = prepareMonthlySavingsData(transactions);
+        const transactionTypes = prepareTransactionTypesData(transactions);
+
+        res.json({
+            summary,
+            monthlySavings,
+            transactionTypes
+        });
+
+    } catch (error) {
+        console.error('Error fetching financial reports:', error);
+        res.status(500).json({ message: 'เกิดข้อผิดพลาดในการดึงข้อมูลรายงาน' });
+    }
+});
+
+/**
+ * @route GET /api/admin/reports/export/pdf/:period/:year/:month?
+ * @desc ส่งออกรายงานในรูปแบบ PDF
+ * @access Private (Admin only)
+ */
+router.get('/reports/export/pdf/:period/:year/:month?', async (req, res) => {
+    try {
+        const { period, year } = req.params;
+        const month = req.params.month ? parseInt(req.params.month) : null;
+
+        // ดึงข้อมูลรายงาน
+        const reportData = await generateReportData(period, year, month);
+
+        // สร้าง PDF ด้วย PDFKit
+        const doc = new PDFDocument({
+            size: 'A4',
+            margin: 50,
+            info: {
+                Title: `รายงานการเงิน ${period === 'monthly' ? 'รายเดือน' : 'รายปี'}`,
+                Author: 'สหกรณ์ออมทรัพย์'
+            }
+        });
+
+        // ตั้งค่าการตอบกลับ
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=financial_report_${period}_${year}${month ? '_' + month : ''}.pdf`);
+
+        // Pipe PDF ไปยัง response
+        doc.pipe(res);
+
+        // สร้าง PDF content
+        await generatePDFContent(doc, reportData);
+
+        // จบการสร้าง PDF
+        doc.end();
+
+    } catch (error) {
+        console.error('Error exporting PDF:', error);
+        res.status(500).json({ message: 'เกิดข้อผิดพลาดในการส่งออกไฟล์ PDF' });
+    }
+});
+
+/**
+ * @route GET /api/admin/reports/export/excel/:period/:year/:month?
+ * @desc ส่งออกรายงานในรูปแบบ Excel
+ * @access Private (Admin only)
+ */
+router.get('/reports/export/excel/:period/:year/:month?', async (req, res) => {
+    try {
+        const { period, year } = req.params;
+        const month = req.params.month ? parseInt(req.params.month) : null;
+
+        // ดึงข้อมูลรายงาน
+        const reportData = await generateReportData(period, year, month);
+
+        // สร้าง workbook และ worksheet
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('รายงานการเงิน');
+
+        // จัดรูปแบบ worksheet
+        await formatExcelWorksheet(worksheet, reportData);
+
+        // ตั้งค่าการตอบกลับ
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename=financial_report_${period}_${year}${month ? '_' + month : ''}.xlsx`);
+
+        // ส่ง workbook
+        await workbook.xlsx.write(res);
+
+    } catch (error) {
+        console.error('Error exporting Excel:', error);
+        res.status(500).json({ message: 'เกิดข้อผิดพลาดในการส่งออกไฟล์ Excel' });
+    }
+});
+
+
+
+// ฟังก์ชันช่วยเหลือ
+const calculateSummary = (transactions) => {
+    try {
+        const summary = {
+            totalTransactions: 0,
+            totalAmount: 0,
+            averageAmount: 0,
+            growthRate: 0
+        };
+
+        if (!Array.isArray(transactions) || transactions.length === 0) {
+            return summary;
+        }
+
+        // คำนวณข้อมูลสรุป
+        transactions.forEach(t => {
+            summary.totalTransactions += t.count || 0;
+            summary.totalAmount += t.amount || 0;
+        });
+
+        summary.averageAmount = summary.totalTransactions > 0 ? 
+            summary.totalAmount / summary.totalTransactions : 0;
+
+        // คำนวณอัตราการเติบโต
+        const sortedTransactions = transactions
+            .sort((a, b) => {
+                const dateA = new Date(a._id.year, a._id.month - 1);
+                const dateB = new Date(b._id.year, b._id.month - 1);
+                return dateA - dateB;
+            });
+
+        if (sortedTransactions.length >= 2) {
+            const lastMonth = sortedTransactions[sortedTransactions.length - 1];
+            const previousMonth = sortedTransactions[sortedTransactions.length - 2];
+            if (previousMonth.amount !== 0) {
+                summary.growthRate = ((lastMonth.amount - previousMonth.amount) / previousMonth.amount) * 100;
+            }
+        }
+
+        return summary;
+    } catch (error) {
+        console.error('Error calculating summary:', error);
+        return {
+            totalTransactions: 0,
+            totalAmount: 0,
+            averageAmount: 0,
+            growthRate: 0
+        };
+    }
+};
+
+const prepareMonthlySavingsData = (transactions) => {
+    try {
+        if (!Array.isArray(transactions)) {
+            return [];
+        }
+
+        // จัดกลุ่มข้อมูลตามเดือนและปี
+        const monthlyData = transactions.reduce((acc, t) => {
+            if (t._id.type === 'deposit') {
+                const key = `${t._id.year}-${t._id.month}`;
+                acc[key] = (acc[key] || 0) + (t.amount || 0);
+            }
+            return acc;
+        }, {});
+
+        // เรียงข้อมูลตามวันที่
+        const sortedData = Object.entries(monthlyData)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .slice(-12); // แสดงเฉพาะ 12 เดือนล่าสุด
+
+        return sortedData.map(([date, amount]) => {
+            const [year, month] = date.split('-');
+            return {
+                month: new Date(year, month - 1, 1).toLocaleString('th-TH', { month: 'long', year: 'numeric' }),
+                amount: amount || 0
+            };
+        });
+    } catch (error) {
+        console.error('Error preparing monthly savings data:', error);
+        return [];
+    }
+};
+
+const prepareTransactionTypesData = (transactions) => {
+    try {
+        if (!Array.isArray(transactions)) {
+            return [];
+        }
+
+        // จัดกลุ่มข้อมูลตามประเภทธุรกรรม
+        const typeData = transactions.reduce((acc, t) => {
+            const type = t._id.type;
+            if (!acc[type]) {
+                acc[type] = { count: 0, amount: 0 };
+            }
+            acc[type].count += t.count || 0;
+            acc[type].amount += t.amount || 0;
+            return acc;
+        }, {});
+
+        const getTransactionInfo = (type) => {
+            const types = {
+                'deposit': {
+                    name: 'เงินฝาก',
+                    color: '#1B8F4C',
+                    bgColor: '#E3F5E9',
+                    icon: 'fa-arrow-circle-down'
+                },
+                'withdraw': {
+                    name: 'ถอนเงิน',
+                    color: '#DC2626',
+                    bgColor: '#FEE2E2',
+                    icon: 'fa-arrow-circle-up'
+                },
+                'transfer': {
+                    name: 'โอนเงิน',
+                    color: '#2563EB',
+                    bgColor: '#EFF6FF',
+                    icon: 'fa-exchange-alt'
+                },
+                'loan_payment': {
+                    name: 'ชำระเงินกู้',
+                    color: '#7C3AED',
+                    bgColor: '#F5F3FF',
+                    icon: 'fa-hand-holding-usd'
+                },
+                'interest': {
+                    name: 'ดอกเบี้ย',
+                    color: '#F59E0B',
+                    bgColor: '#FEF3C7',
+                    icon: 'fa-percentage'
+                }
+            };
+            return types[type] || {
+                name: type,
+                color: '#6B7280',
+                bgColor: '#F3F4F6',
+                icon: 'fa-circle'
+            };
+        };
+
+        return Object.entries(typeData).map(([type, data]) => {
+            const info = getTransactionInfo(type);
+            return {
+                type: info.name,
+                count: data.count,
+                amount: data.amount,
+                color: info.color,
+                bgColor: info.bgColor,
+                icon: info.icon
+            };
+        });
+    } catch (error) {
+        console.error('Error preparing transaction types data:', error);
+        return [];
+    }
+};
+
+const generateReportData = async (period, year, month) => {
+    // ดึงข้อมูลจาก MongoDB และจัดรูปแบบสำหรับรายงาน
+    // Implementation here...
+    return {};
+};
+
+const generatePDFContent = async (doc, data) => {
+    // สร้างเนื้อหา PDF
+    // Implementation here...
+};
+
+const formatExcelWorksheet = async (worksheet, data) => {
+    // จัดรูปแบบ Excel worksheet
+    // Implementation here...
+};
 
 module.exports = router;
