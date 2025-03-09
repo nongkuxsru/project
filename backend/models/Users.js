@@ -30,8 +30,8 @@ const UserSchema = new mongoose.Schema({
     permission: {
         type: String,
         required: true,
-        enum: ['admin', 'staff', 'user'], // จำกัดค่า permission
-        default: 'user'
+        enum: ['admin', 'director', 'staff', 'member'], // จำกัดค่า permission
+        default: 'member'
     },
     pin: {
         type: String,

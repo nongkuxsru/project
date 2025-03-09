@@ -47,8 +47,12 @@ app.get('/staff', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/public/staff/staff-dashboard.html'));
 });
 
-app.get('/user', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/public/user/user-dashboard.html'));
+app.get('/member', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/member/member-dashboard.html'));
+});
+
+app.get('/director', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/director/director-dashboard.html'));
 });
 
 

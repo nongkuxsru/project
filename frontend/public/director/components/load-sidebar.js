@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        const response = await fetch('/user/components/sidebar.html');
+        const response = await fetch('/director/components/sidebar.html');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

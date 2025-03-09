@@ -226,20 +226,17 @@ const renderUsers = (users) => {
     const usersTable = document.getElementById('usersTable').getElementsByTagName('tbody')[0];
     usersTable.innerHTML = '';
 
-    // คำนวณ index เริ่มต้นและสิ้นสุดของข้อมูลที่จะแสดงในหน้าปัจจุบัน
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
-    
-    // กรองข้อมูลที่จะแสดงในหน้าปัจจุบัน
     const usersToDisplay = users.slice(startIndex, endIndex);
-    
-    // คำนวณจำนวนหน้าทั้งหมด
     totalPages = Math.ceil(users.length / rowsPerPage);
 
     usersToDisplay.forEach(user => {
+        // ข้ามการแสดงผู้ใช้ที่มีสิทธิ์ admin
+        if (user.permission === 'admin') return;
+        
         const row = usersTable.insertRow();
         
-        // เพิ่ม class ให้กับทุก cell เพื่อให้เส้นขอบต่อเนื่อง
         const nameCell = row.insertCell();
         nameCell.className = 'border px-4 py-2';
         nameCell.textContent = user.name;
@@ -251,15 +248,7 @@ const renderUsers = (users) => {
         // เซลล์สำหรับสิทธิ์ผู้ใช้
         const permissionCell = row.insertCell();
         permissionCell.className = 'border px-4 py-2';
-        permissionCell.innerHTML = `
-            <span class="px-2 py-1 rounded-full text-sm font-semibold inline-block
-                ${user.permission === 'admin' ? 'bg-purple-100 text-purple-700' : 
-                user.permission === 'staff' ? 'bg-blue-100 text-blue-700' : 
-                'bg-green-100 text-green-700'}">
-                ${user.permission === 'admin' ? 'ผู้ดูแล' : 
-                user.permission === 'staff' ? 'พนักงาน' : 'ผู้ใช้'}
-            </span>
-        `;
+        permissionCell.innerHTML = getPermissionBadge(user.permission);
 
         // เซลล์สำหรับปุ่ม Actions
         const actionsCell = row.insertCell();
@@ -267,23 +256,7 @@ const renderUsers = (users) => {
         const actionWrapper = document.createElement('div');
         actionWrapper.className = 'flex justify-center gap-2';
         actionWrapper.innerHTML = `
-            <button 
-                class="edit-btn bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
-                data-user-id="${user._id}"
-                title="แก้ไขข้อมูล">
-                <i class="fas fa-edit"></i>
-                <span>แก้ไข</span>
-            </button>
-            ${user.permission !== 'admin' ? `
-                <button 
-                    class="delete-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
-                    data-user-id="${user._id}"
-                    title="ลบผู้ใช้">
-                    <i class="fas fa-trash-alt"></i>
-                    <span>ลบ</span>
-                </button>
-            ` : ''}
-            ${user.permission === 'admin' ? `
+            ${user.permission === 'director' ? `
                 <button 
                     class="reset-pin-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
                     data-user-id="${user._id}"
@@ -293,15 +266,45 @@ const renderUsers = (users) => {
                     <span>รีเซ็ต PIN</span>
                 </button>
             ` : ''}
+            <button 
+                class="edit-btn bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
+                data-user-id="${user._id}"
+                title="แก้ไขข้อมูล">
+                <i class="fas fa-edit"></i>
+                <span>แก้ไข</span>
+            </button>
+            <button 
+                    class="delete-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
+                    data-user-id="${user._id}"
+                    title="ลบผู้ใช้">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>ลบ</span>
+            </button>
+            
         `;
         actionsCell.appendChild(actionWrapper);
     });
 
-    // เพิ่ม event listener ให้กับปุ่ม Actions
     addActionButtonListeners();
-
-    // สร้าง pagination controls
     renderPagination();
+};
+
+// ฟังก์ชันสำหรับสร้าง badge แสดงสิทธิ์
+const getPermissionBadge = (permission) => {
+    const badges = {
+        admin: { bg: 'bg-purple-100', text: 'text-purple-700', label: 'ผู้ดูแลระบบ' },
+        director: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'ผู้อำนวยการ' },
+        staff: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'เจ้าหน้าที่' },
+        member: { bg: 'bg-green-100', text: 'text-green-700', label: 'สมาชิก' }
+    };
+
+    const badge = badges[permission] || badges.member;
+    return `
+        <span class="px-2 py-1 rounded-full text-sm font-semibold inline-block
+            ${badge.bg} ${badge.text}">
+            ${badge.label}
+        </span>
+    `;
 };
 
 // ฟังก์ชันสำหรับเพิ่ม event listener ให้กับปุ่ม Actions
@@ -442,65 +445,67 @@ const openAddUserModal = () => {
     }
 
     // จัดการการส่งฟอร์ม (ส่วนที่เหลือคงเดิม)
-    form.onsubmit = async (e) => {
-        e.preventDefault();
-    
-        const permission = document.getElementById('addPermission').value;
-    
-        const newUser = {
-            name: document.getElementById('addName').value,
-            email: document.getElementById('addEmail').value,
-            password: document.getElementById('addPassword').value,
-            address: document.getElementById('addAddress').value,
-            phone: document.getElementById('addPhone').value,
-            birthday: convertToAD(document.getElementById('addBirthday').value),
-            permission: permission
-        };
-    
-        try {
-            const response = await fetch('/api/admin/users', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newUser),
-            });
-    
-            const result = await response.json();
-            
-            if (!response.ok) {
-                throw new Error(result.message || 'ไม่สามารถเพิ่มผู้ใช้ได้');
-            }
-    
-            if (!result._id) {
-                throw new Error('ไม่พบ User ID ในการตอบกลับจาก API');
-            }
+    form.onsubmit = handleAddUserSubmit;
+};
 
-            // สร้างบัญชีออมทรัพย์
-            await createSavingAccount(result._id);
-            
-            // ถ้าเป็นผู้ดูแล ให้แสดง modal สำหรับตั้ง PIN
-            if (permission === 'admin') {
-                modal.style.display = 'none';
-                await showSetPinModal(result._id);
-            } else {
-                modal.style.display = 'none';
-                await fetchAndRenderUsers();
-                Swal.fire({
-                    icon: 'success',
-                    title: 'เพิ่มผู้ใช้สำเร็จ',
-                    text: 'ผู้ใช้ได้ถูกเพิ่มเข้ามาแล้ว',
-                });
-            }
-            
-            form.reset();
-        } catch (error) {
-            console.error('Error adding user:', error);
+const handleAddUserSubmit = async (e) => {
+    e.preventDefault();
+    
+    const permission = document.getElementById('addPermission').value;
+    
+    const newUser = {
+        name: document.getElementById('addName').value,
+        email: document.getElementById('addEmail').value,
+        password: document.getElementById('addPassword').value,
+        address: document.getElementById('addAddress').value,
+        phone: document.getElementById('addPhone').value,
+        birthday: convertToAD(document.getElementById('addBirthday').value),
+        permission: permission
+    };
+
+    try {
+        const response = await fetch('/api/admin/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newUser),
+        });
+
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'ไม่สามารถเพิ่มผู้ใช้ได้');
+        }
+
+        if (!result._id) {
+            throw new Error('ไม่พบ User ID ในการตอบกลับจาก API');
+        }
+
+        // สร้างบัญชีออมทรัพย์
+        await createSavingAccount(result._id);
+        
+        // ถ้าเป็นผู้อำนวยการ ให้แสดง modal สำหรับตั้ง PIN
+        if (permission === 'director') {
+            document.getElementById('addUserModal').style.display = 'none';
+            await showSetPinModal(result._id);
+        } else {
+            document.getElementById('addUserModal').style.display = 'none';
+            await fetchAndRenderUsers();
             Swal.fire({
-                icon: 'error',
-                title: 'เกิดข้อผิดพลาด',
-                text: error.message || 'ไม่สามารถเพิ่มผู้ใช้ได้ กรุณาลองใหม่',
+                icon: 'success',
+                title: 'เพิ่มผู้ใช้สำเร็จ',
+                text: 'ผู้ใช้ได้ถูกเพิ่มเข้ามาแล้ว',
             });
         }
-    };
+        
+        e.target.reset();
+    } catch (error) {
+        console.error('Error adding user:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
+            text: error.message || 'ไม่สามารถเพิ่มผู้ใช้ได้ กรุณาลองใหม่',
+        });
+    }
 };
 
 const resetPin = async (userId) => {
@@ -603,7 +608,7 @@ const resetPin = async (userId) => {
 // เพิ่มฟังก์ชันสำหรับแสดง modal ตั้ง PIN
 const showSetPinModal = async (userId) => {
     const result = await Swal.fire({
-        title: 'ตั้ง PIN สำหรับผู้ดูแล',
+        title: 'ตั้ง PIN สำหรับผู้อำนวยการ',
         html: `
             <input type="password" 
                 id="pin" 
@@ -643,7 +648,7 @@ const showSetPinModal = async (userId) => {
             Swal.fire({
                 icon: 'success',
                 title: 'เพิ่มผู้ใช้และตั้ง PIN สำเร็จ',
-                text: 'ผู้ดูแลระบบได้ถูกเพิ่มเข้ามาแล้ว',
+                text: 'ผู้อำนวยการได้ถูกเพิ่มเข้ามาแล้ว',
             });
         } catch (error) {
             console.error('Error setting PIN:', error);
@@ -659,8 +664,8 @@ const showSetPinModal = async (userId) => {
             await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
             Swal.fire({
                 icon: 'info',
-                title: 'ยกเลิกการเพิ่มผู้ดูแล',
-                text: 'การเพิ่มผู้ดูแลถูกยกเลิกเนื่องจากไม่ได้ตั้ง PIN',
+                title: 'ยกเลิกการเพิ่มผู้อำนวยการ',
+                text: 'การเพิ่มผู้อำนวยการถูกยกเลิกเนื่องจากไม่ได้ตั้ง PIN',
             });
         } catch (error) {
             console.error('Error deleting user:', error);

@@ -4,33 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" sizes="16x16" href="../images/logo.png"/>
-    <title>ระบบฝาก – ถอนเงินสหกรณ์ออมทรัพย์หมู่บ้าน ตําบล ตะกุกเหนือ</title>
+    <title>จัดการผู้ใช้ - สหกรณ์ออมทรัพย์</title>
     <link rel="stylesheet" href="/styles/setting.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: '#1B8F4C', // สีเขียวสดที่โดดเด่น
-                        secondary: '#264C3B', // สีเขียวเข้มที่ให้ความรู้สึกมั่นคง
-                        accent: '#D9D92E', // สีเหลืองทองที่โดดเด่น
-                        background: '#F1F8F4', // พื้นหลังสีเขียวอ่อน
-                        foreground: '#FFFFFF' // สีขาวสำหรับองค์ประกอบ
+                        primary: '#1B8F4C',
+                        secondary: '#264C3B',
+                        accent: '#D9D92E',
+                        background: '#F1F8F4',
+                        foreground: '#FFFFFF'
                     },
                     fontFamily: {
-                        sans: ['IBM Plex Sans Thai', 'sans-serif'], // ฟอนต์ที่อ่านง่าย
-                        heading: ['Poppins', 'sans-serif'] // ฟอนต์สำหรับหัวข้อ
+                        sans: ['IBM Plex Sans Thai', 'sans-serif'],
+                        heading: ['Poppins', 'sans-serif']
                     }
                 }
             }
         }
     </script>
 </head>
-
 <body class="bg-background text-secondary font-sans">
     <div class="flex h-screen">
         <!-- Main Content -->
@@ -103,9 +102,10 @@
                             <!-- ข้อมูลผู้ใช้จะถูกเพิ่มโดย JavaScript -->
                         </tbody>
                     </table>
-                </div>
-                <div id="pagination" class="flex justify-center items-center space-x-2 mt-4">
-                    <!-- Pagination controls จะถูกเพิ่มโดย JavaScript -->
+                    <!-- เพิ่ม container สำหรับ pagination -->
+                    <div id="pagination" class="flex justify-center items-center space-x-2 mt-4">
+                        <!-- Pagination controls จะถูกเพิ่มโดย JavaScript -->
+                    </div>
                 </div>
             </section>
 
@@ -149,10 +149,9 @@
                                 <label for="editPermission" class="block text-sm font-medium text-gray-700">สิทธิ์</label>
                                 <select id="editPermission" name="permission" required
                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
-                                    <option value="admin">ผู้ดูแลระบบ</option>
-                                    <option value="director">ผู้อำนวยการ</option>
+                                    <option value="director">ผู้ดูแลระบบ</option>
                                     <option value="staff">เจ้าหน้าที่</option>
-                                    <option value="member">สมาชิก</option>
+                                    <option value="user">ผู้ใช้</option>
                                 </select>
                             </div>
                             <div class="col-span-2">
@@ -213,10 +212,9 @@
                                 <label for="addPermission" class="block text-sm font-medium text-gray-700">สิทธิ์</label>
                                 <select id="addPermission" name="permission" required
                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
-                                    <option value="admin">ผู้ดูแลระบบ</option>
-                                    <option value="director">ผู้อำนวยการ</option>
+                                    <option value="director">ผู้ดูแลระบบ</option>
                                     <option value="staff">เจ้าหน้าที่</option>
-                                    <option value="member">สมาชิก</option>
+                                    <option value="user">ผู้ใช้</option>
                                 </select>
                             </div>
                             <div class="col-span-2">
@@ -236,11 +234,13 @@
                     </form>
                 </div>
             </div>
+            
         </main>
     </div>
 
-    <script src="/staff/components/load-sidebar.js"></script>
-    <script src="/admin/scripts/auth.js"></script>
-    <script src="/staff/scripts/manage-users.js"></script>
+    <!-- Scripts -->
+    <script src="/director/components/load-sidebar.js"></script>
+    <script src="/director/scripts/auth.js"></script>
+    <script src="/director/scripts/manage-users.js"></script>
 </body>
 </html>

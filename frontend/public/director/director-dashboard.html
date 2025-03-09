@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="th">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/png" sizes="16x16" href="../images/logo.png"/>
+        <title>แดชบอร์ดผู้ดูแลระบบ - สหกรณ์ออมทรัพย์</title>
+        <link rel="stylesheet" href="/styles/setting.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: '#1B8F4C',
+                            secondary: '#264C3B',
+                            accent: '#D9D92E',
+                            background: '#F1F8F4',
+                            foreground: '#FFFFFF'
+                        },
+                        fontFamily: {
+                            sans: ['IBM Plex Sans Thai', 'sans-serif'],
+                            heading: ['Poppins', 'sans-serif']
+                        }
+                    }
+                }
+            }
+        </script>
+    </head>
+
+<body class="bg-background text-secondary font-sans">
+    <div class="flex h-screen">
+        <!-- Main Content -->
+        <main class="flex-1 p-8">
+            <header class="flex justify-between items-center mb-6">
+                <div>
+                    <nav class="text-sm mb-1">
+                        <ol class="list-none p-0 inline-flex text-gray-500">
+                            <li class="flex items-center">
+                                <i class="fas fa-home text-primary"></i>
+                                <span class="mx-2">/</span>
+                            </li>
+                            <li class="text-primary font-medium">แดชบอร์ด</li>
+                        </ol>
+                    </nav>
+                    <h1 class="text-2xl font-bold text-secondary">แดชบอร์ดหัวหน้าหน่วยงาน</h1>
+                </div>
+                <!-- ส่วนแสดงโปรไฟล์ผู้ใช้ -->
+                <div class="flex items-center space-x-3">
+                    <div id="userAvatar" class="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 text-white font-bold border-2 border-green-500">
+                        <!-- แสดงอักษรย่อจากชื่อผู้ใช้ -->
+                    </div>
+                    <span id="userName" class="text-secondary font-medium">
+                        <!-- แสดงชื่อผู้ใช้ -->
+                    </span>
+                    <button id="logoutButton" class="relative group p-2  hover:bg-red-50 text-red-600 hover:text-red-700 transition-all duration-200">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span class="absolute -bottom-8 right-0 w-24 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            ออกจากระบบ
+                        </span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Stats Section -->
+            <section class="bg-white p-6 shadow-lg rounded-lg w-full max-w-6xl mx-auto border-2 border-green-500">
+                <h2 class="text-2xl font-bold text-primary mb-6 flex items-center">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    สถิติภาพรวมระบบ
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- จำนวนผู้ใช้ทั้งหมด -->
+                    <div class="bg-gray-50 p-6 rounded-lg shadow-md border border-green-200">
+                        <div class="flex items-center space-x-2 mb-4">
+                            <i class="fas fa-users text-green-600 text-xl"></i>
+                            <h3 class="text-lg font-semibold">จำนวนผู้ใช้ทั้งหมด</h3>
+                        </div>
+                        <p id="totalUsers" class="text-3xl font-bold text-gray-800">กำลังโหลด...</p>
+                    </div>
+
+                    <!-- ผู้ใช้ที่ใช้งาน -->
+                    <div class="bg-green-50 p-6 rounded-lg shadow-md border border-green-200">
+                        <div class="flex items-center space-x-2 mb-4">
+                            <i class="fas fa-user-check text-green-600 text-xl"></i>
+                            <h3 class="text-lg font-semibold">ผู้ใช้ที่ใช้งาน</h3>
+                        </div>
+                        <p id="activeUsers" class="text-3xl font-bold text-green-600">กำลังโหลด...</p>
+                    </div>
+
+                    <!-- บัญชีเงินฝากรวม -->
+                    <div class="bg-blue-50 p-6 rounded-lg shadow-md border border-blue-200">
+                        <div class="flex items-center space-x-2 mb-4">
+                            <i class="fas fa-piggy-bank text-blue-600 text-xl"></i>
+                            <h3 class="text-lg font-semibold">บัญชีเงินฝากรวม</h3>
+                        </div>
+                        <p id="totalSavings" class="text-3xl font-bold text-blue-600">กำลังโหลด...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions Section -->
+            <section class="mt-8 bg-white p-6 shadow-lg rounded-lg w-full max-w-6xl mx-auto border-2 border-green-500">
+                <h2 class="text-2xl font-bold text-primary mb-6 flex items-center">
+                    <i class="fas fa-bolt mr-3"></i>
+                    การดำเนินการด่วน
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <a href="/director/manage-users.html" class="flex items-center p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200">
+                        <i class="fas fa-users text-green-600 text-2xl mr-3"></i>
+                        <div>
+                            <h3 class="font-semibold">จัดการผู้ใช้</h3>
+                            <p class="text-sm text-gray-600">เพิ่ม/แก้ไข/ลบ ผู้ใช้</p>
+                        </div>
+                    </a>
+                    <a href="/director/setting.html" class="flex items-center p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200">
+                        <i class="fas fa-cog text-green-600 text-2xl mr-3"></i>
+                        <div>
+                            <h3 class="font-semibold">การตั้งค่า</h3>
+                            <p class="text-sm text-gray-600">ตั้งค่าระบบ</p>
+                        </div>
+                    </a>
+                    <a href="/director/reports.html" class="flex items-center p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200">
+                        <i class="fas fa-chart-bar text-green-600 text-2xl mr-3"></i>
+                        <div>
+                            <h3 class="font-semibold">รายงาน</h3>
+                            <p class="text-sm text-gray-600">ดูรายงานสรุป</p>
+                        </div>
+                    </a>
+                    <button id="logoutButton" class="flex items-center p-4 bg-white rounded-lg border border-gray-200 hover:bg-red-50 transition-colors duration-200">
+                        <i class="fas fa-sign-out-alt text-red-600 text-2xl mr-3"></i>
+                        <div>
+                            <h3 class="font-semibold">ออกจากระบบ</h3>
+                            <p class="text-sm text-gray-600">ออกจากระบบผู้ดูแล</p>
+                        </div>
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/director/components/load-sidebar.js"></script>
+    <script src="/director/scripts/auth.js"></script>
+    <script src="/director/scripts/director-dashboard.js"></script>
+</body>
+</html>
