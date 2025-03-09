@@ -102,6 +102,16 @@ const fetchAndRenderUsers = async () => {
     try {
         const response = await fetch('/api/admin/users');
         allUsers = await response.json();
+
+        // ตรวจสอบสิทธิ์ของผู้ใช้ปัจจุบัน
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (currentUser && currentUser.permission === 'director') {
+            // กรองให้แสดงเฉพาะ staff และ member
+            allUsers = allUsers.filter(user => 
+                user.permission === 'staff' || user.permission === 'member'
+            );
+        }
+
         renderUsers(allUsers);
     } catch (error) {
         console.error('Error fetching users:', error);
@@ -188,44 +198,32 @@ const createActionButtons = (user) => {
     
     let buttonsHTML = '';
     
-    // ปุ่มรีเซ็ต PIN (เฉพาะผู้อำนวยการ)
-    if (user.permission === 'director') {
-        buttonsHTML += `
-            <button 
-                class="reset-pin-btn bg-blue-500 hover:bg-blue-600 text-white px-2.5 py-1 rounded-md transition duration-200 ease-in-out flex items-center gap-1 text-sm shadow-sm"
-                data-user-id="${user._id}"
-                title="รีเซ็ต PIN">
-                <i class="fas fa-key text-xs"></i>
-                <span>รีเซ็ต PIN</span>
-            </button>
-        `;
-    }
-    
-    // ปุ่มแก้ไข (สำหรับเจ้าหน้าที่และสมาชิก)
-    if (user.permission === 'staff' || user.permission === 'member') {
-        buttonsHTML += `
-            <button 
-                class="edit-btn bg-yellow-500 hover:bg-yellow-600 text-white px-2.5 py-1 rounded-md transition duration-200 ease-in-out flex items-center gap-1 text-sm shadow-sm"
-                data-user-id="${user._id}"
-                title="แก้ไขข้อมูล">
-                <i class="fas fa-edit text-xs"></i>
-                <span>แก้ไข</span>
-            </button>
-        `;
-    }
-
-    // ปุ่มลบ (สำหรับเจ้าหน้าที่และสมาชิก)
-    if (user.permission === 'staff' || user.permission === 'member') {
-        buttonsHTML += `
-            <button 
-                class="delete-btn bg-red-500 hover:bg-red-600 text-white px-2.5 py-1 rounded-md transition duration-200 ease-in-out flex items-center gap-1 text-sm shadow-sm"
-                data-user-id="${user._id}"
-                title="ลบผู้ใช้">
-                <i class="fas fa-trash-alt text-xs"></i>
-                <span>ลบ</span>
-            </button>
-        `;
-    }
+    // ตรวจสอบสิทธิ์ของผู้ใช้ปัจจุบัน
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    // ปุ่มแก้ไขและลบ
+    buttonsHTML += `
+        <button 
+            class="update-password-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
+            data-user-id="${user._id}"
+            title="อัพเดทรหัสผ่าน">
+            <i class="fas fa-key"></i>
+            <span>รหัสผ่าน</span>
+        </button>
+        <button 
+            class="edit-btn bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
+            data-user-id="${user._id}"
+            title="แก้ไขข้อมูล">
+            <i class="fas fa-edit"></i>
+            <span>แก้ไข</span>
+        </button>
+        <button 
+            class="delete-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
+            data-user-id="${user._id}"
+            title="ลบผู้ใช้">
+            <i class="fas fa-trash-alt"></i>
+            <span>ลบ</span>
+        </button>
+    `;
     
     actionWrapper.innerHTML = buttonsHTML;
     return actionWrapper;
@@ -244,6 +242,12 @@ const addActionButtonListeners = () => {
         button.addEventListener('click', (e) => {
             e.preventDefault();
             resetPin(button.getAttribute('data-user-id'));
+        });
+    });
+    document.querySelectorAll('.update-password-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            openUpdatePasswordModal(button.getAttribute('data-user-id'));
         });
     });
 };
@@ -319,6 +323,7 @@ const openEditModal = async (user) => {
     }
 };
 
+// แก้ไขฟังก์ชัน openAddUserModal เพื่อจำกัดสิทธิ์ที่สามารถเพิ่มได้
 const openAddUserModal = () => {
     const modal = document.getElementById('addUserModal');
     const form = document.getElementById('addUserForm');
@@ -326,6 +331,28 @@ const openAddUserModal = () => {
     if (!modal || !form) {
         console.error('Modal หรือฟอร์มหาไม่พบ');
         return;
+    }
+
+    // เพิ่มตัวเลือกสิทธิ์ผู้ใช้ในฟอร์มเพิ่มผู้ใช้
+    const permissionSelect = document.getElementById('addPermission');
+    if (permissionSelect) {
+        // ตรวจสอบสิทธิ์ของผู้ใช้ปัจจุบัน
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (currentUser && currentUser.permission === 'director') {
+            // director สามารถเพิ่มได้เฉพาะ staff และ member
+            permissionSelect.innerHTML = `
+                <option value="member">สมาชิก</option>
+                <option value="staff">เจ้าหน้าที่</option>
+            `;
+        } else {
+            // admin สามารถเพิ่มได้ทุกสิทธิ์
+            permissionSelect.innerHTML = `
+                <option value="member">สมาชิก</option>
+                <option value="staff">เจ้าหน้าที่</option>
+                <option value="director">ผู้อำนวยการ</option>
+                <option value="admin">ผู้ดูแลระบบ</option>
+            `;
+        }
     }
 
     showModal(modal);

@@ -82,10 +82,7 @@ const fetchStats = async () => {
 
         if (totalUsers) totalUsers.textContent = data.totalUsers?.toLocaleString() || '0';
         if (activeUsers) activeUsers.textContent = data.activeUsers?.toLocaleString() || '0';
-        if (totalSavings) totalSavings.textContent = data.totalSavings?.toLocaleString('th-TH', {
-            style: 'currency',
-            currency: 'THB'
-        }) || '฿0.00';
+        if (totalSavings) totalSavings.textContent = data.totalSavings?.toLocaleString() || '0';
 
     } catch (error) {
         console.error('Error fetching stats:', error);

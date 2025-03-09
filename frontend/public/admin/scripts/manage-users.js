@@ -168,12 +168,13 @@ const renderUsers = (users) => {
 
 const getPermissionBadgeHTML = (permission) => {
     const badges = {
-        admin: { bg: 'bg-purple-100', text: 'text-purple-700', label: 'ผู้ดูแล' },
-        staff: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'พนักงาน' },
-        user: { bg: 'bg-green-100', text: 'text-green-700', label: 'ผู้ใช้' }
+        admin: { bg: 'bg-purple-100', text: 'text-purple-700', label: 'ผู้ดูแลระบบ' },
+        director: { bg: 'bg-red-100', text: 'text-red-700', label: 'ผู้อำนวยการ' },
+        staff: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'เจ้าหน้าที่' },
+        member: { bg: 'bg-green-100', text: 'text-green-700', label: 'สมาชิก' }
     };
     
-    const badge = badges[permission] || badges.user;
+    const badge = badges[permission] || badges.member;
     return `
         <span class="px-2 py-1 rounded-full text-sm font-semibold inline-block
             ${badge.bg} ${badge.text}">
@@ -189,7 +190,7 @@ const createActionButtons = (user) => {
     let buttonsHTML = '';
     
     // ปุ่มรีเซ็ต PIN (เฉพาะผู้ดูแล)
-    if (user.permission === 'admin') {
+    if (user.permission === 'director') {
         buttonsHTML += `
             <button 
                 class="reset-pin-btn bg-blue-500 hover:bg-blue-600 text-white px-2.5 py-1 rounded-md transition duration-200 ease-in-out flex items-center gap-1 text-sm shadow-sm"
@@ -204,17 +205,24 @@ const createActionButtons = (user) => {
     // ปุ่มแก้ไขและลบ
     buttonsHTML += `
         <button 
-            class="edit-btn bg-yellow-500 hover:bg-yellow-600 text-white px-2.5 py-1 rounded-md transition duration-200 ease-in-out flex items-center gap-1 text-sm shadow-sm"
+            class="update-password-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
+            data-user-id="${user._id}"
+            title="อัพเดทรหัสผ่าน">
+            <i class="fas fa-key"></i>
+            <span>รหัสผ่าน</span>
+        </button>
+        <button 
+            class="edit-btn bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
             data-user-id="${user._id}"
             title="แก้ไขข้อมูล">
-            <i class="fas fa-edit text-xs"></i>
+            <i class="fas fa-edit"></i>
             <span>แก้ไข</span>
         </button>
         <button 
-            class="delete-btn bg-red-500 hover:bg-red-600 text-white px-2.5 py-1 rounded-md transition duration-200 ease-in-out flex items-center gap-1 text-sm shadow-sm"
+            class="delete-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
             data-user-id="${user._id}"
             title="ลบผู้ใช้">
-            <i class="fas fa-trash-alt text-xs"></i>
+            <i class="fas fa-trash-alt"></i>
             <span>ลบ</span>
         </button>
     `;
@@ -236,6 +244,14 @@ const addActionButtonListeners = () => {
         button.addEventListener('click', (e) => {
             e.preventDefault();
             resetPin(button.getAttribute('data-user-id'));
+        });
+    });
+
+    // เพิ่ม event listener สำหรับปุ่มอัพเดทรหัสผ่าน
+    document.querySelectorAll('.update-password-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            openUpdatePasswordModal(button.getAttribute('data-user-id'));
         });
     });
 };
@@ -320,6 +336,17 @@ const openAddUserModal = () => {
         return;
     }
 
+    // เพิ่มตัวเลือกสิทธิ์ผู้ใช้ในฟอร์มเพิ่มผู้ใช้
+    const permissionSelect = document.getElementById('addPermission');
+    if (permissionSelect) {
+        permissionSelect.innerHTML = `
+            <option value="member">สมาชิก</option>
+            <option value="staff">เจ้าหน้าที่</option>
+            <option value="director">ผู้อำนวยการ</option>
+            <option value="admin">ผู้ดูแลระบบ</option>
+        `;
+    }
+
     showModal(modal);
     setupAddFormListeners(modal, form);
 };
@@ -333,7 +360,17 @@ const populateEditForm = (userData) => {
     document.getElementById('editAddress').value = userData.address || '';
     document.getElementById('editPhone').value = userData.phone || '';
     document.getElementById('editBirthday').value = convertToThaiBuddhistDate(userData.birthday);
-    document.getElementById('editPermission').value = userData.permission || 'user';
+    
+    // อัพเดทตัวเลือกสิทธิ์ผู้ใช้
+    const permissionSelect = document.getElementById('editPermission');
+    if (permissionSelect) {
+        permissionSelect.innerHTML = `
+            <option value="member" ${userData.permission === 'member' ? 'selected' : ''}>สมาชิก</option>
+            <option value="staff" ${userData.permission === 'staff' ? 'selected' : ''}>เจ้าหน้าที่</option>
+            <option value="director" ${userData.permission === 'director' ? 'selected' : ''}>ผู้อำนวยการ</option>
+            <option value="admin" ${userData.permission === 'admin' ? 'selected' : ''}>ผู้ดูแลระบบ</option>
+        `;
+    }
 };
 
 const setupEditFormListeners = (modal, form, userId) => {
@@ -361,6 +398,12 @@ const setupAddFormListeners = (modal, form) => {
     const closeModal = () => {
         modal.style.display = 'none';
         form.reset();
+        
+        // รีเซ็ตค่าตัวเลือกสิทธิ์กลับเป็นค่าเริ่มต้น
+        const permissionSelect = document.getElementById('addPermission');
+        if (permissionSelect) {
+            permissionSelect.value = 'member';
+        }
     };
 
     // Modal closing events
@@ -374,7 +417,74 @@ const setupAddFormListeners = (modal, form) => {
     // Form submission
     form.onsubmit = async (e) => {
         e.preventDefault();
-        await handleAddFormSubmit(form, closeModal);
+        
+        try {
+            // ตรวจสอบข้อมูลที่จำเป็น
+            const formData = new FormData(form);
+            
+            // ตรวจสอบข้อมูลที่จำเป็นก่อนส่ง
+            const name = formData.get('name');
+            const email = formData.get('email');
+            const password = formData.get('password');
+            const permission = formData.get('permission') || 'member';
+            
+            if (!name || !email || !password) {
+                showError('กรุณากรอกข้อมูลให้ครบถ้วน', 'ชื่อ, อีเมล และรหัสผ่านเป็นข้อมูลที่จำเป็น');
+                return;
+            }
+
+            // สร้างข้อมูลผู้ใช้
+            const userData = {
+                name: name,
+                email: email,
+                password: password,
+                phone: formData.get('phone') || '',
+                address: formData.get('address') || '',
+                birthday: formData.get('birthday') ? convertToGregorianDate(formData.get('birthday')) : '',
+                permission: permission,
+            };
+
+            // ถ้าเป็น director ให้แสดง prompt ให้ตั้ง PIN
+            if (permission === 'director') {
+                const { value: pin, isConfirmed } = await showPinPrompt('ตั้ง PIN', 'กรุณากำหนด PIN 4 หลักสำหรับผู้อำนวยการ');
+                if (!isConfirmed || !pin) {
+                    showError('กรุณาตั้ง PIN', 'ต้องตั้ง PIN สำหรับผู้อำนวยการ');
+                    return;
+                }
+                userData.pin = pin;
+            }
+
+            // ส่งข้อมูลไปยัง API
+            const response = await fetch('/api/admin/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'ไม่สามารถเพิ่มผู้ใช้ได้');
+            }
+
+            const result = await response.json();
+            
+            // สร้างบัญชีออมทรัพย์สำหรับผู้ใช้ใหม่
+            if (result._id) {
+                await createSavingAccount(result._id);
+            }
+
+            closeModal();
+            await fetchAndRenderUsers();
+            showSuccess('เพิ่มผู้ใช้สำเร็จ', 'ผู้ใช้ถูกเพิ่มเข้าระบบเรียบร้อยแล้ว');
+        } catch (error) {
+            console.error('Error adding user:', error);
+            showError(
+                'ไม่สามารถเพิ่มผู้ใช้ได้',
+                error.message || 'เกิดข้อผิดพลาดในการเพิ่มผู้ใช้ กรุณาลองใหม่อีกครั้ง'
+            );
+        }
     };
 };
 
@@ -633,7 +743,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // เพิ่มฟังก์ชันสำหรับเปิด modal อัพเดทรหัสผ่าน
-const openUpdatePasswordModal = (userId) => {
+const openUpdatePasswordModal = async (userId) => {
     const modal = document.getElementById('updatePasswordModal');
     const form = document.getElementById('updatePasswordForm');
 
@@ -643,7 +753,7 @@ const openUpdatePasswordModal = (userId) => {
     }
 
     // แสดง modal
-    modal.style.display = 'block';
+    showModal(modal);
 
     // ฟังก์ชันสำหรับปิด modal
     const closeModal = () => {
@@ -652,11 +762,11 @@ const openUpdatePasswordModal = (userId) => {
     };
 
     // จัดการการคลิกที่ modal background
-    modal.addEventListener('click', (event) => {
+    modal.onclick = (event) => {
         if (event.target === modal) {
             closeModal();
         }
-    });
+    };
 
     // จัดการปุ่มปิด
     const closeButtons = modal.querySelectorAll('.close');
@@ -672,11 +782,7 @@ const openUpdatePasswordModal = (userId) => {
         const confirmPassword = document.getElementById('confirmPassword').value;
 
         if (newPassword !== confirmPassword) {
-            Swal.fire({
-                icon: 'error',
-                title: 'รหัสผ่านไม่ตรงกัน',
-                text: 'กรุณากรอกรหัสผ่านให้ตรงกันทั้งสองช่อง'
-            });
+            showError('รหัสผ่านไม่ตรงกัน', 'กรุณากรอกรหัสผ่านให้ตรงกันทั้งสองช่อง');
             return;
         }
 
@@ -692,18 +798,10 @@ const openUpdatePasswordModal = (userId) => {
             }
 
             closeModal();
-            Swal.fire({
-                icon: 'success',
-                title: 'อัพเดทรหัสผ่านสำเร็จ',
-                text: 'รหัสผ่านได้ถูกเปลี่ยนเรียบร้อยแล้ว'
-            });
+            showSuccess('อัพเดทรหัสผ่านสำเร็จ', 'รหัสผ่านได้ถูกเปลี่ยนเรียบร้อยแล้ว');
         } catch (error) {
             console.error('Error updating password:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'เกิดข้อผิดพลาด',
-                text: 'ไม่สามารถอัพเดทรหัสผ่านได้ กรุณาลองใหม่'
-            });
+            showError('ไม่สามารถอัพเดทรหัสผ่านได้ กรุณาลองใหม่');
         }
     };
 };
