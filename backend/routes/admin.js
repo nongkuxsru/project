@@ -694,6 +694,43 @@ router.get('/promise-status/:id/details', async (req, res) => {
         });
     }
 });
-    
+
+// API สำหรับอัพเดทรหัสผ่าน
+router.put('/users/:id/password', async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const { password } = req.body;
+
+        // ตรวจสอบว่ามีการส่งรหัสผ่านมาหรือไม่
+        if (!password) {
+            return res.status(400).json({ 
+                message: 'กรุณาระบุรหัสผ่านใหม่' 
+            });
+        }
+
+        // ค้นหาและอัพเดทรหัสผ่านของผู้ใช้
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ 
+                message: 'ไม่พบผู้ใช้' 
+            });
+        }
+
+        // อัพเดทรหัสผ่าน
+        user.password = password;
+        await user.save();
+
+        res.json({ 
+            message: 'อัพเดทรหัสผ่านสำเร็จ',
+            userId: user._id
+        });
+    } catch (error) {
+        console.error('Error updating password:', error);
+        res.status(500).json({ 
+            message: 'เกิดข้อผิดพลาดในการอัพเดทรหัสผ่าน', 
+            error: error.message 
+        });
+    }
+});
 
 module.exports = router;

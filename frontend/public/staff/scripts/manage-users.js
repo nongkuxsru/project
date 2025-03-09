@@ -111,6 +111,11 @@ const openEditModal = async (user) => {
         }
         const userData = await response.json();
 
+        // ตรวจสอบว่าเป็นสมาชิกหรือไม่
+        if (userData.permission !== 'member') {
+            throw new Error('ไม่สามารถแก้ไขข้อมูลผู้ใช้ที่ไม่ใช่สมาชิกได้');
+        }
+
         const convertToBE = (dateString) => {
             if (!dateString) return '';
             const date = new Date(dateString);
@@ -126,14 +131,20 @@ const openEditModal = async (user) => {
         document.getElementById('editBirthday').value = userData.birthday
             ? convertToBE(userData.birthday)
             : '';
-        document.getElementById('editPermission').value = userData.permission || 'user';
+
+        // ซ่อนหรือลบ select สำหรับเลือกสิทธิ์
+        const permissionSelect = document.getElementById('editPermission');
+        if (permissionSelect) {
+            permissionSelect.style.display = 'none';
+            // หรือถ้าต้องการลบออกเลย
+            // permissionSelect.remove();
+        }
 
         // แสดง modal
         modal.style.display = 'block';
 
         // จัดการการคลิกที่ modal background
         modal.addEventListener('click', (event) => {
-            // ตรวจสอบว่าคลิกที่ modal background หรือพื้นที่ centering
             if (event.target === modal || event.target.classList.contains('min-h-screen')) {
                 closeModal();
             }
@@ -162,7 +173,7 @@ const openEditModal = async (user) => {
                 address: document.getElementById('editAddress').value,
                 phone: document.getElementById('editPhone').value,
                 birthday: convertToAD(document.getElementById('editBirthday').value),
-                permission: document.getElementById('editPermission').value,
+                permission: 'member' // กำหนดค่าคงที่เป็น member
             };
 
             try {
@@ -173,7 +184,7 @@ const openEditModal = async (user) => {
                 });
 
                 if (!saveResponse.ok) {
-                    throw new Error(`ไม่สามารถบันทึกข้อมูลผู้ใช้ได้: ${saveResponse.status}`);
+                    throw new Error(`ไม่สามารถบันทึกข้อมูลสมาชิกได้: ${saveResponse.status}`);
                 }
 
                 await saveResponse.json();
@@ -183,23 +194,23 @@ const openEditModal = async (user) => {
                 Swal.fire({
                     icon: 'success',
                     title: 'แก้ไขข้อมูลสำเร็จ',
-                    text: 'ข้อมูลผู้ใช้ถูกบันทึกเรียบร้อยแล้ว',
+                    text: 'ข้อมูลสมาชิกถูกบันทึกเรียบร้อยแล้ว',
                 });
             } catch (saveError) {
-                console.error('เกิดข้อผิดพลาดในการบันทึกข้อมูลผู้ใช้:', saveError);
+                console.error('เกิดข้อผิดพลาดในการบันทึกข้อมูลสมาชิก:', saveError);
                 Swal.fire({
                     icon: 'error',
                     title: 'เกิดข้อผิดพลาด',
-                    text: 'ไม่สามารถบันทึกข้อมูลผู้ใช้ได้ กรุณาลองใหม่',
+                    text: 'ไม่สามารถบันทึกข้อมูลสมาชิกได้ กรุณาลองใหม่',
                 });
             }
         };
     } catch (error) {
-        console.error('เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้:', error);
+        console.error('เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก:', error);
         Swal.fire({
             icon: 'error',
             title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถดึงข้อมูลผู้ใช้ได้ กรุณาลองใหม่',
+            text: error.message || 'ไม่สามารถดึงข้อมูลสมาชิกได้ กรุณาลองใหม่',
         });
     }
 };
@@ -226,15 +237,24 @@ const renderUsers = (users) => {
     const usersTable = document.getElementById('usersTable').getElementsByTagName('tbody')[0];
     usersTable.innerHTML = '';
 
+    // กรองเฉพาะผู้ใช้ที่มีสิทธิ์เป็น member
+    const memberUsers = users.filter(user => user.permission === 'member');
+
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
-    const usersToDisplay = users.slice(startIndex, endIndex);
-    totalPages = Math.ceil(users.length / rowsPerPage);
+    const usersToDisplay = memberUsers.slice(startIndex, endIndex);
+    totalPages = Math.ceil(memberUsers.length / rowsPerPage);
+
+    if (usersToDisplay.length === 0) {
+        usersTable.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center py-4">ไม่พบข้อมูลสมาชิก</td>
+            </tr>
+        `;
+        return;
+    }
 
     usersToDisplay.forEach(user => {
-        // ข้ามการแสดงผู้ใช้ที่มีสิทธิ์ admin
-        if (user.permission === 'admin') return;
-        
         const row = usersTable.insertRow();
         
         const nameCell = row.insertCell();
@@ -256,16 +276,6 @@ const renderUsers = (users) => {
         const actionWrapper = document.createElement('div');
         actionWrapper.className = 'flex justify-center gap-2';
         actionWrapper.innerHTML = `
-            ${user.permission === 'director' ? `
-                <button 
-                    class="reset-pin-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
-                    data-user-id="${user._id}"
-                    onclick="resetPin('${user._id}')"
-                    title="รีเซ็ต PIN">
-                    <i class="fas fa-key"></i>
-                    <span>รีเซ็ต PIN</span>
-                </button>
-            ` : ''}
             <button 
                 class="edit-btn bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
                 data-user-id="${user._id}"
@@ -274,13 +284,19 @@ const renderUsers = (users) => {
                 <span>แก้ไข</span>
             </button>
             <button 
-                    class="delete-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
-                    data-user-id="${user._id}"
-                    title="ลบผู้ใช้">
-                    <i class="fas fa-trash-alt"></i>
-                    <span>ลบ</span>
+                class="update-password-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
+                data-user-id="${user._id}"
+                title="อัพเดทรหัสผ่าน">
+                <i class="fas fa-key"></i>
+                <span>รหัสผ่าน</span>
             </button>
-            
+            <button 
+                class="delete-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
+                data-user-id="${user._id}"
+                title="ลบผู้ใช้">
+                <i class="fas fa-trash-alt"></i>
+                <span>ลบ</span>
+            </button>
         `;
         actionsCell.appendChild(actionWrapper);
     });
@@ -292,9 +308,6 @@ const renderUsers = (users) => {
 // ฟังก์ชันสำหรับสร้าง badge แสดงสิทธิ์
 const getPermissionBadge = (permission) => {
     const badges = {
-        admin: { bg: 'bg-purple-100', text: 'text-purple-700', label: 'ผู้ดูแลระบบ' },
-        director: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'ผู้อำนวยการ' },
-        staff: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'เจ้าหน้าที่' },
         member: { bg: 'bg-green-100', text: 'text-green-700', label: 'สมาชิก' }
     };
 
@@ -317,11 +330,8 @@ const addActionButtonListeners = () => {
         button.addEventListener('click', () => deleteUser(button.getAttribute('data-user-id')));
     });
 
-    document.querySelectorAll('.reset-pin-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-            resetPin(button.getAttribute('data-user-id'));
-        });
+    document.querySelectorAll('.update-password-btn').forEach(button => {
+        button.addEventListener('click', () => openUpdatePasswordModal(button.getAttribute('data-user-id')));
     });
 };
 
@@ -378,11 +388,14 @@ const filterUsers = () => {
     const searchText = document.getElementById('searchInput').value.toLowerCase();
 
     const filteredUsers = allUsers.filter(user => {
-        return user.name.toLowerCase().includes(searchText) || 
-               user.email.toLowerCase().includes(searchText);
+        return user.permission === 'member' && (
+            (user.name?.toLowerCase() || '').includes(searchText) || 
+            (user.email?.toLowerCase() || '').includes(searchText) ||
+            (user.phone?.toLowerCase() || '').includes(searchText)
+        );
     });
 
-    currentPage = 1; // รีเซ็ตกลับไปหน้าแรกเมื่อมีการค้นหา
+    currentPage = 1;
     renderUsers(filteredUsers);
 };
 
@@ -421,6 +434,14 @@ const openAddUserModal = () => {
     const modal = document.getElementById('addUserModal');
     const form = document.getElementById('addUserForm');
 
+    // ซ่อนหรือลบ select สำหรับเลือกสิทธิ์
+    const permissionSelect = document.getElementById('addPermission');
+    if (permissionSelect) {
+        permissionSelect.style.display = 'none';
+        // หรือถ้าต้องการลบออกเลย
+        // permissionSelect.remove();
+    }
+
     // แสดง modal
     modal.style.display = 'block';
 
@@ -432,7 +453,6 @@ const openAddUserModal = () => {
 
     // จัดการการคลิกที่ modal background
     modal.addEventListener('click', (event) => {
-        // ตรวจสอบว่าคลิกที่ modal background (ไม่ใช่ที่เนื้อหาของ modal)
         if (event.target === modal || event.target.classList.contains('min-h-screen')) {
             closeModal();
         }
@@ -444,15 +464,14 @@ const openAddUserModal = () => {
         closeButton.onclick = closeModal;
     }
 
-    // จัดการการส่งฟอร์ม (ส่วนที่เหลือคงเดิม)
+    // จัดการการส่งฟอร์ม
     form.onsubmit = handleAddUserSubmit;
 };
 
 const handleAddUserSubmit = async (e) => {
     e.preventDefault();
     
-    const permission = document.getElementById('addPermission').value;
-    
+    // กำหนดให้ผู้ใช้ใหม่มีสิทธิ์เป็น member เท่านั้น
     const newUser = {
         name: document.getElementById('addName').value,
         email: document.getElementById('addEmail').value,
@@ -460,7 +479,7 @@ const handleAddUserSubmit = async (e) => {
         address: document.getElementById('addAddress').value,
         phone: document.getElementById('addPhone').value,
         birthday: convertToAD(document.getElementById('addBirthday').value),
-        permission: permission
+        permission: 'member'
     };
 
     try {
@@ -473,7 +492,7 @@ const handleAddUserSubmit = async (e) => {
         const result = await response.json();
         
         if (!response.ok) {
-            throw new Error(result.message || 'ไม่สามารถเพิ่มผู้ใช้ได้');
+            throw new Error(result.message || 'ไม่สามารถเพิ่มสมาชิกได้');
         }
 
         if (!result._id) {
@@ -483,27 +502,21 @@ const handleAddUserSubmit = async (e) => {
         // สร้างบัญชีออมทรัพย์
         await createSavingAccount(result._id);
         
-        // ถ้าเป็นผู้อำนวยการ ให้แสดง modal สำหรับตั้ง PIN
-        if (permission === 'director') {
-            document.getElementById('addUserModal').style.display = 'none';
-            await showSetPinModal(result._id);
-        } else {
-            document.getElementById('addUserModal').style.display = 'none';
-            await fetchAndRenderUsers();
-            Swal.fire({
-                icon: 'success',
-                title: 'เพิ่มผู้ใช้สำเร็จ',
-                text: 'ผู้ใช้ได้ถูกเพิ่มเข้ามาแล้ว',
-            });
-        }
+        document.getElementById('addUserModal').style.display = 'none';
+        await fetchAndRenderUsers();
+        Swal.fire({
+            icon: 'success',
+            title: 'เพิ่มสมาชิกสำเร็จ',
+            text: 'สมาชิกได้ถูกเพิ่มเข้ามาแล้ว',
+        });
         
         e.target.reset();
     } catch (error) {
-        console.error('Error adding user:', error);
+        console.error('Error adding member:', error);
         Swal.fire({
             icon: 'error',
             title: 'เกิดข้อผิดพลาด',
-            text: error.message || 'ไม่สามารถเพิ่มผู้ใช้ได้ กรุณาลองใหม่',
+            text: error.message || 'ไม่สามารถเพิ่มสมาชิกได้ กรุณาลองใหม่',
         });
     }
 };
@@ -719,20 +732,46 @@ document.addEventListener("DOMContentLoaded", function() {
     if (user) {
         // หากข้อมูลผู้ใช้มีการล็อกอินมาแล้ว
         const userName = user.name || 'ผู้ใช้ไม่ระบุ';
-        const userAvatar = user.avatar || userName.charAt(0).toUpperCase(); // ใช้อักษรตัวแรกจากชื่อผู้ใช้เป็นอวาตาร์
+        const userAvatar = user.avatar || userName.charAt(0).toUpperCase();
        
         // แสดงชื่อผู้ใช้
         document.getElementById('userName').textContent = 'ยินดีต้อนรับ ' + userName;
         
         // แสดงอวาตาร์
         document.getElementById('userAvatar').textContent = userAvatar;
+
+        // จัดการ Dropdown Menu
+        const userMenuButton = document.getElementById('userMenuButton');
+        const userDropdownMenu = document.getElementById('userDropdownMenu');
+        const chevronIcon = userMenuButton.querySelector('.fa-chevron-down');
+
+        // Toggle dropdown เมื่อคลิกที่ปุ่ม
+        userMenuButton.addEventListener('click', () => {
+            const isExpanded = userMenuButton.getAttribute('aria-expanded') === 'true';
+            userMenuButton.setAttribute('aria-expanded', !isExpanded);
+            userDropdownMenu.classList.toggle('hidden');
+            chevronIcon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+        });
+
+        // ปิด dropdown เมื่อคลิกที่อื่น
+        document.addEventListener('click', (event) => {
+            if (!userMenuButton.contains(event.target)) {
+                userMenuButton.setAttribute('aria-expanded', 'false');
+                userDropdownMenu.classList.add('hidden');
+                chevronIcon.style.transform = 'rotate(0deg)';
+            }
+        });
+
+        // จัดการปุ่มอัพเดทรหัสผ่าน
+        document.getElementById('updateUserPasswordBtn').addEventListener('click', () => {
+            openUpdatePasswordModal(user._id);
+        });
     } else {
         // หากไม่มีข้อมูลผู้ใช้ใน localStorage
         document.getElementById('userName').textContent = 'ไม่พบข้อมูลผู้ใช้';
         document.getElementById('userAvatar').textContent = 'N/A';
     }
 });
-
 
 // เพิ่ม event listener ให้กับปุ่ม Add User
 document.getElementById('addUserButton').addEventListener('click', openAddUserModal);
@@ -771,4 +810,80 @@ const changePage = (newPage) => {
         currentPage = newPage;
         renderUsers(allUsers);
     }
+};
+
+// เพิ่มฟังก์ชันสำหรับเปิด modal อัพเดทรหัสผ่าน
+const openUpdatePasswordModal = (userId) => {
+    const modal = document.getElementById('updatePasswordModal');
+    const form = document.getElementById('updatePasswordForm');
+
+    if (!modal || !form) {
+        console.error('Modal หรือฟอร์มหาไม่พบ');
+        return;
+    }
+
+    // แสดง modal
+    modal.style.display = 'block';
+
+    // ฟังก์ชันสำหรับปิด modal
+    const closeModal = () => {
+        modal.style.display = 'none';
+        form.reset();
+    };
+
+    // จัดการการคลิกที่ modal background
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    // จัดการปุ่มปิด
+    const closeButtons = modal.querySelectorAll('.close');
+    closeButtons.forEach(button => {
+        button.onclick = closeModal;
+    });
+
+    // จัดการการส่งฟอร์ม
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (newPassword !== confirmPassword) {
+            Swal.fire({
+                icon: 'error',
+                title: 'รหัสผ่านไม่ตรงกัน',
+                text: 'กรุณากรอกรหัสผ่านให้ตรงกันทั้งสองช่อง'
+            });
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/users/${userId}/password`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: newPassword })
+            });
+
+            if (!response.ok) {
+                throw new Error('ไม่สามารถอัพเดทรหัสผ่านได้');
+            }
+
+            closeModal();
+            Swal.fire({
+                icon: 'success',
+                title: 'อัพเดทรหัสผ่านสำเร็จ',
+                text: 'รหัสผ่านได้ถูกเปลี่ยนเรียบร้อยแล้ว'
+            });
+        } catch (error) {
+            console.error('Error updating password:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: 'ไม่สามารถอัพเดทรหัสผ่านได้ กรุณาลองใหม่'
+            });
+        }
+    };
 };

@@ -1,8 +1,3 @@
-window.onload = () => {
-    // เพิ่ม Event Listener สำหรับปุ่ม Logout
-    document.getElementById('logoutButton').addEventListener('click', logout);
-};
-
 document.addEventListener('DOMContentLoaded', () => {
     observer.observe(document.body, {
         childList: true,
@@ -132,105 +127,125 @@ const fetchPromiseAccount = async () => {
         const promiseCreatedAt = document.getElementById('promiseCreatedAt');
         const promiseDueDate = document.getElementById('promiseDueDate');
 
-        if (promiseData && promiseId && promiseBalance && promiseCreatedAt && promiseDueDate) {
-            // คำนวณยอดเงินและดอกเบี้ย
-            const amount = promiseData.amount || 0;
-            const interestRate = promiseData.interestRate || 0;
-            const interestAmount = (amount * interestRate) / 100;
-            const totalAmount = amount + interestAmount;
-            const totalPaid = promiseData.totalPaid || 0;
-            const remainingBalance = totalAmount - totalPaid;
-
-            // อัปเดตข้อมูลสัญญาเงินกู้ใน UI
-            promiseId.innerHTML = `
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-file-contract text-green-600"></i>
-                    <span>${promiseData._id || 'ไม่มีข้อมูล'}</span>
+        // เพิ่มเงื่อนไขตรวจสอบว่ามีข้อมูลสัญญาหรือไม่
+        if (!promiseData || Object.keys(promiseData).length === 0) {
+            // กรณีไม่มีข้อมูลสัญญา
+            const noDataContent = `
+                <div class="bg-white rounded-lg p-6 shadow-md text-center">
+                    <div class="flex flex-col items-center justify-center space-y-4">
+                        <i class="fas fa-file-contract text-gray-400 text-5xl"></i>
+                        <h3 class="text-xl font-semibold text-gray-700">ไม่มีคำขอกู้เงิน</h3>
+                        <p class="text-gray-500">ขณะนี้คุณยังไม่มีรายการสัญญาเงินกู้ในระบบ</p>
+                    </div>
                 </div>
             `;
 
-            // สร้าง Progress Bar สำหรับการชำระเงิน
-            const progressPercentage = (totalPaid / totalAmount) * 100;
+            // แสดงข้อความ "ไม่มีคำขอกู้เงิน" เฉพาะใน promiseBalance
+            if (promiseBalance) promiseBalance.innerHTML = noDataContent;
             
-            promiseBalance.innerHTML = `
-                <div class="bg-white rounded-lg p-6 shadow-md space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="p-4 bg-gray-50 rounded-lg">
-                            <div class="flex items-center space-x-2 text-gray-600 mb-2">
-                                <i class="fas fa-money-bill-wave"></i>
-                                <span class="font-semibold">เงินต้น</span>
-                            </div>
-                            <p class="text-2xl font-bold text-gray-800">${amount.toLocaleString()} บาท</p>
-                        </div>
-                        <div class="p-4 bg-gray-50 rounded-lg">
-                            <div class="flex items-center space-x-2 text-gray-600 mb-2">
-                                <i class="fas fa-percentage"></i>
-                                <span class="font-semibold">ดอกเบี้ย (${interestRate}%)</span>
-                            </div>
-                            <p class="text-2xl font-bold text-gray-800">${interestAmount.toLocaleString()} บาท</p>
-                        </div>
-                    </div>
-
-                    <div class="border-t border-gray-200 pt-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-lg font-semibold">ความคืบหน้าการชำระเงิน</span>
-                            <span class="text-sm text-gray-600">${progressPercentage.toFixed(1)}%</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-4 mb-4">
-                            <div class="bg-green-600 h-4 rounded-full transition-all duration-500" 
-                                 style="width: ${progressPercentage}%"></div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                            <div class="p-3 bg-gray-50 rounded-lg">
-                                <p class="text-sm text-gray-600 mb-1">ยอดรวมทั้งสิ้น</p>
-                                <p class="text-lg font-bold text-gray-800">${totalAmount.toLocaleString()} บาท</p>
-                            </div>
-                            <div class="p-3 bg-blue-50 rounded-lg">
-                                <p class="text-sm text-blue-600 mb-1">ชำระแล้ว</p>
-                                <p class="text-lg font-bold text-blue-600">${totalPaid.toLocaleString()} บาท</p>
-                            </div>
-                            <div class="p-3 bg-red-50 rounded-lg">
-                                <p class="text-sm text-red-600 mb-1">ยอดคงเหลือ</p>
-                                <p class="text-lg font-bold text-red-600">${remainingBalance.toLocaleString()} บาท</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-center mt-4">
-                        <button onclick="openPaymentHistoryModal('${encodeURIComponent(JSON.stringify(promiseData.payments || []))}')"
-                                class="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                            <i class="fas fa-history mr-2"></i>
-                            <span>ดูประวัติการชำระเงิน</span>
-                        </button>
-                    </div>
-                </div>
-            `;
-
-            // อัพเดตวันที่ด้วยการจัดรูปแบบที่สวยงาม
-            const dateOptions = { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                weekday: 'long'
-            };
-
-            promiseCreatedAt.innerHTML = `
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-calendar-plus text-green-600"></i>
-                    <span>${promiseData.Datepromise ? new Date(promiseData.Datepromise).toLocaleDateString('th-TH', dateOptions) : 'ไม่มีข้อมูล'}</span>
-                </div>
-            `;
-
-            promiseDueDate.innerHTML = `
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-calendar-check text-green-600"></i>
-                    <span>${promiseData.DueDate ? new Date(promiseData.DueDate).toLocaleDateString('th-TH', dateOptions) : 'ไม่มีข้อมูล'}</span>
-                </div>
-            `;
-
-        } else {
-            console.error('ไม่พบ elements ที่ต้องการอัพเดตหรือไม่มีข้อมูลสัญญาเงินกู้');
+            // ซ่อนหรือล้างข้อมูลส่วนอื่นๆ
+            if (promiseId) promiseId.innerHTML = '';
+            if (promiseCreatedAt) promiseCreatedAt.innerHTML = '';
+            if (promiseDueDate) promiseDueDate.innerHTML = '';
+            
+            return;
         }
+
+        // คำนวณยอดเงินและดอกเบี้ย
+        const amount = promiseData.amount || 0;
+        const interestRate = promiseData.interestRate || 0;
+        const interestAmount = (amount * interestRate) / 100;
+        const totalAmount = amount + interestAmount;
+        const totalPaid = promiseData.totalPaid || 0;
+        const remainingBalance = totalAmount - totalPaid;
+
+        // อัปเดตข้อมูลสัญญาเงินกู้ใน UI
+        promiseId.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-file-contract text-green-600"></i>
+                <span>${promiseData._id || 'ไม่มีข้อมูล'}</span>
+            </div>
+        `;
+
+        // สร้าง Progress Bar สำหรับการชำระเงิน
+        const progressPercentage = (totalPaid / totalAmount) * 100;
+        
+        promiseBalance.innerHTML = `
+            <div class="bg-white rounded-lg p-6 shadow-md space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-2 text-gray-600 mb-2">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span class="font-semibold">เงินต้น</span>
+                        </div>
+                        <p class="text-2xl font-bold text-gray-800">${amount.toLocaleString()} บาท</p>
+                    </div>
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-2 text-gray-600 mb-2">
+                            <i class="fas fa-percentage"></i>
+                            <span class="font-semibold">ดอกเบี้ย (${interestRate}%)</span>
+                        </div>
+                        <p class="text-2xl font-bold text-gray-800">${interestAmount.toLocaleString()} บาท</p>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-200 pt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-lg font-semibold">ความคืบหน้าการชำระเงิน</span>
+                        <span class="text-sm text-gray-600">${progressPercentage.toFixed(1)}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-4 mb-4">
+                        <div class="bg-green-600 h-4 rounded-full transition-all duration-500" 
+                             style="width: ${progressPercentage}%"></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <p class="text-sm text-gray-600 mb-1">ยอดรวมทั้งสิ้น</p>
+                            <p class="text-lg font-bold text-gray-800">${totalAmount.toLocaleString()} บาท</p>
+                        </div>
+                        <div class="p-3 bg-blue-50 rounded-lg">
+                            <p class="text-sm text-blue-600 mb-1">ชำระแล้ว</p>
+                            <p class="text-lg font-bold text-blue-600">${totalPaid.toLocaleString()} บาท</p>
+                        </div>
+                        <div class="p-3 bg-red-50 rounded-lg">
+                            <p class="text-sm text-red-600 mb-1">ยอดคงเหลือ</p>
+                            <p class="text-lg font-bold text-red-600">${remainingBalance.toLocaleString()} บาท</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-center mt-4">
+                    <button onclick="openPaymentHistoryModal('${encodeURIComponent(JSON.stringify(promiseData.payments || []))}')"
+                            class="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                        <i class="fas fa-history mr-2"></i>
+                        <span>ดูประวัติการชำระเงิน</span>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // อัพเดตวันที่ด้วยการจัดรูปแบบที่สวยงาม
+        const dateOptions = { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            weekday: 'long'
+        };
+
+        promiseCreatedAt.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-calendar-plus text-green-600"></i>
+                <span>${promiseData.Datepromise ? new Date(promiseData.Datepromise).toLocaleDateString('th-TH', dateOptions) : 'ไม่มีข้อมูล'}</span>
+            </div>
+        `;
+
+        promiseDueDate.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-calendar-check text-green-600"></i>
+                <span>${promiseData.DueDate ? new Date(promiseData.DueDate).toLocaleDateString('th-TH', dateOptions) : 'ไม่มีข้อมูล'}</span>
+            </div>
+        `;
+
     } catch (error) {
         console.error('Error fetching promise account:', error);
         const container = document.querySelector('.promise-details') || document.body;
@@ -381,69 +396,120 @@ document.addEventListener("DOMContentLoaded", function() {
     if (user) {
         // หากข้อมูลผู้ใช้มีการล็อกอินมาแล้ว
         const userName = user.name || 'ผู้ใช้ไม่ระบุ';
-        const userAvatar = user.avatar || userName.charAt(0).toUpperCase(); // ใช้อักษรตัวแรกจากชื่อผู้ใช้เป็นอวาตาร์
+        const userAvatar = user.avatar || userName.charAt(0).toUpperCase();
        
         // แสดงชื่อผู้ใช้
         document.getElementById('userName').textContent = 'ยินดีต้อนรับ ' + userName;
         
         // แสดงอวาตาร์
         document.getElementById('userAvatar').textContent = userAvatar;
+
+        // จัดการ Dropdown Menu
+        const userMenuButton = document.getElementById('userMenuButton');
+        const userDropdownMenu = document.getElementById('userDropdownMenu');
+        const chevronIcon = userMenuButton.querySelector('.fa-chevron-down');
+
+        // Toggle dropdown เมื่อคลิกที่ปุ่ม
+        userMenuButton.addEventListener('click', () => {
+            const isExpanded = userMenuButton.getAttribute('aria-expanded') === 'true';
+            userMenuButton.setAttribute('aria-expanded', !isExpanded);
+            userDropdownMenu.classList.toggle('hidden');
+            chevronIcon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+        });
+
+        // ปิด dropdown เมื่อคลิกที่อื่น
+        document.addEventListener('click', (event) => {
+            if (!userMenuButton.contains(event.target)) {
+                userMenuButton.setAttribute('aria-expanded', 'false');
+                userDropdownMenu.classList.add('hidden');
+                chevronIcon.style.transform = 'rotate(0deg)';
+            }
+        });
+
+        // จัดการปุ่มอัพเดทรหัสผ่าน
+        document.getElementById('updateUserPasswordBtn').addEventListener('click', () => {
+            openUpdatePasswordModal(user._id);
+        });
     } else {
         // หากไม่มีข้อมูลผู้ใช้ใน localStorage
         document.getElementById('userName').textContent = 'ไม่พบข้อมูลผู้ใช้';
         document.getElementById('userAvatar').textContent = 'N/A';
     }
-});
-
-const logout = async () => {
-    try {
-        // แสดง SweetAlert2 เพื่อยืนยันการออกจากระบบ
-        const result = await Swal.fire({
-            title: 'ยืนยันการออกจากระบบ',
-            text: 'คุณต้องการออกจากระบบใช่หรือไม่?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'ใช่, ออกจากระบบ',
-            cancelButtonText: 'ยกเลิก'
-        });
-
-        // ถ้าผู้ใช้กดยืนยัน
-        if (result.isConfirmed) {
-            const response = await fetch('/api/auth/logout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            if (response.ok) {
-                localStorage.removeItem('currentUser');
-                localStorage.removeItem('selectedTheme');
-
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'ออกจากระบบสำเร็จ',
-                    text: 'กำลังนำคุณไปยังหน้าเข้าสู่ระบบ...',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-
-                window.location.href = '/';
-            } else {
-                throw new Error('Logout failed');
-            }
-        }
-    } catch (error) {
-        console.error('Error during logout:', error);
-        await Swal.fire({
-            icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถออกจากระบบได้ กรุณาลองใหม่อีกครั้ง'
-        });
-    }
-};
-
-// ลบ event listener ที่ซ้ำซ้อน - เหลือแค่อันเดียว
-document.addEventListener('DOMContentLoaded', () => {
     fetchPromiseAccount();
 });
+
+// เพิ่มฟังก์ชันสำหรับเปิด modal อัพเดทรหัสผ่าน
+const openUpdatePasswordModal = (userId) => {
+    const modal = document.getElementById('updatePasswordModal');
+    const form = document.getElementById('updatePasswordForm');
+
+    if (!modal || !form) {
+        console.error('Modal หรือฟอร์มหาไม่พบ');
+        return;
+    }
+
+    // แสดง modal
+    modal.style.display = 'block';
+
+    // ฟังก์ชันสำหรับปิด modal
+    const closeModal = () => {
+        modal.style.display = 'none';
+        form.reset();
+    };
+
+    // จัดการการคลิกที่ modal background
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    // จัดการปุ่มปิด
+    const closeButtons = modal.querySelectorAll('.close');
+    closeButtons.forEach(button => {
+        button.onclick = closeModal;
+    });
+
+    // จัดการการส่งฟอร์ม
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (newPassword !== confirmPassword) {
+            Swal.fire({
+                icon: 'error',
+                title: 'รหัสผ่านไม่ตรงกัน',
+                text: 'กรุณากรอกรหัสผ่านให้ตรงกันทั้งสองช่อง'
+            });
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/users/${userId}/password`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: newPassword })
+            });
+
+            if (!response.ok) {
+                throw new Error('ไม่สามารถอัพเดทรหัสผ่านได้');
+            }
+
+            closeModal();
+            Swal.fire({
+                icon: 'success',
+                title: 'อัพเดทรหัสผ่านสำเร็จ',
+                text: 'รหัสผ่านได้ถูกเปลี่ยนเรียบร้อยแล้ว'
+            });
+        } catch (error) {
+            console.error('Error updating password:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: 'ไม่สามารถอัพเดทรหัสผ่านได้ กรุณาลองใหม่'
+            });
+        }
+    };
+};
