@@ -277,18 +277,18 @@ const renderUsers = (users) => {
         actionWrapper.className = 'flex justify-center gap-2';
         actionWrapper.innerHTML = `
             <button 
-                class="edit-btn bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
-                data-user-id="${user._id}"
-                title="แก้ไขข้อมูล">
-                <i class="fas fa-edit"></i>
-                <span>แก้ไข</span>
-            </button>
-            <button 
                 class="update-password-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
                 data-user-id="${user._id}"
                 title="อัพเดทรหัสผ่าน">
                 <i class="fas fa-key"></i>
                 <span>รหัสผ่าน</span>
+            </button>
+            <button 
+                class="edit-btn bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
+                data-user-id="${user._id}"
+                title="แก้ไขข้อมูล">
+                <i class="fas fa-edit"></i>
+                <span>แก้ไข</span>
             </button>
             <button 
                 class="delete-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
