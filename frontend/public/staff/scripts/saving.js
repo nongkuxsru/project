@@ -620,6 +620,7 @@ const handleTransaction = async (event, type, account) => {
             body: JSON.stringify({
                 id_account: account.id_account,
                 balance: newBalance,
+                shares: type === 'deposit' ? (account.shares || 0) + Math.floor(amount / 100) : account.shares,
                 id_member: account.id_member,
                 id_staff: account.id_staff
             }),

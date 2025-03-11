@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const Transaction = require('../models/Transaction'); // นำเข้าโมเดลธุรกรรม
 const Saving = require('../models/Saving'); // นำเข้าโมเดลบัญชีการออม
 const Promise = require('../models/Promise'); // นำเข้าโมเดลสัญญากู้ยืม
+const Dividend = require('../models/Dividend');
+const Users = require('../models/Users'); // เพิ่ม import Users model
 
 // กำหนดเส้นทาง API สำหรับดึงข้อมูลธุรกรรมจาก MongoDB
 router.get('/transactions', async (req, res) => {
@@ -142,18 +144,83 @@ router.put('/saving/:userId', async (req, res) => {
 router.put('/saving/transaction/:userId', async (req, res) => {
     const { userId } = req.params;
     const { amount, type } = req.body;
+    
     try {
+        // ค้นหาบัญชีออมทรัพย์
         const saving = await Saving.findOne({ id_member: userId });
+        
+        if (!saving) {
+            return res.status(404).json({ error: 'ไม่พบบัญชีออมทรัพย์' });
+        }
+
+        console.log('ข้อมูลก่อนทำธุรกรรม:', {
+            balance: saving.balance,
+            shares: saving.shares,
+            amount: amount,
+            type: type
+        });
+
+        // คำนวณยอดเงินและหุ้นใหม่
         if (type === 'deposit') {
             saving.balance += amount;
-        } else {
+            // คำนวณหุ้นจากจำนวนเงินที่ฝากเข้ามา
+            const newShares = Math.floor(amount / 100);
+            saving.shares = saving.shares || 0; // ตรวจสอบว่ามีค่าหรือไม่ ถ้าไม่มีให้เป็น 0
+            saving.shares += newShares;
+
+            console.log('การคำนวณหุ้น:', {
+                amountDeposited: amount,
+                newShares: newShares,
+                currentShares: saving.shares
+            });
+        } else if (type === 'withdraw') {
+            // ตรวจสอบว่ามีเงินเพียงพอสำหรับการถอน
+            if (saving.balance < amount) {
+                return res.status(400).json({ error: 'ยอดเงินในบัญชีไม่เพียงพอ' });
+            }
             saving.balance -= amount;
+        } else {
+            return res.status(400).json({ error: 'ประเภทธุรกรรมไม่ถูกต้อง' });
         }
-        await saving.save();
-        res.json(saving);
+
+        console.log('ข้อมูลก่อนบันทึก:', {
+            balance: saving.balance,
+            shares: saving.shares
+        });
+
+        // บันทึกข้อมูล
+        const savedSaving = await saving.save();
+        
+        console.log('ข้อมูลหลังบันทึก:', {
+            balance: savedSaving.balance,
+            shares: savedSaving.shares
+        });
+
+        // สร้างประวัติธุรกรรม
+        const transaction = new Transaction({
+            userName: req.body.userName || 'ไม่ระบุชื่อ',
+            type: type === 'deposit' ? 'Deposit' : 'Withdraw',
+            amount: amount,
+            date: new Date(),
+            status: 'Completed'
+        });
+        await transaction.save();
+
+        // ดึงข้อมูลล่าสุดเพื่อความแน่ใจ
+        const finalSaving = await Saving.findOne({ id_member: userId });
+        
+        console.log('ข้อมูลสุดท้าย:', {
+            balance: finalSaving.balance,
+            shares: finalSaving.shares
+        });
+
+        res.json({
+            saving: finalSaving,
+            transaction: transaction
+        });
     } catch (error) {
-        console.error('Error updating saving:', error);
-        res.status(500).json({ error: 'Error updating saving' });
+        console.error('Error processing transaction:', error);
+        res.status(500).json({ error: 'เกิดข้อผิดพลาดในการทำธุรกรรม' });
     }
 });
 
@@ -297,5 +364,208 @@ router.post('/promise/:id/payment', async (req, res) => {
     }
 });
 
+// API สำหรับคำนวณเงินปันผลประจำปี
+router.post('/dividend/calculate', async (req, res) => {
+    try {
+        const { year } = req.body;
+        
+        // 1. หาดอกเบี้ยรวมจากการกู้ยืมในปีที่ระบุ
+        const startDate = new Date(year, 0, 1);
+        const endDate = new Date(year, 11, 31);
+        
+        const promises = await Promise.find({
+            status: 'completed',
+            DueDate: { $gte: startDate, $lte: endDate }
+        });
+
+        let totalInterest = 0;
+        promises.forEach(promise => {
+            const interest = (promise.amount * promise.interestRate) / 100;
+            totalInterest += interest;
+        });
+
+        // 2. หาจำนวนหุ้นทั้งหมดในระบบ
+        const savings = await Saving.find();
+        const totalShares = savings.reduce((sum, saving) => sum + (saving.shares || 0), 0);
+
+        // 3. สร้างรายการปันผล
+        const dividend = new Dividend({
+            year,
+            totalInterest,
+            totalShares,
+            distributions: savings.map(saving => ({
+                saving_id: saving.id_account,
+                shares: saving.shares || 0,
+                amount: 0 // จะคำนวณในขั้นตอนถัดไป
+            }))
+        });
+
+        // 4. คำนวณเงินปันผลต่อหุ้น
+        const dividendPerShare = dividend.calculateDividendPerShare();
+
+        // 5. คำนวณเงินปันผลสำหรับแต่ละบัญชี
+        dividend.distributions = dividend.distributions.map(dist => ({
+            ...dist,
+            amount: dist.shares * dividendPerShare
+        }));
+
+        await dividend.save();
+
+        res.json({
+            success: true,
+            dividend: {
+                year,
+                totalInterest,
+                totalShares,
+                dividendPerShare,
+                distributions: dividend.distributions
+            }
+        });
+
+    } catch (error) {
+        console.error('Error calculating dividend:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'เกิดข้อผิดพลาดในการคำนวณเงินปันผล',
+            error: error.message 
+        });
+    }
+});
+
+// API สำหรับจ่ายเงินปันผล
+router.post('/dividend/distribute/:id', async (req, res) => {
+    try {
+        const dividend = await Dividend.findById(req.params.id);
+        if (!dividend) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'ไม่พบข้อมูลการปันผล' 
+            });
+        }
+
+        // ตรวจสอบสถานะ
+        if (dividend.status !== 'pending') {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'การปันผลนี้ถูกดำเนินการไปแล้วหรือถูกยกเลิก' 
+            });
+        }
+
+        // ดำเนินการจ่ายเงินปันผล
+        for (const dist of dividend.distributions) {
+            const saving = await Saving.findOne({ id_account: dist.saving_id });
+            if (saving) {
+                saving.balance += dist.amount;
+                await saving.save();
+            }
+        }
+
+        // อัพเดทสถานะการปันผล
+        dividend.status = 'distributed';
+        await dividend.save();
+
+        res.json({
+            success: true,
+            message: 'จ่ายเงินปันผลเรียบร้อยแล้ว',
+            dividend
+        });
+
+    } catch (error) {
+        console.error('Error distributing dividend:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'เกิดข้อผิดพลาดในการจ่ายเงินปันผล',
+            error: error.message 
+        });
+    }
+});
+
+// API สำหรับดูประวัติการปันผล
+router.get('/dividend/history', async (req, res) => {
+    try {
+        const dividends = await Dividend.find().sort({ year: -1 });
+        res.json({
+            success: true,
+            dividends
+        });
+    } catch (error) {
+        console.error('Error fetching dividend history:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'เกิดข้อผิดพลาดในการดึงข้อมูลประวัติการปันผล',
+            error: error.message 
+        });
+    }
+});
+
+// API สำหรับดูรายละเอียดการปันผล
+router.get('/dividend/:id', async (req, res) => {
+    try {
+        console.log('Fetching dividend with ID:', req.params.id);
+        
+        const dividend = await Dividend.findById(req.params.id);
+        console.log('Found dividend:', dividend);
+        
+        if (!dividend) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'ไม่พบข้อมูลการปันผล' 
+            });
+        }
+
+        // แปลง dividend เป็น plain object
+        const dividendObj = dividend.toObject();
+        console.log('Processing distributions:', dividendObj.distributions);
+        
+        // ดึงข้อมูลบัญชีเงินฝากและข้อมูลผู้ใช้แบบ sequential
+        const detailedDistributions = [];
+        for (const dist of dividendObj.distributions) {
+            console.log('Processing distribution for saving_id:', dist.saving_id);
+            
+            const saving = await Saving.findOne({ id_account: dist.saving_id });
+            console.log('Found saving account:', saving);
+            
+            // ดึงข้อมูลผู้ใช้จาก id_member
+            let memberName = 'ไม่ระบุชื่อ';
+            if (saving && saving.id_member) {
+                const user = await Users.findById(saving.id_member);
+                if (user) {
+                    memberName = user.name;
+                }
+            }
+            
+            detailedDistributions.push({
+                saving_id: dist.saving_id,
+                shares: dist.shares,
+                amount: dist.amount,
+                distributed_at: dist.distributed_at,
+                member_name: memberName
+            });
+        }
+
+        console.log('All detailed distributions:', detailedDistributions);
+
+        const detailedDividend = {
+            ...dividendObj,
+            distributions: detailedDistributions
+        };
+
+        console.log('Final detailed dividend:', detailedDividend);
+
+        res.json({
+            success: true,
+            dividend: detailedDividend
+        });
+    } catch (error) {
+        console.error('Error in /dividend/:id:', error);
+        console.error('Stack trace:', error.stack);
+        res.status(500).json({ 
+            success: false, 
+            message: 'เกิดข้อผิดพลาดในการดึงข้อมูลรายละเอียดการปันผล',
+            error: error.message,
+            stack: error.stack
+        });
+    }
+});
 
 module.exports = router;

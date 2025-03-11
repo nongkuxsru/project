@@ -15,6 +15,10 @@ const savingSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    shares: { // จำนวนหุ้น
+        type: Number,
+        default: 0
+    },
     id_staff: { // อ้างอิงไปยัง User
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -29,6 +33,22 @@ const savingSchema = new mongoose.Schema({
         required: true,
         default: 'active'
     }
+});
+
+// Middleware สำหรับคำนวณหุ้นก่อนบันทึก
+savingSchema.pre('save', function(next) {
+    // คำนวณหุ้นจากยอดเงิน (100 บาท = 1 หุ้น)
+    this.shares = Math.floor(this.balance / 100);
+    next();
+});
+
+// Middleware สำหรับคำนวณหุ้นเมื่อใช้ findOneAndUpdate
+savingSchema.pre('findOneAndUpdate', function(next) {
+    const update = this.getUpdate();
+    if (update.$set && update.$set.balance) {
+        update.$set.shares = Math.floor(update.$set.balance / 100);
+    }
+    next();
 });
 
 const Saving = mongoose.model('Saving', savingSchema);

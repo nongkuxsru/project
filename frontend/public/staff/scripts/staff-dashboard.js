@@ -1,10 +1,6 @@
 // ===============================
 // Event Listeners
 // ===============================
-window.onload = () => {
-    document.getElementById('logoutButton').addEventListener('click', logout);
-};
-
 document.addEventListener('DOMContentLoaded', () => {
     observer.observe(document.body, {
         childList: true,

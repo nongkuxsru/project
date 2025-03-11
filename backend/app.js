@@ -20,7 +20,7 @@ app.set('views', path.join(__dirname, '../frontend/views'));
 
 // เชื่อมต่อกับ MongoDB
 mongoose
-.connect('mongodb://127.0.0.1:27017/project', {})
+.connect('mongodb+srv://admin:admin@cluster0.fg8y9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {})
   .then(() => {
     console.log('MongoDB connected');
   })
