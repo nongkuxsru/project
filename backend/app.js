@@ -5,7 +5,7 @@ const path = require('path');
 const cors = require('cors');
 
 const app = express();
-const PORT = 5000;
+const PORT = 4000;
 
 // Middleware เพื่อ parse JSON body
 app.use(cors());

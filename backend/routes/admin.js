@@ -168,7 +168,7 @@ router.put('/users/:userId/pin', async (req, res) => {
     }
 });
 
-// API สำหรับตรวจสอบ PIN ของ admin
+// API สำหรับตรวจสอบ PIN ของ director
 router.post('/verify-pin', async (req, res) => {
     try {
         const { pin } = req.body;
@@ -185,13 +185,13 @@ router.post('/verify-pin', async (req, res) => {
             });
         }
 
-        // ค้นหา admin ที่มี PIN ตรงกับที่ส่งมา
-        const admin = await User.findOne({ 
-            permission: 'admin',
+        // ค้นหา director ที่มี PIN ตรงกับที่ส่งมา
+        const director = await User.findOne({ 
+            permission: 'director',  // Changed from 'admin' to 'director'
             pin: pin
         });
 
-        if (!admin) {
+        if (!director) {
             return res.status(401).json({ message: 'PIN ไม่ถูกต้อง' });
         }
 
@@ -209,7 +209,6 @@ router.post('/verify-pin', async (req, res) => {
         });
     }
 });
-
 // API สำหรับดึงรายการธุรกรรมที่รอการอนุมัติ
 router.get('/promise-status/pending', async (req, res) => {
     try {
@@ -235,12 +234,17 @@ router.put('/promise-status/:id/approve', async (req, res) => {
 
         // ตรวจสอบว่ามี adminId หรือไม่
         if (!adminId) {
-            return res.status(400).json({ message: 'กรุณาระบุ ID ของผู้ดูแลระบบ' });
+            return res.status(400).json({ message: 'กรุณาระบุ ID ของผู้อนุมัติ' });
         }
 
-        // ตรวจสอบว่าผู้ดูแลระบบมีอยู่จริงหรือไม่
-        const admin = await User.findById(adminId);
-        if (!admin || admin.permission !== 'admin') {
+        // ตรวจสอบว่าผู้อนุมัติมีอยู่จริงหรือไม่
+        const approver = await User.findById(adminId);
+        if (!approver) {
+            return res.status(404).json({ message: 'ไม่พบข้อมูลผู้อนุมัติ' });
+        }
+
+        // อนุญาตให้ทั้ง admin และ director สามารถอนุมัติได้
+        if (approver.permission !== 'admin' && approver.permission !== 'director') {
             return res.status(403).json({ message: 'ไม่มีสิทธิ์ในการอนุมัติสัญญา' });
         }
 
@@ -294,7 +298,7 @@ router.put('/promise-status/:id/reject', async (req, res) => {
 
         // ตรวจสอบว่าผู้ดูแลระบบมีอยู่จริงหรือไม่
         const admin = await User.findById(adminId);
-        if (!admin || admin.permission !== 'admin') {
+        if (!admin || admin.permission !== 'director') {
             return res.status(403).json({ message: 'ไม่มีสิทธิ์ในการปฏิเสธสัญญา' });
         }
 

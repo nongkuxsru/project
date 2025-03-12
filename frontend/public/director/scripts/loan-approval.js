@@ -344,17 +344,21 @@ const verifyPin = async () => {
     }
 
     try {
-        const currentUser = localStorage.getItem('currentUser');
-        if (!currentUser) {
+        const currentUserStr = localStorage.getItem('currentUser');
+        if (!currentUserStr) {
             showError('กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
             window.location.href = '/';
             return;
         }
 
+        const currentUser = JSON.parse(currentUserStr);
         const response = await fetch('/api/admin/verify-pin', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pin })
+            body: JSON.stringify({ 
+                pin,
+                userId: currentUser._id 
+            })
         });
 
         const result = await response.json();
@@ -365,9 +369,9 @@ const verifyPin = async () => {
             pinModal.classList.add('hidden');
             
             if (action === 'approve') {
-                await approvePromise();
+                await approvePromise(currentUser);
             } else if (action === 'reject') {
-                await rejectPromise(reason);
+                await rejectPromise(reason, currentUser);
             }
 
             currentLoanId = null;
@@ -397,14 +401,20 @@ const approvePromise = async () => {
         }
 
         const currentUser = JSON.parse(currentUserStr);
-        if (!currentUser || !currentUser._id) {
-            throw new Error('ข้อมูลผู้ใช้ไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่');
+        if (!currentUser || !currentUser._id || currentUser.permission !== 'director') {
+            throw new Error('ไม่มีสิทธิ์ในการอนุมัติสัญญา');
         }
 
         const response = await fetch(`/api/admin/promise-status/${currentLoanId}/approve`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ directorId: currentUser._id })
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}` // Add authentication token
+            },
+            body: JSON.stringify({ 
+                adminId: currentUser._id,
+                role: currentUser.permission // Add role information
+            })
         });
 
         if (!response.ok) {
@@ -424,47 +434,37 @@ const approvePromise = async () => {
     }
 };
 
-const rejectPromise = async (reason) => {
+const rejectPromise = async (reason, currentUser) => {
     try {
         if (!currentLoanId) {
             throw new Error('ไม่พบข้อมูลสัญญาที่ต้องการปฏิเสธ');
         }
 
-        const currentUserStr = localStorage.getItem('currentUser');
-        if (!currentUserStr) {
-            throw new Error('กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
-        }
-
-        const currentUser = JSON.parse(currentUserStr);
         if (!currentUser || !currentUser._id) {
-            throw new Error('ข้อมูลผู้ใช้ไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่');
+            throw new Error('กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
         }
 
         const response = await fetch(`/api/admin/promise-status/${currentLoanId}/reject`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                directorId: currentUser._id,
+                adminId: currentUser._id,
                 reason: reason
             })
         });
-
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.message || 'ไม่สามารถปฏิเสธสัญญาได้');
         }
-
         const result = await response.json();
         showSuccess(result.message);
         await fetchAndRenderLoanApplications();
     } catch (error) {
         console.error('Error rejecting loan promise:', error);
-        showError(error.message);
-        if (error.message.includes('เข้าสู่ระบบ')) {
-            window.location.href = '/';
-        }
     }
-};
+}
+
+    // ... rest of the code remains the same
 
 // ===============================
 // Modal Management Functions
