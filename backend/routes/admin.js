@@ -4,6 +4,7 @@ const User = require('../models/Users'); // นำเข้าโมเดล Us
 const Saving = require('../models/Saving'); // นำเข้าโมเดลบัญชีการออม
 const Promise = require('../models/Promise'); // นำเข้าโมเดล Promise
 const Transaction = require('../models/Transaction'); // นำเข้าโมเดล Transaction
+const Loan = require('../models/Promise.js'); // นำเข้าโมเดล Loan
 
 
 // API สำหรับดึงข้อมูลสถิติ
@@ -360,7 +361,26 @@ router.get('/financial-reports', async (req, res) => {
             { $limit: 12 }
         ]);
 
-        // 2. ดึงข้อมูลประเภทธุรกรรม
+        // 2. ดึงข้อมูลรายได้จากการกู้เงิน
+        const loanIncome = await Promise.aggregate([
+            {
+                $match: {
+                    status: "completed"
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalInterest: {
+                        $sum: {
+                            $subtract: ["$totalPaid", "$amount"]  // คำนวณผลต่างระหว่าง totalPaid กับ amount
+                        }
+                    }
+                }
+            }
+        ]);
+
+        // 3. ดึงข้อมูลประเภทธุรกรรม
         const currentMonthStart = new Date();
         currentMonthStart.setDate(1);
         currentMonthStart.setHours(0, 0, 0, 0);
@@ -411,7 +431,7 @@ router.get('/financial-reports', async (req, res) => {
             amount: item.amount
         }));
 
-        // 3. คำนวณข้อมูลสรุปทางการเงิน
+        // คำนวณข้อมูลสรุปทางการเงิน
         const currentTotal = currentMonthSavings[0]?.total || 0;
         const lastTotal = lastMonthSavings[0]?.total || 0;
         const percentChange = lastTotal === 0 ? 100 : 
@@ -582,7 +602,8 @@ router.get('/financial-reports', async (req, res) => {
             monthlySavings: formattedMonthlySavings,
             transactionTypes: formattedTransactionTypes,
             chartData, // ส่งข้อมูลกราฟแยกออกมา
-            summary
+            summary,
+            loanIncome: loanIncome.length > 0 ? loanIncome[0].totalInterest : 0
         });
 
     } catch (error) {

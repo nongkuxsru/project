@@ -245,6 +245,11 @@ const updateSummaryCards = (data) => {
     // เพิ่มไอคอนแสดงทิศทาง
     const growthIcon = growthValue >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
     growthRate.innerHTML = `<i class="fas ${growthIcon} mr-1"></i>${Math.abs(growthValue).toFixed(2)}%`;
+
+    // อัปเดตรายได้จากการกู้เงิน
+    if (data.loanIncome) {
+        document.getElementById('loanIncome').textContent = `฿${data.loanIncome.toLocaleString()}`;
+    }
 };
 
 document.addEventListener("DOMContentLoaded", function() {

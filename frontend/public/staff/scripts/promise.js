@@ -94,15 +94,37 @@ const fetchPromise = async () => {
         const tableBody = document.getElementById('promiseTableBody');
         tableBody.innerHTML = '';
 
-        // กรองเฉพาะสัญญาที่มีสถานะ approved
-        const approvedAccounts = data.filter(account => account.status === 'approved');
-
-        if (approvedAccounts.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-gray-500">ไม่พบข้อมูลสัญญาเงินกู้ที่อนุมัติแล้ว</td></tr>';
+        if (data.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-gray-500">ไม่พบข้อมูลสัญญาเงินกู้</td></tr>';
             return;
         }
 
-        approvedAccounts.forEach(account => {
+        data.forEach(account => {
+            // กำหนดสีและข้อความตามสถานะ
+            const statusConfig = {
+                pending: {
+                    color: 'bg-yellow-100 text-yellow-800',
+                    text: 'รอการอนุมัติ'
+                },
+                approved: {
+                    color: 'bg-green-100 text-green-800',
+                    text: 'อนุมัติแล้ว'
+                },
+                rejected: {
+                    color: 'bg-red-100 text-red-800',
+                    text: 'ไม่อนุมัติ'
+                },
+                completed: {
+                    color: 'bg-blue-100 text-blue-800',
+                    text: 'ชำระเสร็จสิ้น'
+                }
+            };
+
+            const status = statusConfig[account.status] || {
+                color: 'bg-gray-100 text-gray-800',
+                text: 'ไม่ระบุสถานะ'
+            };
+
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap text-center text-gray-900">${account._id}</td>
@@ -110,6 +132,11 @@ const fetchPromise = async () => {
                 <td class="px-6 py-4 whitespace-nowrap text-center text-gray-900">${account.amount.toLocaleString('th-TH')} บาท</td>
                 <td class="px-6 py-4 whitespace-nowrap text-center text-gray-900">${new Date(account.Datepromise).toLocaleDateString('th-TH')}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-center text-gray-900">${new Date(account.DueDate).toLocaleDateString('th-TH')}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center">
+                    <span class="px-3 py-1 rounded-full ${status.color} text-sm font-medium">
+                        ${status.text}
+                    </span>
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap text-center">
                     <button onclick="openPromiseDetailsModal('${account.id_saving}')" 
                         class="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-none focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
@@ -233,79 +260,135 @@ const openPromiseDetailsModal = async (id_saving) => {
             throw new Error('ไม่ได้รับข้อมูลจาก API');
         }
 
-        // ตรวจสอบสถานะสัญญา
-        if (promiseDetails.status !== 'approved') {
-            Swal.fire({
-                icon: 'warning',
-                title: 'ไม่สามารถดูข้อมูลได้',
-                text: 'สัญญานี้ยังไม่ได้รับการอนุมัติ'
-            });
-            return;
-        }
-
         const modal = document.getElementById('promiseDetailsModal');
         const modalContent = document.getElementById('promiseDetailsContent');
+        const paymentButton = document.querySelector('[onclick="openPaymentModal()"]');
         
         if (!modal || !modalContent) {
             throw new Error('ไม่พบ elements ของ modal ในเอกสาร');
         }
 
-        // คำนวณยอดเงินและดอกเบี้ย
-        const amount = promiseDetails.amount || 0;
-        const interestRate = promiseDetails.interestRate || 0;
-        const interestAmount = (amount * interestRate) / 100;
-        const totalAmount = amount + interestAmount;
-        
-        // ใช้ข้อมูลการชำระเงินจาก promiseDetails ถ้ามี
-        const totalPaid = promiseDetails.totalPaid || 0;
-        const remainingBalance = totalAmount - totalPaid;
+        // เก็บข้อมูลสัญญาไว้ใน dataset ของ modal
+        modal.dataset.promiseId = promiseDetails._id;
+        modal.dataset.promiseDetails = JSON.stringify(promiseDetails);
+
+        // กำหนดการแสดงปุ่มชำระเงินตามสถานะ
+        if (paymentButton) {
+            if (promiseDetails.status === 'approved') {
+                paymentButton.style.display = 'inline-flex';
+            } else {
+                paymentButton.style.display = 'none';
+            }
+        }
+
+        // กำหนดสีและข้อความตามสถานะ
+        const statusConfig = {
+            pending: {
+                color: 'bg-yellow-100 text-yellow-800',
+                text: 'รอการอนุมัติ'
+            },
+            approved: {
+                color: 'bg-green-100 text-green-800',
+                text: 'อนุมัติแล้ว'
+            },
+            rejected: {
+                color: 'bg-red-100 text-red-800',
+                text: 'ไม่อนุมัติ'
+            },
+            completed: {
+                color: 'bg-blue-100 text-blue-800',
+                text: 'ชำระเสร็จสิ้น'
+            }
+        };
+
+        const status = statusConfig[promiseDetails.status] || {
+            color: 'bg-gray-100 text-gray-800',
+            text: 'ไม่ระบุสถานะ'
+        };
 
         modalContent.innerHTML = `
-            <div class="p-6">
-                <h2 class="text-xl font-semibold mb-4">รายละเอียดสัญญาเงินกู้</h2>
-                <div class="space-y-3">
-                    <p><strong>รหัสสัญญา:</strong> ${promiseDetails._id || 'ไม่ระบุ'}</p>
-                    <p><strong>รหัสบัญชี:</strong> ${promiseDetails.id_saving || 'ไม่ระบุ'}</p>
-                    <p><strong>จำนวนเงินต้น:</strong> ${amount.toLocaleString('th-TH')} บาท</p>
-                    <p><strong>อัตราดอกเบี้ย:</strong> ${interestRate}%</p>
-                    <p><strong>ดอกเบี้ย:</strong> ${interestAmount.toLocaleString('th-TH')} บาท</p>
-                    <p class="font-semibold text-lg text-green-600"><strong>ยอดรวมทั้งสิ้น:</strong> ${totalAmount.toLocaleString('th-TH')} บาท</p>
-                    <p class="font-semibold text-lg text-blue-600"><strong>ยอดที่ชำระแล้ว:</strong> ${totalPaid.toLocaleString('th-TH')} บาท</p>
-                    <p class="font-semibold text-lg text-red-600"><strong>ยอดคงเหลือ:</strong> ${remainingBalance.toLocaleString('th-TH')} บาท</p>
-                    <p><strong>วันที่ทำสัญญา:</strong> ${new Date(promiseDetails.Datepromise).toLocaleDateString('th-TH', { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                    })}</p>
-                    <p><strong>วันครบกำหนด:</strong> ${new Date(promiseDetails.DueDate).toLocaleDateString('th-TH', { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                    })}</p>
-                    <div class="mt-4">
-                        <button onclick="openPaymentHistoryModal('${encodeURIComponent(JSON.stringify(promiseDetails.payments || []))}')"
-                                class="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all">
-                            <i class="fas fa-history"></i>
-                            <span>ดูประวัติการชำระเงิน</span>
-                        </button>
+            <div class="space-y-6">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-semibold">ข้อมูลสัญญา</h3>
+                    <span class="px-3 py-1 rounded-full ${status.color} text-sm font-medium">
+                        ${status.text}
+                    </span>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-600">หมายเลขสัญญา</p>
+                        <p class="font-medium">${promiseDetails._id}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">หมายเลขบัญชีออมทรัพย์</p>
+                        <p class="font-medium">${promiseDetails.id_saving}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">จำนวนเงินกู้</p>
+                        <p class="font-medium">${promiseDetails.amount.toLocaleString('th-TH')} บาท</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">อัตราดอกเบี้ย</p>
+                        <p class="font-medium">${promiseDetails.interestRate}% ต่อปี</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">วันที่ทำสัญญา</p>
+                        <p class="font-medium">${new Date(promiseDetails.Datepromise).toLocaleDateString('th-TH')}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">วันครบกำหนด</p>
+                        <p class="font-medium">${new Date(promiseDetails.DueDate).toLocaleDateString('th-TH')}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">ยอดชำระแล้ว</p>
+                        <p class="font-medium">${promiseDetails.totalPaid?.toLocaleString('th-TH') || '0'} บาท</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">ยอดคงเหลือ</p>
+                        <p class="font-medium">${(promiseDetails.amount + (promiseDetails.amount * promiseDetails.interestRate / 100) - (promiseDetails.totalPaid || 0)).toLocaleString('th-TH')} บาท</p>
                     </div>
                 </div>
+                ${promiseDetails.payments && promiseDetails.payments.length > 0 ? `
+                    <div class="mt-6">
+                        <h4 class="text-lg font-semibold mb-4">ประวัติการชำระเงิน</h4>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">วันที่ชำระ</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">จำนวนเงิน</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">ยอดคงเหลือ</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    ${promiseDetails.payments.map(payment => `
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                ${new Date(payment.paymentDate).toLocaleDateString('th-TH')}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                                                ${payment.amount.toLocaleString('th-TH')} บาท
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                                                ${payment.remainingBalance.toLocaleString('th-TH')} บาท
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                ` : ''}
             </div>
         `;
 
-        // เก็บข้อมูลทั้งหมดไว้ใน dataset
-        modal.dataset.promiseDetails = JSON.stringify(promiseDetails);
-        // เพิ่มบรรทัดนี้เพื่อเก็บ promiseId ไว้ใช้ต่อ
-        modal.dataset.promiseId = promiseDetails._id;
         modal.style.display = 'block';
-
     } catch (error) {
         console.error('Error fetching promise details:', error);
         Swal.fire({
             icon: 'error',
             title: 'เกิดข้อผิดพลาด',
-            text: error.message,
-            confirmButtonText: 'ตกลง'
+            text: error.message || 'ไม่สามารถดึงข้อมูลสัญญาได้'
         });
     }
 };
@@ -545,6 +628,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // ฟังก์ชันสำหรับสร้างสัญญาเงินกู้ใหม่
 const createNewPromise = async (formData) => {
     try {
+        // ตรวจสอบว่ามีสัญญาที่มีเลขบัญชีเดียวกันอยู่แล้วหรือไม่
+        const existingPromisesResponse = await fetch(`/api/staff/promise?accountId=${formData.id_saving}`);
+        const existingPromises = await existingPromisesResponse.json();
+
         // เตรียมข้อมูลที่จะส่งไป API
         const promiseData = {
             id_saving: formData.id_saving,
@@ -802,12 +889,14 @@ const openPaymentModal = () => {
     try {
         const detailsModal = document.getElementById('promiseDetailsModal');
         const promiseId = detailsModal.dataset.promiseId;
-        const promiseDetails = JSON.parse(detailsModal.dataset.promiseDetails);
+        const promiseDetailsStr = detailsModal.dataset.promiseDetails;
         
-        // ตรวจสอบ promiseId
-        if (!promiseId) {
-            throw new Error('ไม่พบรหัสสัญญา');
+        // ตรวจสอบว่ามีข้อมูลใน dataset หรือไม่
+        if (!promiseId || !promiseDetailsStr) {
+            throw new Error('ไม่พบข้อมูลสัญญา กรุณาลองโหลดข้อมูลใหม่');
         }
+
+        const promiseDetails = JSON.parse(promiseDetailsStr);
 
         // คำนวณยอดเงินคงเหลือ
         const amount = promiseDetails.amount || 0;
@@ -839,6 +928,14 @@ const openPaymentModal = () => {
 
         // เก็บ promiseId ไว้ใน dataset ของ modal
         paymentModal.dataset.promiseId = promiseId;
+        
+        // แสดงยอดเงินคงเหลือใน modal
+        const paymentAmount = document.getElementById('paymentAmount');
+        if (paymentAmount) {
+            paymentAmount.max = remainingBalance;
+            paymentAmount.placeholder = `ยอดคงเหลือ: ${remainingBalance.toLocaleString('th-TH')} บาท`;
+        }
+
         paymentModal.style.display = 'block';
 
     } catch (error) {
@@ -846,7 +943,7 @@ const openPaymentModal = () => {
         Swal.fire({
             icon: 'error',
             title: 'เกิดข้อผิดพลาด',
-            text: error.message
+            text: error.message || 'ไม่สามารถเปิดหน้าชำระเงินได้'
         });
     }
 };
@@ -952,10 +1049,10 @@ const openPaymentHistoryModal = (paymentsJson) => {
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 ${new Date(payment.paymentDate).toLocaleDateString('th-TH')}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                                 ${payment.amount.toLocaleString()} บาท
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                                 ${payment.remainingBalance.toLocaleString()} บาท
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
