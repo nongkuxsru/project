@@ -492,25 +492,42 @@ const setupAddFormListeners = (modal, form) => {
 // PIN Management Functions
 // ===============================
 const resetPin = async (userId) => {
-    const { value: pin } = await showPinPrompt('รีเซ็ต PIN', 'กรุณากรอก PIN ใหม่ 4 หลัก');
-    if (!pin) return;
-
     try {
+        const { value: pin, isConfirmed } = await showPinPrompt('รีเซ็ต PIN', 'กรุณากรอก PIN ใหม่ 4 หลัก');
+        
+        // Check if user cancelled or PIN is invalid
+        if (!isConfirmed || !pin) {
+            return;
+        }
+
+        // Validate PIN format
+        if (!/^\d{4}$/.test(pin)) {
+            showError('PIN ไม่ถูกต้อง', 'กรุณากรอก PIN เป็นตัวเลข 4 หลักเท่านั้น');
+            return;
+        }
+
         const response = await fetch(`/api/admin/users/${userId}/pin`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pin })
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}` // Add token if using authentication
+            },
+            body: JSON.stringify({ 
+                pin,
+                userId // Include userId in request body
+            })
         });
 
         if (!response.ok) {
-            throw new Error('ไม่สามารถรีเซ็ต PIN ได้');
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'ไม่สามารถรีเซ็ต PIN ได้');
         }
 
-        clearSearchAndRefresh();
+        await clearSearchAndRefresh();
         showSuccess('รีเซ็ต PIN สำเร็จ', 'PIN ได้ถูกเปลี่ยนเรียบร้อยแล้ว');
     } catch (error) {
         console.error('Error resetting PIN:', error);
-        showError('ไม่สามารถรีเซ็ต PIN ได้ กรุณาลองใหม่');
+        showError(error.message || 'ไม่สามารถรีเซ็ต PIN ได้ กรุณาลองใหม่');
     }
 };
 

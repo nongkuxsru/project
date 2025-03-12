@@ -129,40 +129,44 @@ router.put('/users/:id', async (req, res) => {
     }
 });
 
-// API สำหรับตั้ง PIN สำหรับผู้ดูแล
-router.put('/users/:userId/pin', async (req, res) => {
+// API สำหรับอัพเดท PIN
+router.put('/users/:id/pin', async (req, res) => {
     try {
-        const userId = req.params.userId;
+        const { id } = req.params;
         const { pin } = req.body;
 
-        // ตรวจสอบรูปแบบ PIN
+        // Validate PIN
         if (!pin || pin.length !== 4 || !/^\d+$/.test(pin)) {
             return res.status(400).json({ 
                 message: 'PIN ไม่ถูกต้อง กรุณาระบุตัวเลข 4 หลัก' 
             });
         }
 
-        // ค้นหาผู้ใช้และตรวจสอบว่าเป็นผู้ดูแลหรือไม่
-        const user = await User.findById(userId);
+        // Find user and verify it's a director
+        const user = await User.findById(id);
         if (!user) {
             return res.status(404).json({ message: 'ไม่พบผู้ใช้' });
         }
 
-        if (user.permission !== 'admin') {
+        if (user.permission !== 'director') {
             return res.status(400).json({ 
-                message: 'สามารถตั้ง PIN ได้เฉพาะผู้ดูแลระบบเท่านั้น' 
+                message: 'สามารถตั้ง PIN ได้เฉพาะผู้อำนวยการเท่านั้น' 
             });
         }
 
-        // อัปเดต PIN
+        // Update PIN
         user.pin = pin;
         await user.save();
 
-        res.json({ message: 'ตั้ง PIN สำเร็จ' });
+        res.json({ 
+            message: 'อัพเดท PIN สำเร็จ',
+            success: true
+        });
+
     } catch (error) {
-        console.error('Error setting PIN:', error);
+        console.error('Error updating PIN:', error);
         res.status(500).json({ 
-            message: 'เกิดข้อผิดพลาดในการตั้ง PIN', 
+            message: 'เกิดข้อผิดพลาดในการอัพเดท PIN', 
             error: error.message 
         });
     }
