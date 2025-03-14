@@ -51,45 +51,39 @@
             }
         </style>
     </head>
-<body class="bg-background text-secondary font-sans">
-    <div class="dashboard-container">
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-12">
+        <!-- Topbar Container -->
+        <div id="topbarContainer"></div>
+        
         <!-- Main Content -->
-        <main class="flex-1 p-8">
-             <!-- Header -->
-             <header class="flex justify-between items-center mb-6">
-                <div>
-                    <nav class="text-sm mb-1">
-                        <ol class="list-none p-0 inline-flex text-gray-500">
-                            <li class="flex items-center">
-                                <i class="fas fa-home text-primary"></i>
-                                <span class="mx-2">/</span>
-                            </li>
-                            <li class="text-primary font-medium">แดชบอร์ด</li>
-                        </ol>
-                    </nav>
-                    <h1 class="text-2xl font-bold text-secondary">แดชบอร์ดผู้ดูแลระบบ</h1>
-                </div>
+        <main class="flex-1">
+            <header class="text-center mb-12">
+                <h1 class="text-4xl font-bold text-white mb-4 drop-shadow-lg">รายงาน</h1>
+                <p class="text-xl text-white mb-8 max-w-2xl mx-auto drop-shadow-md">
+                    ดูภาพรวมและรายละเอียดรายงานของสหกรณ์ออมทรัพย์
+                </p>
                 <!-- ส่วนแสดงโปรไฟล์ผู้ใช้ -->
-                <div class="flex items-center space-x-3">
+                <div class="flex items-center justify-center space-x-3 mb-6">
                     <div class="relative">
-                        <button id="userMenuButton" class="flex items-center space-x-3 focus:outline-none" aria-expanded="false">
-                            <div id="userAvatar" class="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 text-white font-bold border-2 border-green-500">
+                        <button id="userMenuButton" class="flex items-center space-x-3 focus:outline-none glass-card px-4 py-2 rounded-full" aria-expanded="false">
+                            <div id="userAvatar" class="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 text-white font-bold border-2 border-white">
                                 <!-- แสดงอักษรย่อจากชื่อผู้ใช้ -->
                             </div>
-                            <span id="userName" class="text-secondary font-medium">
+                            <span id="userName" class="text-white font-medium">
                                 <!-- แสดงชื่อผู้ใช้ -->
                             </span>
-                            <i class="fas fa-chevron-down text-gray-500 transition-transform duration-200"></i>
+                            <i class="fas fa-chevron-down text-white transition-transform duration-200"></i>
                         </button>
                         
                         <!-- Dropdown Menu -->
-                        <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
-                            <button id="updateUserPasswordBtn" class="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors duration-200 flex items-center">
-                                <i class="fas fa-key mr-2 text-gray-500"></i>
+                        <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 glass-card rounded-md shadow-lg py-1 z-50 border border-white/30">
+                            <button id="updateUserPasswordBtn" class="w-full px-4 py-2 text-left text-white hover:bg-white/20 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-key mr-2 text-white/80"></i>
                                 <span>เปลี่ยนรหัสผ่าน</span>
                             </button>
-                            <hr class="my-1 border-gray-200">
-                            <button id="logoutButton" class="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors duration-200 flex items-center">
+                            <hr class="my-1 border-white/20">
+                            <button id="logoutButton" class="w-full px-4 py-2 text-left text-white hover:bg-white/20 transition-colors duration-200 flex items-center">
                                 <i class="fa-solid fa-right-from-bracket mr-2"></i>
                                 <span>ออกจากระบบ</span>
                             </button>
@@ -98,26 +92,41 @@
                 </div>
             </header>
             
-            <section class="bg-white p-6 shadow-lg rounded-lg w-full max-w-full mx-auto border-2 border-green-500">
-                <h2 class="text-2xl font-bold text-primary mb-6 text-center">รายงาน</h2>
-                <div class="usersTable">
-                    <table class="w-full table-auto mt-6">
-                        <thead>
-                            <tr class="bg-green-100 text-gray-800">
-                                <th class="border px-4 py-2">รายงาน</th>
+            <section class="glass-card rounded-2xl p-8 mb-8">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    รายงาน
+                </h2>
+                <div class="overflow-x-auto bg-white/20 rounded-lg border border-white/30">
+                    <table class="w-full table-auto">
+                        <thead class="bg-white/10">
+                            <tr>
+                                <th class="px-6 py-3 border-b border-white/20 text-left text-xs font-medium text-white uppercase tracking-wider">รายงาน</th>
                             </tr>
                         </thead>
-                        <tbody id="reportTableBody">
+                        <tbody id="reportTableBody" class="bg-white/5 divide-y divide-white/20">
                             <tr>
-                                <td colspan="1" class="text-center py-4">กำลังโหลดรายงาน ...</td>
+                                <td class="px-6 py-4 text-center text-white">กำลังโหลดรายงาน ...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </section>
             
+            <!-- Footer -->
+            <footer class="text-center text-white/80 mt-12">
+                <p>© 2023 สหกรณ์ออมทรัพย์หมู่บ้าน ตําบล ตะกุกเหนือ. สงวนลิขสิทธิ์.</p>
+                <div class="mt-4 flex justify-center space-x-4">
+                    <a href="#" class="text-white hover:text-accent transition"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-white hover:text-accent transition"><i class="fab fa-line"></i></a>
+                    <a href="#" class="text-white hover:text-accent transition"><i class="fas fa-envelope"></i></a>
+                    <a href="#" class="text-white hover:text-accent transition"><i class="fas fa-phone"></i></a>
+                </div>
+            </footer>
         </main>
     </div>
+    
+    <script src="/staff/components/load-topbar.js"></script>
     <script src="/staff/components/load-sidebar.js"></script>
     <script src="/admin/scripts/auth.js"></script>
     <script src="/staff/scripts/report.js"></script>
