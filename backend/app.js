@@ -34,6 +34,7 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/staff', require('./routes/staff'));
 app.use('/api/user', require('./routes/user'));
 app.use("/api/news", require("./routes/news"));
+app.use('/api/public', require('./routes/public'));
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/public/poster.html'));

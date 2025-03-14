@@ -334,7 +334,6 @@ const showError = (message) => {
 // ฟังก์ชันสำหรับอัปเดต Summary Cards
 const updateSummaryCards = (data) => {
     try {
-        console.log('Financial data received:', data);
         
         // อัปเดตจำนวนสมาชิกออมทรัพย์
         if (data.memberStats && data.memberStats.savingMembers !== undefined) {
