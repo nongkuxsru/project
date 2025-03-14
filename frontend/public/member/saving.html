@@ -4,7 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="icon" type="image/png" sizes="16x16" href="../images/logo.png"/>
-        <title>ระบบฝาก – ถอนเงินสหกรณ์ออมทรัพย์หมู่บ้าน ตําบล ตะกุกเหนือ</title>
+        <title>บัญชีการออม - สหกรณ์ออมทรัพย์</title>
         <link rel="stylesheet" href="/styles/setting.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
         <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
@@ -52,44 +52,39 @@
         </style>
     </head>
 
-<body class="bg-background text-secondary font-sans">
-    <div class="flex h-screen">
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-12">
+        <!-- Topbar Container -->
+        <div id="topbarContainer"></div>
+        
         <!-- Main Content -->
-        <main class="flex-1 p-8">
-            <header class="flex justify-between items-center mb-6">
-                <div>
-                    <nav class="text-sm mb-1">
-                        <ol class="list-none p-0 inline-flex text-gray-500">
-                            <li class="flex items-center">
-                                <i class="fas fa-home text-primary"></i>
-                                <span class="mx-2">/</span>
-                            </li>
-                            <li class="text-primary font-medium">บัญชีการออม</li>
-                        </ol>
-                    </nav>
-                    <h1 class="text-2xl font-bold text-secondary">จัดการบัญชีการออม</h1>
-                </div>
+        <main class="flex-1">
+            <header class="text-center mb-12">
+                <h1 class="text-4xl font-bold text-white mb-4 drop-shadow-lg">บัญชีออมทรัพย์</h1>
+                <p class="text-xl text-white mb-8 max-w-2xl mx-auto drop-shadow-md">
+                    ตรวจสอบบัญชีออมทรัพย์ และเรียกดูประวัติการทำรายการ
+                </p>
                 <!-- ส่วนแสดงโปรไฟล์ผู้ใช้ -->
-                <div class="flex items-center space-x-3">
+                <div class="flex items-center justify-center space-x-3 mb-6">
                     <div class="relative">
-                        <button id="userMenuButton" class="flex items-center space-x-3 focus:outline-none" aria-expanded="false">
-                            <div id="userAvatar" class="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 text-white font-bold border-2 border-green-500">
+                        <button id="userMenuButton" class="flex items-center space-x-3 focus:outline-none glass-card px-4 py-2 rounded-full" aria-expanded="false">
+                            <div id="userAvatar" class="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 text-white font-bold border-2 border-white">
                                 <!-- แสดงอักษรย่อจากชื่อผู้ใช้ -->
                             </div>
-                            <span id="userName" class="text-secondary font-medium">
+                            <span id="userName" class="text-white font-medium">
                                 <!-- แสดงชื่อผู้ใช้ -->
                             </span>
-                            <i class="fas fa-chevron-down text-gray-500 transition-transform duration-200"></i>
+                            <i class="fas fa-chevron-down text-white transition-transform duration-200"></i>
                         </button>
                         
                         <!-- Dropdown Menu -->
-                        <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
-                            <button id="updateUserPasswordBtn" class="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors duration-200 flex items-center">
-                                <i class="fas fa-key mr-2 text-gray-500"></i>
+                        <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 glass-card rounded-md shadow-lg py-1 z-50 border border-white/30">
+                            <button id="updateUserPasswordBtn" class="w-full px-4 py-2 text-left text-white hover:bg-white/20 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-key mr-2 text-white/80"></i>
                                 <span>เปลี่ยนรหัสผ่าน</span>
                             </button>
-                            <hr class="my-1 border-gray-200">
-                            <button id="logoutButton" class="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors duration-200 flex items-center">
+                            <hr class="my-1 border-white/20">
+                            <button id="logoutButton" class="w-full px-4 py-2 text-left text-white hover:bg-white/20 transition-colors duration-200 flex items-center">
                                 <i class="fa-solid fa-right-from-bracket mr-2"></i>
                                 <span>ออกจากระบบ</span>
                             </button>
@@ -99,7 +94,7 @@
             </header>
 
             <!-- Account Info Section -->
-            <section class="bg-white p-6 shadow-lg rounded-lg w-full max-w-3xl mx-auto border-2 border-green-500">
+            <section class="bg-white p-6 shadow-lg rounded-lg w-full max-w-3xl mx-auto border border-gray-200">
                 <h2 class="text-2xl font-bold text-primary mb-6 flex items-center">
                     <i class="fas fa-piggy-bank mr-3"></i>
                     บัญชีการออมของฉัน
@@ -139,7 +134,7 @@
             </section>
 
             <!-- Transaction History Table -->
-            <div class="mt-8 bg-white p-6 shadow-lg rounded-lg border-2 border-green-500">
+            <div class="mt-8 bg-white p-6 shadow-lg rounded-lg border border-gray-200">
                 <h3 class="text-xl font-bold text-primary mb-6 flex items-center">
                     <i class="fas fa-history mr-3"></i>
                     ประวัติการทำรายการ
@@ -163,11 +158,16 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Footer -->
+            <footer class="text-center p-4 text-gray-600 text-sm mt-8">
+                <p>© 2024 สหกรณ์ออมทรัพย์หมู่บ้าน ตําบล ตะกุกเหนือ. สงวนลิขสิทธิ์.</p>
+            </footer>
         </main>
     </div>
 
     <!-- เพิ่ม Modal สำหรับอัพเดทรหัสผ่าน -->
-    <div id="updatePasswordModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full">
+    <div id="updatePasswordModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-medium text-gray-900">อัพเดทรหัสผ่าน</h3>
@@ -200,8 +200,8 @@
         </div>
     </div>
 
-    <script src="/member/components/load-sidebar.js"></script>
     <script src="/member/scripts/auth.js"></script>
     <script src="/member/scripts/saving.js"></script>
+    <script src="/member/components/load-topbar.js"></script>
 </body>
 </html>
