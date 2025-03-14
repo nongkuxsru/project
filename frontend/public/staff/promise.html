@@ -121,82 +121,158 @@
             
             <!-- Modal สร้างสัญญาเงินกู้ -->
             <div id="createPromiseModal" class="modal">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2>สร้างสัญญาเงินกู้</h2>
-                        <span class="close">&times;</span>
+                <div class="modal-content max-w-3xl w-full bg-white rounded-lg shadow-2xl transform transition-all duration-300 ease-in-out">
+                    <div class="modal-header bg-gradient-to-r from-green-600 to-green-500 text-white p-2 rounded-t-lg flex justify-between items-center">
+                        <h2 class="text-base font-bold flex items-center">
+                            <i class="fas fa-file-signature mr-2"></i>
+                            สร้างสัญญาเงินกู้
+                        </h2>
+                        <span class="close text-white hover:text-gray-200 text-2xl transition-colors cursor-pointer">&times;</span>
                     </div>
-                    <form id="createPromiseForm">
-                        <div class="form-group">
-                            <label for="memberId">รหัสสมาชิก:</label>
-                            <input type="text" id="memberId" readonly required>
+                    <form id="createPromiseForm" class="p-3">
+                        <div class="bg-green-50 p-1 rounded-lg mb-2 border-l-4 border-green-500">
+                            <p class="text-green-800 text-xs">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                กรุณากรอกรหัสสมาชิกและค้นหาข้อมูลก่อนสร้างสัญญาเงินกู้
+                            </p>
                         </div>
                         
-                        <div class="form-group">
-                            <label for="memberName">ชื่อสมาชิก:</label>
-                            <select id="memberName" class="w-full p-2 border rounded-lg" required>
-                                <option value="">-- เลือกสมาชิก --</option>
-                            </select>
+                        <div class="form-group mb-2">
+                            <label for="memberId" class="block text-gray-700 font-medium mb-1 text-xs">รหัสสมาชิก:</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="memberId" class="flex-1 p-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" 
+                                       placeholder="กรอกรหัสสมาชิก" required>
+                                <button type="button" id="searchMemberBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded-lg transition-all duration-300 hover:shadow-lg flex items-center">
+                                    <i class="fas fa-search mr-1"></i> ค้นหา
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-2">
+                            <label for="memberName" class="block text-gray-700 font-medium mb-1 text-xs">ชื่อสมาชิก:</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="memberName" readonly 
+                                       class="flex-1 p-1 border-b-2 border-gray-300 bg-gray-50 rounded-lg text-gray-700 font-medium">
+                                <button type="button" id="viewMemberDetailsBtn" 
+                                        class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded-lg transition-all duration-300 hover:shadow-lg flex items-center" disabled>
+                                    <i class="fas fa-info-circle mr-1"></i> รายละเอียด
+                                </button>
+                            </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="savingBalance">ยอดเงินในบัญชีออมทรัพย์:</label>
-                            <input type="number" id="savingBalance" readonly class="border-b-4 border-gray-300 mb-4 bg-gray-100">
-                        </div>
-
-                        <div class="flex gap-4">
-                            <div class="form-group flex-1">
-                                <label for="savingStatus">ประเภทบัญชีกู้ยืม:</label>
-                                <select id="savingStatus" class="w-full p-2 border rounded-lg">
-                                    <option value="ordinary_loan">กู้ยืมสามัญ</option>
-                                    <option value="emergency_loan">กู้ยืมฉุกเฉิน</option>
-                                </select>
+                        <!-- จัดให้ยอดเงินในบัญชีและจำนวนหุ้นอยู่ในแถวเดียวกัน -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
+                            <div class="form-group">
+                                <label for="savingBalance" class="block text-gray-700 font-medium mb-1 text-xs">ยอดเงินในบัญชีออมทรัพย์:</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-coins text-gray-500"></i>
+                                    </div>
+                                    <input type="text" id="savingBalance" readonly 
+                                           class="w-full pl-10 p-1.5 border-b-2 border-gray-300 bg-gray-50 rounded-lg text-gray-700 font-medium text-sm text-right">
+                                </div>
                             </div>
 
-                            <div class="form-group flex-1">
-                                <label for="loanAmount">จำนวนเงินที่ขอกู้:</label>
-                                <input type="number" id="loanAmount" required min="0" step="0.01">
-                            </div>
-
-                            <div class="form-group flex-1">
-                                <label for="interestRate">อัตราดอกเบี้ย (% ต่อปี):</label>
-                                <div class="flex items-center">
-                                    <input type="number" 
-                                           id="interestRate" 
-                                           class="flex-1 p-2 border rounded-lg" 
-                                           value="6" 
-                                           required 
-                                           min="0" 
-                                           max="15" 
-                                           step="0.01">
-                                    <span class="ml-2">%</span>
+                            <div class="form-group">
+                                <label for="memberShares" class="block text-gray-700 font-medium mb-1 text-xs">จำนวนหุ้น:</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-chart-pie text-gray-500"></i>
+                                    </div>
+                                    <input type="text" id="memberShares" readonly 
+                                           class="w-full pl-10 p-1.5 border-b-2 border-gray-300 bg-gray-50 rounded-lg text-gray-700 font-medium text-sm text-right">
                                 </div>
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="totalWithInterest">จำนวนเงินรวมดอกเบี้ย:</label>
-                            <input type="text" 
-                                   id="totalWithInterest" 
-                                   class="w-full p-2 border rounded-lg bg-gray-100" 
-                                   readonly>
-                        </div>
-
-                        <div class="flex gap-4">
-                            <div class="form-group flex-1">
-                                <label for="promiseDate">วันที่ทำสัญญา:</label>
-                                <input type="date" id="promiseDate" required>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
+                            <div class="form-group">
+                                <label for="savingStatus" class="block text-gray-700 font-medium mb-1 text-xs">ประเภทบัญชีกู้ยืม:</label>
+                                <div class="relative">
+                                    <select id="savingStatus" class="w-full p-1 border border-gray-300 rounded-lg appearance-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm">
+                                        <option value="ordinary_loan">กู้ยืมสามัญ</option>
+                                        <option value="emergency_loan">กู้ยืมฉุกเฉิน</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                        <i class="fas fa-chevron-down text-gray-500"></i>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="form-group flex-1">
-                                <label for="dueDate">วันที่ครบกำหนด:</label>
-                                <input type="date" id="dueDate" required>
+                            <div class="form-group">
+                                <label for="loanAmount" class="block text-gray-700 font-medium mb-1 text-xs">จำนวนเงินที่ขอกู้:</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                        <i class="fas fa-money-bill-wave text-gray-500"></i>
+                                    </div>
+                                    <input type="number" id="loanAmount" required min="0" step="0.01"
+                                           class="w-full pl-8 p-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm text-right"
+                                           placeholder="0.00">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="interestRate" class="block text-gray-700 font-medium mb-1 text-xs">อัตราดอกเบี้ย (% ต่อเดือน):</label>
+                                <div class="relative flex items-center">
+                                    <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                        <i class="fas fa-percentage text-gray-500"></i>
+                                    </div>
+                                    <input type="number" id="interestRate" 
+                                           class="flex-1 pl-8 p-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm text-right" 
+                                           value="1" required min="0" max="15" step="0.01" disabled>
+                                    <span class="ml-1 text-gray-700 font-medium text-sm">%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-2">
+                            <label for="totalWithInterest" class="block text-gray-700 font-medium mb-1 text-xs">จำนวนเงินรวมดอกเบี้ย:</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                    <i class="fas fa-calculator text-gray-500"></i>
+                                </div>
+                                <input type="text" id="totalWithInterest" 
+                                       class="w-full pl-8 p-1 border-2 border-green-300 rounded-lg bg-green-50 text-green-800 font-medium text-right pr-3 text-sm" 
+                                       readonly>
+                            </div>
+                            <!-- เพิ่มส่วนแสดงรายละเอียดการคำนวณดอกเบี้ย -->
+                            <div id="interestDetails" class="mt-1"></div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
+                            <div class="form-group">
+                                <label for="promiseDate" class="block text-gray-700 font-medium mb-1 text-xs">วันที่ทำสัญญา:</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                        <i class="fas fa-calendar-alt text-gray-500"></i>
+                                    </div>
+                                    <input type="date" id="promiseDate" required
+                                           class="w-full pl-8 p-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm text-right pr-3">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="dueDate" class="block text-gray-700 font-medium mb-1 text-xs">วันที่ครบกำหนด:</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                        <i class="fas fa-calendar-check text-gray-500"></i>
+                                    </div>
+                                    <input type="date" id="dueDate" required
+                                           class="w-full pl-8 p-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm text-right pr-3">
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="flex gap-4 mt-4">
-                            <button type="submit" class="flex-1 bg-primary hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">บันทึกสัญญา</button>
-                            <button type="button" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300" id="cancelPromiseButton">ยกเลิก</button>
+                        <div class="flex gap-2">
+                            <button type="submit" 
+                                    class="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-bold py-1 px-2 rounded-lg transition-all duration-300 hover:shadow-lg flex items-center justify-center text-sm">
+                                <i class="fas fa-save mr-1"></i> บันทึกสัญญา
+                            </button>
+                            <button type="button" 
+                                    class="flex-1 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-bold py-1 px-2 rounded-lg transition-all duration-300 hover:shadow-lg flex items-center justify-center text-sm" 
+                                    id="cancelPromiseButton">
+                                <i class="fas fa-times mr-1"></i> ยกเลิก
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -204,32 +280,35 @@
 
             <!-- Modal รายละเอียดสัญญา -->
             <div id="promiseDetailsModal" class="modal">
-                <div class="modal-content max-w-2xl w-full bg-white rounded-lg shadow-xl">
-                    <div class="modal-header bg-primary text-white p-4 rounded-t-lg flex justify-between items-center">
-                        <h2 class="text-xl font-bold ">รายละเอียดสัญญาเงินกู้</h2>
-                        <button class="close hover:text-gray-300 transition-colors">
+                <div class="modal-content max-w-2xl w-full bg-white rounded-lg shadow-xl transform transition-all duration-300 ease-in-out">
+                    <div class="modal-header bg-gradient-to-r from-green-600 to-green-500 text-white p-3 rounded-t-lg flex justify-between items-center">
+                        <h2 class="text-lg font-bold flex items-center">
+                            <i class="fas fa-file-contract mr-2"></i>
+                            รายละเอียดสัญญาเงินกู้
+                        </h2>
+                        <button class="close hover:text-gray-200 transition-colors">
                             <i class="fas fa-times text-xl"></i>
                         </button>
                     </div>
-                    <div id="promiseDetailsContent" class="p-6 space-y-4">
+                    <div id="promiseDetailsContent" class="p-4 space-y-3">
                         <!-- เนื้อหาจะถูกเพิ่มด้วย JavaScript -->
                         <div class="animate-pulse">
-                            <div class="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-                            <div class="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-                            <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+                            <div class="h-3 bg-gray-200 rounded w-3/4 mb-3"></div>
+                            <div class="h-3 bg-gray-200 rounded w-1/2 mb-3"></div>
+                            <div class="h-3 bg-gray-200 rounded w-5/6"></div>
                         </div>
                     </div>
-                    <div class="modal-footer bg-gray-50 p-4 rounded-b-lg flex justify-end space-x-3">
+                    <div class="modal-footer bg-gray-50 p-3 rounded-b-lg flex justify-end space-x-2">
                         <button onclick="openPaymentModal()" 
-                            class="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all duration-300">
+                            class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-all duration-300">
                             <i class="fas fa-money-bill-wave"></i>
                             <span>ชำระเงิน</span>
                         </button>
-                        <button class="bg-primary hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors" 
+                        <button class="bg-primary hover:bg-green-600 text-white px-3 py-1.5 text-sm rounded-lg transition-colors" 
                                 onclick="printPromiseDetails()">
-                            <i class="fas fa-print mr-2"></i>พิมพ์สัญญา
+                            <i class="fas fa-print mr-1"></i>พิมพ์สัญญา
                         </button>
-                        <button class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors" 
+                        <button class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 text-sm rounded-lg transition-colors" 
                                 onclick="closePromiseDetails()">
                             ปิด
                         </button>
@@ -239,15 +318,18 @@
 
             <!-- เพิ่มในส่วน body ของ promise.html -->
             <div id="paymentModal" class="modal">
-                <div class="modal-content bg-white p-6 rounded-lg shadow-xl max-w-md mx-auto">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-semibold">บันทึกการชำระเงิน</h2>
+                <div class="modal-content bg-white p-4 rounded-lg shadow-xl max-w-md mx-auto">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-lg font-semibold">บันทึกการชำระเงิน</h2>
                         <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
                     
-                    <form id="paymentForm" onsubmit="handlePayment(event)" class="space-y-4">
+                    <form id="paymentForm" onsubmit="handlePayment(event)" class="space-y-3">
+                        <!-- แสดงค่าปรับชำระล่าช้า (ถ้ามี) -->
+                        <div id="lateFeeDisplay" class="mb-3" style="display: none;"></div>
+                        
                         <div class="form-group">
                             <label class="block text-sm font-medium text-gray-700 mb-1">
                                 จำนวนเงินที่ชำระ:
@@ -257,7 +339,7 @@
                                 required 
                                 min="0" 
                                 step="0.01"
-                                class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-right">
                         </div>
                         
                         <div class="form-group">
@@ -267,17 +349,20 @@
                             <input type="date" 
                                 id="paymentDate" 
                                 required
-                                class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-right">
                         </div>
+                        
+                        <!-- แสดงยอดรวมที่ต้องชำระ -->
+                        <div id="totalPaymentDisplay" class="mt-3"></div>
 
-                        <div class="flex justify-end space-x-3 mt-6">
+                        <div class="flex justify-end space-x-2 mt-4">
                             <button type="button" 
                                 onclick="closeModal()"
-                                class="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
+                                class="px-3 py-1.5 text-sm text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
                                 ยกเลิก
                             </button>
                             <button type="submit"
-                                class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
+                                class="px-3 py-1.5 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
                                 บันทึกการชำระเงิน
                             </button>
                         </div>
@@ -287,20 +372,52 @@
 
             <!-- เพิ่ม Modal สำหรับแสดงประวัติการชำระเงิน -->
             <div id="paymentHistoryModal" class="modal">
-                <div class="modal-content max-w-2xl w-full bg-white rounded-lg shadow-xl">
-                    <div class="modal-header bg-primary text-white p-4 rounded-t-lg flex justify-between items-center">
-                        <h2 class="text-xl font-bold">ประวัติการชำระเงิน</h2>
-                        <button onclick="closeModal()" class="hover:text-gray-300 transition-colors">
+                <div class="modal-content max-w-2xl w-full bg-white rounded-lg shadow-xl transform transition-all duration-300 ease-in-out">
+                    <div class="modal-header bg-gradient-to-r from-blue-600 to-blue-500 text-white p-3 rounded-t-lg flex justify-between items-center">
+                        <h2 class="text-lg font-bold flex items-center">
+                            <i class="fas fa-history mr-2"></i>
+                            ประวัติการชำระเงิน
+                        </h2>
+                        <button onclick="closeModal()" class="hover:text-gray-200 transition-colors">
                             <i class="fas fa-times text-xl"></i>
                         </button>
                     </div>
-                    <div id="paymentHistoryContent" class="p-6 space-y-4">
+                    <div id="paymentHistoryContent" class="p-4 space-y-3">
                         <!-- เนื้อหาจะถูกเพิ่มด้วย JavaScript -->
                     </div>
-                    <div class="modal-footer bg-gray-50 p-4 rounded-b-lg flex justify-end">
+                    <div class="modal-footer bg-gray-50 p-3 rounded-b-lg flex justify-end">
                         <button onclick="closeModal()" 
-                                class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+                                class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 text-sm rounded-lg transition-colors">
                             ปิด
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal สำหรับรายละเอียดบัญชีออมทรัพย์ -->
+            <div id="savingDetailsModal" class="modal">
+                <div class="modal-content max-w-2xl w-full bg-white rounded-lg shadow-2xl transform transition-all duration-300 ease-in-out">
+                    <div class="modal-header bg-gradient-to-r from-green-600 to-green-500 text-white p-3 rounded-t-lg flex justify-between items-center">
+                        <h2 class="text-lg font-bold flex items-center">
+                            <i class="fas fa-piggy-bank mr-2"></i>
+                            รายละเอียดบัญชีออมทรัพย์
+                        </h2>
+                        <button class="close text-white hover:text-gray-200 text-xl transition-colors cursor-pointer">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="savingDetailsContent" class="p-4 space-y-3">
+                        <!-- เนื้อหาจะถูกเพิ่มด้วย JavaScript -->
+                        <div class="animate-pulse">
+                            <div class="h-3 bg-gray-200 rounded w-3/4 mb-3"></div>
+                            <div class="h-3 bg-gray-200 rounded w-1/2 mb-3"></div>
+                            <div class="h-3 bg-gray-200 rounded w-5/6"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-gray-50 p-3 rounded-b-lg flex justify-end">
+                        <button class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 text-sm rounded-lg transition-colors" 
+                                onclick="closeModal()">
+                            <i class="fas fa-times mr-1"></i> ปิด
                         </button>
                     </div>
                 </div>

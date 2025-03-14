@@ -127,6 +127,21 @@ router.get('/saving/:userId', async (req, res) => {
     }
 });
 
+// API ดึงข้อมูลบัญชีตาม id_account
+router.get('/saving/account/:accountId', async (req, res) => {
+    const { accountId } = req.params;
+    try {
+        const saving = await Saving.findOne({ id_account: accountId });
+        if (!saving) {
+            return res.status(404).json({ error: 'Saving account not found' });
+        }
+        res.json(saving);
+    } catch (error) {
+        console.error('Error fetching saving by account ID:', error);
+        res.status(500).json({ error: 'Error fetching saving account' });
+    }
+});
+
 
 // API อัปเดตข้อมูลบัญชีการออม
 router.put('/saving/:userId', async (req, res) => {

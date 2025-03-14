@@ -75,7 +75,9 @@ const initializeFinancialReports = async () => {
         const data = await fetchFinancialData();
         updateSummaryCards(data);
         renderMonthlySavingsChart(data);
+        renderMonthlyLoansChart(data);
         renderTransactionTypeChart(data);
+        renderMemberGrowthChart(data);
         renderTransactionTable(data);
     } catch (error) {
         console.error('Error initializing financial reports:', error);
@@ -139,6 +141,48 @@ const renderMonthlySavingsChart = (data) => {
     });
 };
 
+// เพิ่มฟังก์ชันสำหรับแสดงกราฟการกู้ยืมรายเดือน
+const renderMonthlyLoansChart = (data) => {
+    if (!data.monthlyLoans || !document.getElementById('monthlyLoansChart')) {
+        console.warn('Monthly loans data or chart element not found');
+        return;
+    }
+
+    const ctx = document.getElementById('monthlyLoansChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.monthlyLoans.map(item => item.month),
+            datasets: [{
+                label: 'ยอดกู้รายเดือน',
+                data: data.monthlyLoans.map(item => item.amount),
+                backgroundColor: '#6366F1', // สีม่วง-น้ำเงิน
+                borderColor: '#4F46E5',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '฿' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+};
+
 const renderTransactionTypeChart = (data) => {
     const ctx = document.getElementById('transactionTypeChart').getContext('2d');
     
@@ -149,6 +193,10 @@ const renderTransactionTypeChart = (data) => {
                 return '#1B8F4C'; // สีเขียว
             case 'withdraw':
                 return '#DC2626'; // สีแดง
+            case 'loan':
+                return '#6366F1'; // สีม่วง-น้ำเงิน
+            case 'payment':
+                return '#F59E0B'; // สีส้ม
             default:
                 return '#1B8F4C'; // สีเขียวเป็นค่าเริ่มต้น
         }
@@ -182,6 +230,64 @@ const renderTransactionTypeChart = (data) => {
                 }
             },
             cutout: '60%'
+        }
+    });
+};
+
+// เพิ่มฟังก์ชันสำหรับแสดงกราฟการเติบโตของสมาชิก
+const renderMemberGrowthChart = (data) => {
+    if (!data.memberGrowth || !document.getElementById('memberGrowthChart')) {
+        console.warn('Member growth data or chart element not found');
+        return;
+    }
+
+    const ctx = document.getElementById('memberGrowthChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.memberGrowth.map(item => item.month),
+            datasets: [
+                {
+                    label: 'สมาชิกออมทรัพย์',
+                    data: data.memberGrowth.map(item => item.savingMembers),
+                    borderColor: '#1B8F4C',
+                    backgroundColor: 'rgba(27, 143, 76, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'สมาชิกที่กู้',
+                    data: data.memberGrowth.map(item => item.loanMembers),
+                    borderColor: '#6366F1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            family: 'IBM Plex Sans Thai'
+                        }
+                    }
+                }
+            }
         }
     });
 };
@@ -227,28 +333,68 @@ const showError = (message) => {
 
 // ฟังก์ชันสำหรับอัปเดต Summary Cards
 const updateSummaryCards = (data) => {
-    // อัปเดตเงินฝากรวมเดือนนี้
-    document.getElementById('totalDeposits').textContent = `฿${data.summary[0].amount.toLocaleString()}`;
-    
-    // อัปเดตจำนวนธุรกรรมทั้งหมด
-    document.getElementById('totalTransactions').textContent = data.summary[2].amount.toLocaleString();
-    
-    // อัปเดตอัตราการเติบโต
-    const growthRate = document.getElementById('growthRate');
-    const growthValue = data.summary[0].change;
-    growthRate.textContent = `${Math.abs(growthValue).toFixed(2)}%`;
-    
-    // เพิ่ม class สีตามค่าการเติบโต
-    growthRate.classList.remove('text-green-600', 'text-red-600');
-    growthRate.classList.add(growthValue >= 0 ? 'text-green-600' : 'text-red-600');
-    
-    // เพิ่มไอคอนแสดงทิศทาง
-    const growthIcon = growthValue >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
-    growthRate.innerHTML = `<i class="fas ${growthIcon} mr-1"></i>${Math.abs(growthValue).toFixed(2)}%`;
-
-    // อัปเดตรายได้จากการกู้เงิน
-    if (data.loanIncome) {
-        document.getElementById('loanIncome').textContent = `฿${data.loanIncome.toLocaleString()}`;
+    try {
+        console.log('Financial data received:', data);
+        
+        // อัปเดตจำนวนสมาชิกออมทรัพย์
+        if (data.memberStats && data.memberStats.savingMembers !== undefined) {
+            document.getElementById('totalSavingMembers').textContent = data.memberStats.savingMembers.toLocaleString();
+        } else if (data.savingMembers !== undefined) {
+            document.getElementById('totalSavingMembers').textContent = data.savingMembers.toLocaleString();
+        } else {
+            console.warn('ไม่พบข้อมูลจำนวนสมาชิกออมทรัพย์');
+        }
+        
+        // อัปเดตจำนวนสมาชิกที่กู้
+        if (data.memberStats && data.memberStats.loanMembers !== undefined) {
+            document.getElementById('totalLoanMembers').textContent = data.memberStats.loanMembers.toLocaleString();
+        } else if (data.loanMembers !== undefined) {
+            document.getElementById('totalLoanMembers').textContent = data.loanMembers.toLocaleString();
+        } else {
+            console.warn('ไม่พบข้อมูลจำนวนสมาชิกที่กู้');
+        }
+        
+        // อัปเดตจำนวนธุรกรรมทั้งหมด
+        if (data.transactionCount !== undefined) {
+            document.getElementById('totalTransactions').textContent = data.transactionCount.toLocaleString();
+        } else if (data.summary && data.summary.transactionCount !== undefined) {
+            document.getElementById('totalTransactions').textContent = data.summary.transactionCount.toLocaleString();
+        } else if (data.summary && Array.isArray(data.summary) && data.summary[2] && data.summary[2].amount !== undefined) {
+            document.getElementById('totalTransactions').textContent = data.summary[2].amount.toLocaleString();
+        } else {
+            console.warn('ไม่พบข้อมูลจำนวนธุรกรรมทั้งหมด');
+        }
+        
+        // อัปเดตเงินฝากรวมทั้งหมด
+        if (data.totalDeposits !== undefined) {
+            document.getElementById('totalDeposits').textContent = `฿${data.totalDeposits.toLocaleString()}`;
+        } else if (data.summary && data.summary.totalDeposits !== undefined) {
+            document.getElementById('totalDeposits').textContent = `฿${data.summary.totalDeposits.toLocaleString()}`;
+        } else if (data.summary && Array.isArray(data.summary) && data.summary[0] && data.summary[0].amount !== undefined) {
+            document.getElementById('totalDeposits').textContent = `฿${data.summary[0].amount.toLocaleString()}`;
+        } else {
+            console.warn('ไม่พบข้อมูลเงินฝากรวมทั้งหมด');
+        }
+        
+        // อัปเดตยอดกู้เงินทั้งหมด
+        if (data.totalLoans !== undefined) {
+            document.getElementById('totalLoans').textContent = `฿${data.totalLoans.toLocaleString()}`;
+        } else if (data.loanStats && data.loanStats.totalLoans !== undefined) {
+            document.getElementById('totalLoans').textContent = `฿${data.loanStats.totalLoans.toLocaleString()}`;
+        } else {
+            console.warn('ไม่พบข้อมูลยอดกู้เงินทั้งหมด');
+        }
+        
+        // อัปเดตรายได้จากการกู้เงิน
+        if (data.loanIncome !== undefined) {
+            document.getElementById('loanIncome').textContent = `฿${data.loanIncome.toLocaleString()}`;
+        } else if (data.loanStats && data.loanStats.loanIncome !== undefined) {
+            document.getElementById('loanIncome').textContent = `฿${data.loanStats.loanIncome.toLocaleString()}`;
+        } else {
+            console.warn('ไม่พบข้อมูลรายได้จากการกู้เงิน');
+        }
+    } catch (error) {
+        console.error('เกิดข้อผิดพลาดในการอัปเดต Summary Cards:', error);
     }
 };
 

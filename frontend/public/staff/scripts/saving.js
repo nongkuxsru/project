@@ -478,6 +478,38 @@ const openTransactionModal = async (userId, type) => {
         const amountInput = document.getElementById(`transactionAmount${type.charAt(0).toUpperCase() + type.slice(1)}`);
         amountInput.value = '';
         
+        // ถ้าเป็นการฝากเงิน ให้จำกัดจำนวนเงินไม่เกิน 500 บาท
+        if (type === 'deposit') {
+            amountInput.max = 500;
+            
+            // เพิ่มส่วนแสดงข้อมูลหุ้นที่จะได้รับ
+            const sharesInfoElement = document.getElementById('depositSharesInfo');
+            if (sharesInfoElement) {
+                sharesInfoElement.style.display = 'block';
+            }
+            
+            // เพิ่ม event listener เพื่อคำนวณหุ้นที่จะได้รับเมื่อมีการเปลี่ยนแปลงจำนวนเงิน
+            amountInput.addEventListener('input', () => {
+                const amount = parseFloat(amountInput.value) || 0;
+                const shares = Math.floor(amount / 100);
+                const sharesDisplay = document.getElementById('depositSharesDisplay');
+                
+                if (sharesDisplay) {
+                    sharesDisplay.textContent = shares > 5 ? 5 : shares;
+                }
+                
+                // แสดงข้อความเตือนถ้าจำนวนเงินเกิน 500 บาท
+                if (amount > 500) {
+                    amountInput.value = 500;
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'จำกัดการฝากเงิน',
+                        text: 'สามารถฝากเงินได้ไม่เกิน 500 บาทต่อครั้ง'
+                    });
+                }
+            });
+        }
+        
         // ใช้ setTimeout เพื่อให้แน่ใจว่า modal แสดงเรียบร้อยแล้ว
         setTimeout(() => {
             amountInput.focus();
@@ -523,6 +555,16 @@ const handleTransaction = async (event, type, account) => {
             icon: 'warning',
             title: 'ข้อมูลไม่ถูกต้อง',
             text: 'กรุณากรอกจำนวนเงินที่ถูกต้อง',
+        });
+        return;
+    }
+
+    // ตรวจสอบการฝากเงิน
+    if (type === 'deposit' && amount > 500) {
+        Swal.fire({
+            icon: 'error',
+            title: 'จำกัดการฝากเงิน',
+            text: 'สามารถฝากเงินได้ไม่เกิน 500 บาทต่อครั้ง',
         });
         return;
     }
@@ -589,11 +631,28 @@ const handleTransaction = async (event, type, account) => {
     }
 
     const newBalance = type === 'deposit' ? currentBalance + amount : currentBalance - amount;
+    
+    // คำนวณหุ้นที่จะได้รับจากการฝากเงิน (สูงสุด 5 หุ้นต่อครั้ง)
+    let newShares = account.shares || 0;
+    if (type === 'deposit') {
+        const additionalShares = Math.min(5, Math.floor(amount / 100));
+        newShares += additionalShares;
+    }
 
     // ยืนยันการทำธุรกรรม
+    let confirmMessage = `คุณต้องการ${type === 'deposit' ? 'ฝาก' : 'ถอน'}เงินจำนวน ${formatCurrency(amount)} บาท หรือไม่?`;
+    
+    // เพิ่มข้อความแสดงหุ้นที่จะได้รับ
+    if (type === 'deposit') {
+        const additionalShares = Math.min(5, Math.floor(amount / 100));
+        if (additionalShares > 0) {
+            confirmMessage += `<br><br>คุณจะได้รับ ${additionalShares} หุ้น จากการฝากเงินครั้งนี้`;
+        }
+    }
+
     const confirmResult = await Swal.fire({
         title: 'ยืนยันการทำธุรกรรม?',
-        text: `คุณต้องการ${type === 'deposit' ? 'ฝาก' : 'ถอน'}เงินจำนวน ${formatCurrency(amount)} บาท หรือไม่?`,
+        html: confirmMessage,
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#28a745',
@@ -620,7 +679,7 @@ const handleTransaction = async (event, type, account) => {
             body: JSON.stringify({
                 id_account: account.id_account,
                 balance: newBalance,
-                shares: type === 'deposit' ? (account.shares || 0) + Math.floor(amount / 100) : account.shares,
+                shares: newShares,
                 id_member: account.id_member,
                 id_staff: account.id_staff
             }),
@@ -641,7 +700,8 @@ const handleTransaction = async (event, type, account) => {
                 type: type === 'deposit' ? 'Deposit' : 'Withdraw',
                 amount: amount,
                 status: 'Completed',
-                date: new Date().toISOString()
+                date: new Date().toISOString(),
+                shares_added: type === 'deposit' ? Math.min(5, Math.floor(amount / 100)) : 0
             }),
         });
 
@@ -664,6 +724,10 @@ const handleTransaction = async (event, type, account) => {
         if (printSlip.isConfirmed) {
             // สร้างสลิปในรูปแบบ HTML
             const slip = document.createElement('div');
+            
+            // คำนวณหุ้นที่ได้รับจากการฝากเงิน
+            const sharesAdded = type === 'deposit' ? Math.min(5, Math.floor(amount / 100)) : 0;
+            
             slip.innerHTML = `
                 <div class="slip-container" style="font-family: 'Sarabun', sans-serif; max-width: 210mm; margin: 0 auto; padding: 20px;">
                     <!-- หัวสลิป -->
@@ -712,6 +776,16 @@ const handleTransaction = async (event, type, account) => {
                                 <td style="padding: 8px 0; font-size: 18px;">ยอดเงินคงเหลือ:</td>
                                 <td style="text-align: right; font-size: 18px;">${formatCurrency(newBalance)} บาท</td>
                             </tr>
+                            ${type === 'deposit' && sharesAdded > 0 ? `
+                            <tr style="border-top: 1px solid #ddd;">
+                                <td style="padding: 8px 0; font-size: 18px;">หุ้นที่ได้รับ:</td>
+                                <td style="text-align: right; font-size: 18px; color: #28a745;">${sharesAdded} หุ้น</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; font-size: 18px;">จำนวนหุ้นทั้งหมด:</td>
+                                <td style="text-align: right; font-size: 18px;">${newShares} หุ้น</td>
+                            </tr>
+                            ` : ''}
                         </table>
                     </div>
 

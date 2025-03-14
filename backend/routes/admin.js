@@ -346,7 +346,24 @@ router.put('/promise-status/:id/reject', async (req, res) => {
 // API สำหรับรายงานทางการเงิน
 router.get('/financial-reports', async (req, res) => {
     try {
-        // 1. ดึงข้อมูลเงินฝากรายเดือน
+        // 1. ดึงข้อมูลจำนวนสมาชิกออมทรัพย์ (นับจากตาราง users โดยนับเฉพาะ permission member)
+        const savingMembersCount = await User.countDocuments({ permission: 'member' });
+
+        // 2. ดึงข้อมูลจำนวนสมาชิกที่กู้ (นับจากตาราง promise โดยนับจำนวนผู้ใช้ที่มีการกู้เงิน)
+        const loanMembersCount = await Promise.countDocuments();
+
+        // 3. ดึงข้อมูลยอดกู้เงินทั้งหมด (นับจากตาราง promise โดยรวมยอดเงินทั้งหมดของแต่ละรายการ)
+        const totalLoansData = await Promise.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    totalAmount: { $sum: '$amount' }
+                }
+            }
+        ]);
+        const totalLoans = totalLoansData.length > 0 ? totalLoansData[0].totalAmount : 0;
+
+        // 4. ดึงข้อมูลเงินฝากรายเดือน
         const monthlySavings = await Saving.aggregate([
             {
                 $group: {
@@ -361,11 +378,44 @@ router.get('/financial-reports', async (req, res) => {
             { $limit: 12 }
         ]);
 
-        // 2. ดึงข้อมูลรายได้จากการกู้เงิน
+        // 5. ดึงข้อมูลการกู้ยืมรายเดือน
+        const monthlyLoans = await Promise.aggregate([
+            {
+                $group: {
+                    _id: {
+                        year: { $year: "$Datepromise" },
+                        month: { $month: "$Datepromise" }
+                    },
+                    amount: { $sum: "$amount" }
+                }
+            },
+            { $sort: { "_id.year": 1, "_id.month": 1 } },
+            { $limit: 12 }
+        ]);
+
+        // 6. ดึงข้อมูลการเติบโตของสมาชิกรายเดือน
+        const memberGrowthData = await User.aggregate([
+            {
+                $match: { permission: 'member' }
+            },
+            {
+                $group: {
+                    _id: {
+                        year: { $year: "$createdAt" },
+                        month: { $month: "$createdAt" }
+                    },
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { "_id.year": 1, "_id.month": 1 } },
+            { $limit: 12 }
+        ]);
+
+        // 7. ดึงข้อมูลรายได้จากการกู้เงิน
         const loanIncome = await Promise.aggregate([
             {
                 $match: {
-                    status: "completed"
+                    status: { $in: ["approved", "completed"] }
                 }
             },
             {
@@ -380,7 +430,7 @@ router.get('/financial-reports', async (req, res) => {
             }
         ]);
 
-        // 3. ดึงข้อมูลประเภทธุรกรรม
+        // 8. ดึงข้อมูลประเภทธุรกรรม
         const currentMonthStart = new Date();
         currentMonthStart.setDate(1);
         currentMonthStart.setHours(0, 0, 0, 0);
@@ -431,13 +481,82 @@ router.get('/financial-reports', async (req, res) => {
             amount: item.amount
         }));
 
+        const formattedMonthlyLoans = monthlyLoans.map(item => ({
+            month: thaiMonths[item._id.month - 1],
+            amount: item.amount
+        }));
+
+        // แปลงข้อมูลการเติบโตของสมาชิก
+        // สร้างข้อมูลสำหรับทุกเดือนในรอบปี
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth();
+        
+        // สร้างข้อมูลย้อนหลัง 12 เดือน
+        const memberGrowthByMonth = {};
+        for (let i = 0; i < 12; i++) {
+            const month = (currentMonth - i + 12) % 12; // ย้อนหลัง i เดือนจากเดือนปัจจุบัน
+            const year = currentYear - Math.floor((currentMonth - i + 12) / 12);
+            const key = `${year}-${month + 1}`;
+            memberGrowthByMonth[key] = { 
+                month: thaiMonths[month],
+                savingMembers: 0,
+                loanMembers: 0
+            };
+        }
+
+        // เติมข้อมูลจำนวนสมาชิกออมทรัพย์
+        memberGrowthData.forEach(item => {
+            const key = `${item._id.year}-${item._id.month}`;
+            if (memberGrowthByMonth[key]) {
+                memberGrowthByMonth[key].savingMembers = item.count;
+            }
+        });
+
+        // เติมข้อมูลจำนวนสมาชิกที่กู้เงิน
+        // แทนที่จะใช้ข้อมูลสุ่ม เราจะใช้ข้อมูลจริงจากการนับจำนวนสัญญากู้ยืมในแต่ละเดือน
+        const loanMembersByMonth = await Promise.aggregate([
+            {
+                $group: {
+                    _id: {
+                        year: { $year: "$Datepromise" },
+                        month: { $month: "$Datepromise" }
+                    },
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { "_id.year": 1, "_id.month": 1 } }
+        ]);
+
+        // เติมข้อมูลจำนวนสมาชิกที่กู้เงินตามเดือน
+        loanMembersByMonth.forEach(item => {
+            const key = `${item._id.year}-${item._id.month}`;
+            if (memberGrowthByMonth[key]) {
+                memberGrowthByMonth[key].loanMembers = item.count;
+            }
+        });
+
+        // สร้างข้อมูลการเติบโตของสมาชิก
+        const memberGrowth = Object.values(memberGrowthByMonth).reverse();
+
+        // ตรวจสอบและปรับปรุงข้อมูลให้สมเหตุสมผล
+        // ถ้าเดือนไหนไม่มีข้อมูล ให้ใช้ข้อมูลจากเดือนก่อนหน้า
+        for (let i = 1; i < memberGrowth.length; i++) {
+            if (memberGrowth[i].savingMembers === 0) {
+                memberGrowth[i].savingMembers = memberGrowth[i-1].savingMembers;
+            }
+            if (memberGrowth[i].loanMembers === 0) {
+                memberGrowth[i].loanMembers = memberGrowth[i-1].loanMembers;
+            }
+        }
+
         // คำนวณข้อมูลสรุปทางการเงิน
         const currentTotal = currentMonthSavings[0]?.total || 0;
         const lastTotal = lastMonthSavings[0]?.total || 0;
         const percentChange = lastTotal === 0 ? 100 : 
             ((currentTotal - lastTotal) / lastTotal) * 100;
 
-        // 2. ดึงข้อมูลประเภทธุรกรรม
+        // 9. ดึงข้อมูลประเภทธุรกรรม
         const transactionTypes = await Transaction.aggregate([
             {
                 $facet: {
@@ -599,11 +718,28 @@ router.get('/financial-reports', async (req, res) => {
         ];
 
         res.json({
-            monthlySavings: formattedMonthlySavings,
-            transactionTypes: formattedTransactionTypes,
-            chartData, // ส่งข้อมูลกราฟแยกออกมา
-            summary,
-            loanIncome: loanIncome.length > 0 ? loanIncome[0].totalInterest : 0
+            // ข้อมูลสมาชิก
+            memberStats: {
+                savingMembers: savingMembersCount || 0,
+                loanMembers: loanMembersCount || 0
+            },
+            savingMembers: savingMembersCount || 0,
+            loanMembers: loanMembersCount || 0,
+            
+            // ข้อมูลการเงิน
+            totalLoans: totalLoans || 0,
+            loanIncome: loanIncome.length > 0 ? (loanIncome[0].totalInterest || 0) : 0,
+            
+            // ข้อมูลกราฟ
+            monthlySavings: formattedMonthlySavings || [],
+            monthlyLoans: formattedMonthlyLoans || [],
+            memberGrowth: memberGrowth || [],
+            transactionTypes: formattedTransactionTypes || [],
+            
+            // ข้อมูลอื่นๆ
+            chartData: chartData || { labels: [], datasets: [{ data: [] }] }, // ส่งข้อมูลกราฟแยกออกมา
+            summary: summary || [],
+            transactionCount: totalTransactions || 0
         });
 
     } catch (error) {
