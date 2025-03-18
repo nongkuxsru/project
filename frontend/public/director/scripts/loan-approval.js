@@ -112,7 +112,7 @@ const renderLoanApplications = (applications) => {
     tbody.innerHTML = '';
 
     if (!applications || applications.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-white">ไม่พบรายการ</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-800">ไม่พบรายการ</td></tr>';
         return;
     }
 
@@ -121,7 +121,7 @@ const renderLoanApplications = (applications) => {
         
         // วันที่ทำสัญญา
         const dateCell = row.insertCell();
-        dateCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-white';
+        dateCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-800';
         const date = new Date(app.Datepromise);
         dateCell.textContent = date.toLocaleDateString('th-TH', {
             year: 'numeric',
@@ -131,7 +131,7 @@ const renderLoanApplications = (applications) => {
 
         // จำนวนเงิน
         const amountCell = row.insertCell();
-        amountCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-white';
+        amountCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-800';
         amountCell.textContent = new Intl.NumberFormat('th-TH', {
             style: 'currency',
             currency: 'THB'
@@ -139,7 +139,7 @@ const renderLoanApplications = (applications) => {
 
         // ระยะเวลา (คำนวณจากวันที่ทำสัญญาถึงวันครบกำหนด)
         const termCell = row.insertCell();
-        termCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-white';
+        termCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-800';
         const dueDate = new Date(app.DueDate);
         const months = Math.round((dueDate - date) / (30 * 24 * 60 * 60 * 1000));
         termCell.textContent = `${months} เดือน`;

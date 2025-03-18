@@ -127,17 +127,17 @@ const fetchPromise = async () => {
 
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap text-center text-gray-900">${account._id}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-center text-gray-900">${account.id_saving}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-center text-gray-900">${account.amount.toLocaleString('th-TH')} บาท</td>
-                <td class="px-6 py-4 whitespace-nowrap text-center text-gray-900">${new Date(account.Datepromise).toLocaleDateString('th-TH')}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-center text-gray-900">${new Date(account.DueDate).toLocaleDateString('th-TH')}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-center">
+                <td class="border px-6 py-4 whitespace-nowrap text-sm text-gray-800">${account._id}</td>
+                <td class="border px-6 py-4 whitespace-nowrap text-sm text-gray-800">${account.id_saving}</td>
+                <td class="border px-6 py-4 whitespace-nowrap text-sm text-gray-800">${account.amount.toLocaleString('th-TH')} บาท</td>
+                <td class="border px-6 py-4 whitespace-nowrap text-sm text-gray-800">${new Date(account.Datepromise).toLocaleDateString('th-TH')}</td>
+                <td class="border px-6 py-4 whitespace-nowrap text-sm text-gray-800">${new Date(account.DueDate).toLocaleDateString('th-TH')}</td>
+                <td class="border px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                     <span class="px-3 py-1 rounded-full ${status.color} text-sm font-medium">
                         ${status.text}
                     </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-center">
+                <td class="border px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                     <button onclick="openPromiseDetailsModal('${account.id_saving}')" 
                         class="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-none focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
                         <i class="fas fa-eye"></i>

@@ -298,7 +298,7 @@ const renderTransactionTable = (data) => {
 
     tableBody.innerHTML = data.transactionTypes.map(item => `
         <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                 <div class="flex items-center">
                     <div class="p-2 rounded-full" style="background-color: ${item.bgColor || '#E3F5E9'}">
                         <i class="fas ${item.icon}" style="color: ${item.color || '#1B8F4C'}"></i>
@@ -306,13 +306,13 @@ const renderTransactionTable = (data) => {
                     <span class="ml-2">${item.type}</span>
                 </div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 text-right">
                 ${item.count.toLocaleString()}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 text-right">
                 ฿${item.amount.toLocaleString()}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 text-right">
                 <span class="${item.amountChange >= 0 ? 'text-green-600' : 'text-red-600'}">
                     <i class="fas fa-${item.amountChange >= 0 ? 'arrow-up' : 'arrow-down'} mr-1"></i>
                     ${Math.abs(item.amountChange).toFixed(2)}%

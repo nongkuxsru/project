@@ -142,17 +142,17 @@ const renderDividendHistory = (dividends) => {
     dividends.forEach(dividend => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td class="px-6 py-4 whitespace-nowrap">${dividend.year}</td>
-            <td class="px-6 py-4 whitespace-nowrap">${formatCurrency(dividend.totalInterest)} บาท</td>
-            <td class="px-6 py-4 whitespace-nowrap">${formatNumber(dividend.totalShares)} หุ้น</td>
-            <td class="px-6 py-4 whitespace-nowrap">${formatCurrency(dividend.dividendPerShare)} บาท</td>
-            <td class="px-6 py-4 whitespace-nowrap">
+            <td class="border px-6 py-4 whitespace-nowrap text-sm text-gray-800">${dividend.year}</td>
+            <td class="border px-6 py-4 whitespace-nowrap text-sm text-gray-800">${formatCurrency(dividend.totalInterest)} บาท</td>
+            <td class="border px-6 py-4 whitespace-nowrap text-sm text-gray-800">${formatNumber(dividend.totalShares)} หุ้น</td>
+            <td class="border px-6 py-4 whitespace-nowrap text-sm text-gray-800">${formatCurrency(dividend.dividendPerShare)} บาท</td>
+            <td class="border px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                     ${getStatusColor(dividend.status)}">
                     ${getStatusText(dividend.status)}
                 </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
+            <td class="border px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                 <button onclick="viewDividendDetails('${dividend._id}')" 
                     class="text-blue-600 hover:text-blue-800 mr-3">
                     <i class="fas fa-eye"></i>

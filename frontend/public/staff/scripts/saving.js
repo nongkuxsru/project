@@ -175,16 +175,16 @@ const fetchAccount = async () => {
 
             // สร้าง cells พร้อม classes
             const cells = [
-                { content: account.id_account, class: 'border px-4 py-2' },
+                { content: account.id_account, class: 'border px-6 py-4 whitespace-nowrap text-sm text-gray-800' },
                 { content: userName, class: 'border px-4 py-2' },
                 { 
                     content: formatCurrency(account.balance), 
-                    class: 'border px-4 py-2 text-right font-semibold text-gray-700' 
+                    class: 'border px-6 py-4 whitespace-nowrap text-sm text-gray-800' 
                 },
-                { content: staffName, class: 'border px-4 py-2' },
+                { content: staffName, class: 'border px-6 py-4 whitespace-nowrap text-sm text-gray-800' },
                 { 
                     content: convertToBuddhistYear(account.createdAt), 
-                    class: 'border px-4 py-2' 
+                    class: 'border px-6 py-4 whitespace-nowrap text-sm text-gray-800' 
                 }
             ];
 
@@ -198,7 +198,7 @@ const fetchAccount = async () => {
 
             // เพิ่ม cell สำหรับปุ่มดำเนินการ
             const actionsCell = document.createElement('td');
-            actionsCell.className = 'border px-4 py-2';
+            actionsCell.className = 'border px-6 py-4 whitespace-nowrap text-sm text-gray-800';
             const actionWrapper = document.createElement('div');
             actionWrapper.className = 'flex justify-center gap-2';
             actionWrapper.innerHTML = `

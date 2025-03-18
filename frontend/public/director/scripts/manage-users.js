@@ -150,12 +150,12 @@ const renderUsers = (users) => {
         
         // ชื่อผู้ใช้
         const nameCell = row.insertCell();
-        nameCell.className = 'px-4 py-2 text-white';
+        nameCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-800';
         nameCell.textContent = user.name;
 
         // อีเมล
         const emailCell = row.insertCell();
-        emailCell.className = 'px-4 py-2 text-white';
+        emailCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-800';
         emailCell.textContent = user.email;
         
         // สิทธิ์ผู้ใช้

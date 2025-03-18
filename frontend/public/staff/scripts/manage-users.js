@@ -260,21 +260,21 @@ const renderUsers = (users) => {
         const row = usersTable.insertRow();
         
         const nameCell = row.insertCell();
-        nameCell.className = 'border px-4 py-2';
+        nameCell.className = 'border px-6 py-4 whitespace-nowrap text-sm text-gray-800';
         nameCell.textContent = user.name;
 
         const emailCell = row.insertCell();
-        emailCell.className = 'border px-4 py-2';
+        emailCell.className = 'border px-6 py-4 whitespace-nowrap text-sm text-gray-800';
         emailCell.textContent = user.email;
         
         // เซลล์สำหรับสิทธิ์ผู้ใช้
         const permissionCell = row.insertCell();
-        permissionCell.className = 'border px-4 py-2';
+        permissionCell.className = 'border px-6 py-4 whitespace-nowrap text-sm text-gray-800';
         permissionCell.innerHTML = getPermissionBadge(user.permission);
 
         // เซลล์สำหรับปุ่ม Actions
         const actionsCell = row.insertCell();
-        actionsCell.className = 'border px-4 py-2';
+        actionsCell.className = 'border px-6 py-4 whitespace-nowrap text-sm text-gray-800';
         const actionWrapper = document.createElement('div');
         actionWrapper.className = 'flex justify-center gap-2';
         actionWrapper.innerHTML = `
