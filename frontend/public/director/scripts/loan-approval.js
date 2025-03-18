@@ -112,7 +112,7 @@ const renderLoanApplications = (applications) => {
     tbody.innerHTML = '';
 
     if (!applications || applications.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">ไม่พบรายการ</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-white">ไม่พบรายการ</td></tr>';
         return;
     }
 
@@ -121,7 +121,7 @@ const renderLoanApplications = (applications) => {
         
         // วันที่ทำสัญญา
         const dateCell = row.insertCell();
-        dateCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-900';
+        dateCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-white';
         const date = new Date(app.Datepromise);
         dateCell.textContent = date.toLocaleDateString('th-TH', {
             year: 'numeric',
@@ -131,7 +131,7 @@ const renderLoanApplications = (applications) => {
 
         // จำนวนเงิน
         const amountCell = row.insertCell();
-        amountCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-900';
+        amountCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-white';
         amountCell.textContent = new Intl.NumberFormat('th-TH', {
             style: 'currency',
             currency: 'THB'
@@ -139,7 +139,7 @@ const renderLoanApplications = (applications) => {
 
         // ระยะเวลา (คำนวณจากวันที่ทำสัญญาถึงวันครบกำหนด)
         const termCell = row.insertCell();
-        termCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-900';
+        termCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-white';
         const dueDate = new Date(app.DueDate);
         const months = Math.round((dueDate - date) / (30 * 24 * 60 * 60 * 1000));
         termCell.textContent = `${months} เดือน`;
@@ -157,18 +157,18 @@ const renderLoanApplications = (applications) => {
         if (app.status === 'pending') {
             actionCell.innerHTML = `
                 <button onclick="handleApprove('${app._id}')" 
-                        class="text-green-600 hover:text-green-900 mr-3">
+                        class="bg-green-500/70 hover:bg-green-600/90 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out mr-2">
                     <i class="fas fa-check-circle mr-1"></i>อนุมัติ
                 </button>
                 <button onclick="handleReject('${app._id}')"
-                        class="text-red-600 hover:text-red-900">
+                        class="bg-red-500/70 hover:bg-red-600/90 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out">
                     <i class="fas fa-times-circle mr-1"></i>ปฏิเสธ
                 </button>
             `;
         } else {
             actionCell.innerHTML = `
                 <button onclick="viewLoanDetails('${app._id}')"
-                        class="text-blue-600 hover:text-blue-900">
+                        class="bg-blue-500/70 hover:bg-blue-600/90 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out">
                     <i class="fas fa-eye mr-1"></i>ดูรายละเอียด
                 </button>
             `;
@@ -178,12 +178,12 @@ const renderLoanApplications = (applications) => {
 
 const getStatusBadge = (status) => {
     const badges = {
-        pending: '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">รอการอนุมัติ</span>',
-        approved: '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">อนุมัติแล้ว</span>',
-        rejected: '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">ปฏิเสธ</span>',
-        completed: '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">สำเร็จ</span>'
+        pending: '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-500/70 text-white">รอการอนุมัติ</span>',
+        approved: '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-500/70 text-white">อนุมัติแล้ว</span>',
+        rejected: '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-500/70 text-white">ปฏิเสธ</span>',
+        completed: '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-500/70 text-white">สำเร็จ</span>'
     };
-    return badges[status] || '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">ไม่ระบุ</span>';
+    return badges[status] || '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-500/70 text-white">ไม่ระบุ</span>';
 };
 
 // ===============================

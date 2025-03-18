@@ -104,7 +104,7 @@
                         <i class="fas fa-history mr-3"></i>
                         ประวัติการทำธุรกรรม
                     </h2>
-                    <div class="transaction-container overflow-x-auto max-h-[calc(100vh-300px)]">
+                    <div class="transaction-container overflow-x-auto">
                         <table class="w-full table-auto text-sm">
                             <thead class="bg-white/10">
                                 <tr>
@@ -118,10 +118,13 @@
                             </thead>
                             <tbody id="transactionTableBody" class="bg-white/5 divide-y divide-white/20">
                                 <tr>
-                                    <td colspan="6" class="text-center py-3 text-white">กำลังโหลดธุรกรรม...</td>
+                                    <td colspan="6" class="text-center py-3 text-black">กำลังโหลดธุรกรรม...</td>
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                    <div id="transactionPagination" class="flex justify-center items-center space-x-2 mt-4">
+                        <!-- Pagination controls จะถูกเพิ่มโดย JavaScript -->
                     </div>
                 </section>
                 

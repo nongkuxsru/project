@@ -100,6 +100,7 @@ const openEditModal = async (user) => {
 
     // ฟังก์ชันสำหรับปิด modal
     const closeModal = () => {
+        modal.classList.remove('flex');
         modal.style.display = 'none';
         form.reset();
     };
@@ -142,6 +143,7 @@ const openEditModal = async (user) => {
 
         // แสดง modal
         modal.style.display = 'block';
+        modal.classList.add('flex');
 
         // จัดการการคลิกที่ modal background
         modal.addEventListener('click', (event) => {
@@ -434,22 +436,21 @@ const openAddUserModal = () => {
     const modal = document.getElementById('addUserModal');
     const form = document.getElementById('addUserForm');
 
-    // ซ่อนหรือลบ select สำหรับเลือกสิทธิ์
-    const permissionSelect = document.getElementById('addPermission');
-    if (permissionSelect) {
-        permissionSelect.style.display = 'none';
-        // หรือถ้าต้องการลบออกเลย
-        // permissionSelect.remove();
+    if (!modal || !form) {
+        console.error('Modal หรือฟอร์มหาไม่พบ');
+        return;
     }
-
-    // แสดง modal
-    modal.style.display = 'block';
 
     // ฟังก์ชันสำหรับปิด modal
     const closeModal = () => {
+        modal.classList.remove('flex');
         modal.style.display = 'none';
         form.reset();
     };
+
+    // แสดง modal
+    modal.style.display = 'block';
+    modal.classList.add('flex');
 
     // จัดการการคลิกที่ modal background
     modal.addEventListener('click', (event) => {
@@ -822,14 +823,16 @@ const openUpdatePasswordModal = (userId) => {
         return;
     }
 
-    // แสดง modal
-    modal.style.display = 'block';
-
     // ฟังก์ชันสำหรับปิด modal
     const closeModal = () => {
+        modal.classList.remove('flex');
         modal.style.display = 'none';
         form.reset();
     };
+
+    // แสดง modal
+    modal.style.display = 'block';
+    modal.classList.add('flex');
 
     // จัดการการคลิกที่ modal background
     modal.addEventListener('click', (event) => {

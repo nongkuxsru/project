@@ -40,22 +40,89 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/public/poster.html'));
 });
 
+// Admin routes
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/public/admin/admin-dashboard.html'));
 });
 
+app.get('/admin/setting', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/admin/setting.html'));
+});
+
+app.get('/admin/manage-users', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/admin/manage-users.html'));
+});
+
+// Staff routes
 app.get('/staff', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/public/staff/staff-dashboard.html'));
 });
 
+app.get('/staff/setting', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/staff/setting.html'));
+});
+
+app.get('/staff/manage-users', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/staff/manage-users.html'));
+});
+
+app.get('/staff/reports', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/staff/reports.html'));
+});
+
+app.get('/staff/saving', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/staff/saving.html'));
+});
+
+app.get('/staff/news', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/staff/news.html'));
+});
+
+app.get('/staff/dividend', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/staff/dividend.html'));
+});
+
+app.get('/staff/promise', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/staff/promise.html'));
+});
+
+// Member routes
 app.get('/member', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/public/member/member-dashboard.html'));
 });
 
+app.get('/member/setting', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/member/setting.html'));
+});
+
+app.get('/member/saving', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/member/saving.html'));
+});
+
+app.get('/member/promise', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/member/promise.html'));
+});
+
+// Director routes
 app.get('/director', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/public/director/director-dashboard.html'));
 });
 
+app.get('/director/setting', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/director/setting.html'));
+});
+
+app.get('/director/manage-users', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/director/manage-users.html'));
+});
+
+app.get('/director/loan-approval', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/director/loan-approval.html'));
+});
+
+app.get('/director/reports', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/director/reports.html'));
+});
 
 // Start the server
 app.listen(PORT, () => {

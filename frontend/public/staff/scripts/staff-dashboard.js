@@ -10,6 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchTransactions();
 });
 
+// ตัวแปรสำหรับระบบ pagination
+const ITEMS_PER_PAGE = 6;
+let currentPage = 1;
+let allTransactions = [];
+
 // ===============================
 // Sidebar Functions
 // ===============================
@@ -83,70 +88,14 @@ const fetchTransactions = async () => {
         if (!response.ok) throw new Error('Failed to fetch');
         const data = await response.json();
 
-        const tableBody = document.getElementById('transactionTableBody');
-        tableBody.innerHTML = '';
-
-        if (data.length === 0) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="text-center py-4 text-gray-500">
-                        <div class="flex flex-col items-center justify-center space-y-2">
-                            <i class="fas fa-history text-4xl"></i>
-                            <p>ไม่พบประวัติการทำรายการ</p>
-                        </div>
-                    </td>
-                </tr>`;
-            return;
-        }
-
-        data.forEach(transaction => {
-            const row = document.createElement('tr');
-            row.className = 'hover:bg-gray-50 transition-colors duration-200';
-
-            // กำหนดสีและไอคอนตามประเภทธุรกรรม
-            const transactionType = transaction.type === 'Deposit' 
-                ? `<span class="flex items-center justify-center gap-1">
-                     <i class="fas fa-arrow-up text-green-500"></i>
-                     <span class="text-green-600">ฝากเงิน</span>
-                   </span>`
-                : `<span class="flex items-center justify-center gap-1">
-                     <i class="fas fa-arrow-down text-red-500"></i>
-                     <span class="text-red-600">ถอนเงิน</span>
-                   </span>`;
-
-            // กำหนดสีและสถานะการแสดงผล
-            const statusDisplay = getStatusDisplay(transaction.status);
-
-            // กำหนดรูปแบบการแสดงจำนวนเงิน
-            const amountDisplay = `
-                <span class="font-semibold ${transaction.type === 'Deposit' ? 'text-green-600' : 'text-red-600'}">
-                    ${transaction.type === 'Deposit' ? '+' : '-'}
-                    ${transaction.amount.toLocaleString()} บาท
-                </span>`;
-
-            row.innerHTML = `
-                <td class="border px-4 py-2 text-center text-sm text-gray-600">${transaction._id}</td>
-                <td class="border px-4 py-2 text-center">
-                    <div class="flex flex-col">
-                        <span class="font-medium">
-                            ${new Date(transaction.date).toLocaleDateString('th-TH', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                            })}
-                        </span>
-                        <span class="text-sm text-gray-500">
-                            ${new Date(transaction.date).toLocaleTimeString('th-TH')}
-                        </span>
-                    </div>
-                </td>
-                <td class="border px-4 py-2 text-center font-medium">${transaction.userName}</td>
-                <td class="border px-4 py-2 text-center">${transactionType}</td>
-                <td class="border px-4 py-2 text-center">${amountDisplay}</td>
-                <td class="border px-4 py-2 text-center">${statusDisplay}</td>
-            `;
-            tableBody.appendChild(row);
-        });
+        // เก็บข้อมูลทั้งหมด
+        allTransactions = data;
+        
+        // แสดงข้อมูลหน้าแรก
+        displayTransactions(currentPage);
+        
+        // แสดง pagination
+        renderPagination();
     } catch (error) {
         console.error('Error:', error);
         const tableBody = document.getElementById('transactionTableBody');
@@ -160,6 +109,152 @@ const fetchTransactions = async () => {
                 </td>
             </tr>`;
     }
+};
+
+// แสดงข้อมูลธุรกรรมตามหน้าที่เลือก
+const displayTransactions = (page) => {
+    const startIndex = (page - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const transactionsToShow = allTransactions.slice(startIndex, endIndex);
+    
+    const tableBody = document.getElementById('transactionTableBody');
+    tableBody.innerHTML = '';
+
+    if (transactionsToShow.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center py-4 text-gray-500">
+                    <div class="flex flex-col items-center justify-center space-y-2">
+                        <i class="fas fa-history text-4xl"></i>
+                        <p>ไม่พบประวัติการทำรายการ</p>
+                    </div>
+                </td>
+            </tr>`;
+        return;
+    }
+
+    transactionsToShow.forEach(transaction => {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-50 transition-colors duration-200';
+
+        // กำหนดสีและไอคอนตามประเภทธุรกรรม
+        const transactionType = transaction.type === 'Deposit' 
+            ? `<span class="flex items-center justify-center gap-1">
+                 <i class="fas fa-arrow-up text-green-500"></i>
+                 <span class="text-green-600">ฝากเงิน</span>
+               </span>`
+            : `<span class="flex items-center justify-center gap-1">
+                 <i class="fas fa-arrow-down text-red-500"></i>
+                 <span class="text-red-600">ถอนเงิน</span>
+               </span>`;
+
+        // กำหนดสีและสถานะการแสดงผล
+        const statusDisplay = getStatusDisplay(transaction.status);
+
+        // กำหนดรูปแบบการแสดงจำนวนเงิน
+        const amountDisplay = `
+            <span class="font-semibold ${transaction.type === 'Deposit' ? 'text-green-600' : 'text-red-600'}">
+                ${transaction.type === 'Deposit' ? '+' : '-'}
+                ${transaction.amount.toLocaleString()} บาท
+            </span>`;
+
+        row.innerHTML = `
+            <td class="border px-4 py-2 text-center text-sm text-gray-600">${transaction._id}</td>
+            <td class="border px-4 py-2 text-center">
+                <div class="flex flex-col">
+                    <span class="font-medium">
+                        ${new Date(transaction.date).toLocaleDateString('th-TH', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        })}
+                    </span>
+                    <span class="text-sm text-gray-500">
+                        ${new Date(transaction.date).toLocaleTimeString('th-TH')}
+                    </span>
+                </div>
+            </td>
+            <td class="border px-4 py-2 text-center font-medium">${transaction.userName}</td>
+            <td class="border px-4 py-2 text-center">${transactionType}</td>
+            <td class="border px-4 py-2 text-center">${amountDisplay}</td>
+            <td class="border px-4 py-2 text-center">${statusDisplay}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+};
+
+// สร้างปุ่มเลื่อนหน้า
+const renderPagination = () => {
+    const totalPages = Math.ceil(allTransactions.length / ITEMS_PER_PAGE);
+    const paginationContainer = document.getElementById('transactionPagination');
+    if (!paginationContainer) return;
+    
+    paginationContainer.innerHTML = '';
+    
+    // สร้าง pagination controls แม้มีข้อมูลแค่หน้าเดียว
+    // เพิ่ม container div สำหรับปุ่ม pagination
+    const paginationDiv = document.createElement('div');
+    paginationDiv.className = 'flex justify-center items-center space-x-3 mt-6 glass-card p-3 rounded-lg mx-auto max-w-md';
+    
+    // สร้างปุ่มย้อนกลับ
+    const prevButton = document.createElement('button');
+    prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
+    prevButton.className = 'px-4 py-2 rounded-lg bg-white/20 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-green-600 transition-all duration-300 shadow-sm';
+    prevButton.disabled = currentPage === 1;
+    prevButton.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            displayTransactions(currentPage);
+            renderPagination();
+        }
+    });
+    paginationDiv.appendChild(prevButton);
+    
+    // แสดงข้อความหน้าปัจจุบันจากทั้งหมด
+    const pageInfo = document.createElement('div');
+    pageInfo.className = 'px-4 py-2 text-white font-medium bg-white/10 rounded-lg';
+    pageInfo.innerText = `หน้า ${currentPage} จาก ${totalPages || 1}`;
+    paginationDiv.appendChild(pageInfo);
+    
+    // สร้างปุ่มหมายเลขหน้าเฉพาะเมื่อมีมากกว่า 1 หน้า
+    if (totalPages > 1) {
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, startPage + 4);
+        
+        if (endPage - startPage < 4 && totalPages > 4) {
+            startPage = Math.max(1, endPage - 4);
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            const pageButton = document.createElement('button');
+            pageButton.textContent = i;
+            pageButton.className = i === currentPage 
+                ? 'px-4 py-2 rounded-lg bg-green-600 text-white font-bold shadow-md transform scale-105 transition-all duration-300'
+                : 'px-4 py-2 rounded-lg bg-white/20 text-white hover:bg-green-600 hover:scale-105 transition-all duration-300';
+            pageButton.addEventListener('click', () => {
+                currentPage = i;
+                displayTransactions(currentPage);
+                renderPagination();
+            });
+            paginationDiv.appendChild(pageButton);
+        }
+    }
+    
+    // สร้างปุ่มถัดไป
+    const nextButton = document.createElement('button');
+    nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
+    nextButton.className = 'px-4 py-2 rounded-lg bg-white/20 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-green-600 transition-all duration-300 shadow-sm';
+    nextButton.disabled = currentPage === totalPages || totalPages === 0;
+    nextButton.addEventListener('click', () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            displayTransactions(currentPage);
+            renderPagination();
+        }
+    });
+    paginationDiv.appendChild(nextButton);
+    
+    paginationContainer.appendChild(paginationDiv);
 };
 
 // เพิ่มฟังก์ชันสำหรับกำหนดการแสดงผลสถานะ

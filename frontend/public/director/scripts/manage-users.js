@@ -136,7 +136,7 @@ const renderUsers = (users) => {
     if (usersToShow.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="7" class="text-center py-4">ไม่พบข้อมูลผู้ใช้</td>
+                <td colspan="7" class="text-center py-4 text-white">ไม่พบข้อมูลผู้ใช้</td>
             </tr>
         `;
         return;
@@ -147,26 +147,25 @@ const renderUsers = (users) => {
         if (user.permission === 'admin') return;
 
         const row = document.createElement('tr');
-        row.className = 'hover:bg-gray-50';
         
         // ชื่อผู้ใช้
         const nameCell = row.insertCell();
-        nameCell.className = 'border px-4 py-2';
+        nameCell.className = 'px-4 py-2 text-white';
         nameCell.textContent = user.name;
 
         // อีเมล
         const emailCell = row.insertCell();
-        emailCell.className = 'border px-4 py-2';
+        emailCell.className = 'px-4 py-2 text-white';
         emailCell.textContent = user.email;
         
         // สิทธิ์ผู้ใช้
         const permissionCell = row.insertCell();
-        permissionCell.className = 'border px-4 py-2';
+        permissionCell.className = 'px-4 py-2';
         permissionCell.innerHTML = getPermissionBadgeHTML(user.permission);
 
         // ปุ่มดำเนินการ
         const actionsCell = row.insertCell();
-        actionsCell.className = 'border px-4 py-2';
+        actionsCell.className = 'px-4 py-2';
         actionsCell.appendChild(createActionButtons(user));
 
         tableBody.appendChild(row);
@@ -178,9 +177,9 @@ const renderUsers = (users) => {
 
 const getPermissionBadgeHTML = (permission) => {
     const badges = {
-        director: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'ผู้อำนวยการ' },
-        staff: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'เจ้าหน้าที่' },
-        member: { bg: 'bg-green-100', text: 'text-green-700', label: 'สมาชิก' }
+        director: { bg: 'bg-yellow-500/70', text: 'text-white', label: 'ผู้อำนวยการ' },
+        staff: { bg: 'bg-blue-500/70', text: 'text-white', label: 'เจ้าหน้าที่' },
+        member: { bg: 'bg-green-500/70', text: 'text-white', label: 'สมาชิก' }
     };
     
     const badge = badges[permission] || badges.member;
@@ -592,11 +591,11 @@ const renderPagination = () => {
     if (!paginationContainer) return;
 
     paginationContainer.innerHTML = `
-        <button id="prevPage" class="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
+        <button id="prevPage" class="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-500/30 disabled:text-white/50 disabled:cursor-not-allowed">
             <i class="fas fa-chevron-left"></i>
         </button>
-        <span class="mx-4 text-gray-600">หน้า ${currentPage} จาก ${totalPages}</span>
-        <button id="nextPage" class="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
+        <span class="mx-4 text-white">หน้า ${currentPage} จาก ${totalPages}</span>
+        <button id="nextPage" class="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-500/30 disabled:text-white/50 disabled:cursor-not-allowed">
             <i class="fas fa-chevron-right"></i>
         </button>
     `;
