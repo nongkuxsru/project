@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="th">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/png" sizes="16x16" href="../images/logo.png"/>
+        <title>แดชบอร์ดผู้ดูแลระบบ - สหกรณ์ออมทรัพย์</title>
+        <link rel="stylesheet" href="/styles/setting.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: '#1B8F4C',
+                            secondary: '#264C3B',
+                            accent: '#D9D92E',
+                            background: '#F1F8F4',
+                            foreground: '#FFFFFF'
+                        },
+                        fontFamily: {
+                            sans: ['IBM Plex Sans Thai', 'sans-serif'],
+                            heading: ['Poppins', 'sans-serif']
+                        }
+                    }
+                }
+            }
+        </script>
+        <style>
+            body {
+                background-image: url('https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1742&q=80');
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+            }
+            .glass-card {
+                background: rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            }
+            .stat-card {
+                transition: all 0.3s ease;
+            }
+            .stat-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            }
+        </style>
+    </head>
+
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-12">
+        <!-- Topbar Container -->
+        <div id="topbarContainer"></div>
+        
+        <!-- Main Content -->
+        <main class="flex-1">
+            <header class="text-center mb-12">
+                <h1 class="text-4xl font-bold text-white mb-4 drop-shadow-lg">แดชบอร์ดหัวหน้าหน่วยงาน</h1>
+                <p class="text-xl text-white mb-8 max-w-2xl mx-auto drop-shadow-md">
+                    จัดการระบบและดูภาพรวมของสหกรณ์ออมทรัพย์
+                </p>
+                <!-- ส่วนแสดงโปรไฟล์ผู้ใช้ -->
+                <div class="flex items-center justify-center space-x-3 mb-6">
+                    <div class="relative">
+                        <button id="userMenuButton" class="flex items-center space-x-3 focus:outline-none glass-card px-4 py-2 rounded-full" aria-expanded="false">
+                            <div id="userAvatar" class="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 text-white font-bold border-2 border-white">
+                                <!-- แสดงอักษรย่อจากชื่อผู้ใช้ -->
+                            </div>
+                            <span id="userName" class="text-white font-medium">
+                                <!-- แสดงชื่อผู้ใช้ -->
+                            </span>
+                            <i class="fas fa-chevron-down text-white transition-transform duration-200"></i>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 glass-card rounded-md shadow-lg py-1 z-50 border border-white/30">
+                            <button id="updateUserPasswordBtn" class="w-full px-4 py-2 text-left text-white hover:bg-white/20 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-key mr-2 text-white/80"></i>
+                                <span>เปลี่ยนรหัสผ่าน</span>
+                            </button>
+                            <hr class="my-1 border-white/20">
+                            <button id="logoutButton" class="w-full px-4 py-2 text-left text-white hover:bg-white/20 transition-colors duration-200 flex items-center">
+                                <i class="fa-solid fa-right-from-bracket mr-2"></i>
+                                <span>ออกจากระบบ</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Stats Section -->
+            <section class="glass-card rounded-2xl p-8 mb-8">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    สถิติภาพรวมระบบ
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- จำนวนผู้ใช้ทั้งหมด -->
+                    <div class="stat-card bg-white/20 rounded-lg p-4 border border-white/30">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-primary bg-opacity-30">
+                                <i class="fas fa-users text-white text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-sm font-medium text-white/80">จำนวนผู้ใช้ทั้งหมด</h4>
+                                <p class="text-2xl font-semibold text-white" id="totalUsers">กำลังโหลด...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ผู้ใช้ที่ใช้งาน -->
+                    <div class="stat-card bg-white/20 rounded-lg p-4 border border-white/30">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-blue-500 bg-opacity-30">
+                                <i class="fas fa-user-check text-white text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-sm font-medium text-white/80">ผู้ใช้ที่ใช้งาน</h4>
+                                <p class="text-2xl font-semibold text-white" id="activeUsers">กำลังโหลด...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- บัญชีเงินฝากรวม -->
+                    <div class="stat-card bg-white/20 rounded-lg p-4 border border-white/30">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-purple-500 bg-opacity-30">
+                                <i class="fas fa-piggy-bank text-white text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-sm font-medium text-white/80">บัญชีเงินฝากรวม</h4>
+                                <p class="text-2xl font-semibold text-white" id="totalSavings">กำลังโหลด...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions Section -->
+            <section class="glass-card rounded-2xl p-8 mb-8">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                    <i class="fas fa-bolt mr-3"></i>
+                    การดำเนินการด่วน
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <a href="/director/manage-users.html" class="bg-white/20 rounded-lg p-6 border border-white/30 text-center hover:bg-white/30 transition-colors duration-200">
+                        <div class="bg-primary/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-users text-white text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold text-white mb-2">จัดการผู้ใช้</h4>
+                        <p class="text-white/80">เพิ่ม/แก้ไข/ลบ ผู้ใช้</p>
+                    </a>
+                    <a href="/director/setting.html" class="bg-white/20 rounded-lg p-6 border border-white/30 text-center hover:bg-white/30 transition-colors duration-200">
+                        <div class="bg-blue-500/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-cog text-white text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold text-white mb-2">การตั้งค่า</h4>
+                        <p class="text-white/80">ตั้งค่าระบบ</p>
+                    </a>
+                    <a href="/director/reports.html" class="bg-white/20 rounded-lg p-6 border border-white/30 text-center hover:bg-white/30 transition-colors duration-200">
+                        <div class="bg-purple-500/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-chart-bar text-white text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold text-white mb-2">รายงาน</h4>
+                        <p class="text-white/80">ดูรายงานสรุป</p>
+                    </a>
+                    <button id="quickActionLogoutButton" class="bg-white/20 rounded-lg p-6 border border-white/30 text-center hover:bg-white/30 transition-colors duration-200">
+                        <div class="bg-yellow-500/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-sign-out-alt text-white text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold text-white mb-2">ออกจากระบบ</h4>
+                        <p class="text-white/80">ออกจากระบบหัวหน้าหน่วยงาน</p>
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="text-center text-white/80 mt-12">
+            <p>© 2023 สหกรณ์ออมทรัพย์หมู่บ้าน ตําบล ตะกุกเหนือ. สงวนลิขสิทธิ์.</p>
+            <div class="mt-4 flex justify-center space-x-4">
+                <a href="#" class="text-white hover:text-accent transition"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="text-white hover:text-accent transition"><i class="fab fa-line"></i></a>
+                <a href="#" class="text-white hover:text-accent transition"><i class="fas fa-envelope"></i></a>
+                <a href="#" class="text-white hover:text-accent transition"><i class="fas fa-phone"></i></a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- เพิ่ม Modal สำหรับอัพเดทรหัสผ่าน -->
+    <div id="updatePasswordModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md glass-card">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-white">อัพเดทรหัสผ่าน</h3>
+                <button class="close text-white hover:text-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="updatePasswordForm" class="space-y-4">
+                <div>
+                    <label for="newPassword" class="block text-sm font-medium text-white">รหัสผ่านใหม่</label>
+                    <input type="password" id="newPassword" name="newPassword" required
+                        class="mt-1 block w-full px-3 py-2 bg-white/30 border border-white/20 text-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 placeholder-white/70"
+                        placeholder="กรอกรหัสผ่านใหม่">
+                </div>
+                <div>
+                    <label for="confirmPassword" class="block text-sm font-medium text-white">ยืนยันรหัสผ่านใหม่</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required
+                        class="mt-1 block w-full px-3 py-2 bg-white/30 border border-white/20 text-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 placeholder-white/70"
+                        placeholder="กรอกรหัสผ่านใหม่อีกครั้ง">
+                </div>
+                <div class="flex justify-end space-x-3 mt-4">
+                    <button type="button" class="close text-sm px-4 py-2 border border-white/30 rounded-md text-white bg-transparent hover:bg-white/20 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30">
+                        ยกเลิก
+                    </button>
+                    <button type="submit" class="text-sm px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        อัพเดทรหัสผ่าน
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/director/components/load-topbar.js"></script>
+    <script src="/director/scripts/auth.js"></script>
+    <script src="/director/scripts/director-dashboard.js"></script>
+</body>
+</html>

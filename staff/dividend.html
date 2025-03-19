@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="16x16" href="../images/logo.png"/>
+    <title>เงินปันผล - สหกรณ์ออมทรัพย์</title>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/styles/setting.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <!-- Scripts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1B8F4C',
+                        secondary: '#264C3B',
+                        accent: '#D9D92E',
+                        background: '#F1F8F4',
+                        foreground: '#FFFFFF'
+                    },
+                    fontFamily: {
+                        sans: ['IBM Plex Sans Thai', 'sans-serif'],
+                        heading: ['Poppins', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-image: url('https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1742&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-12">
+        <!-- Topbar Container -->
+        <div id="topbarContainer"></div>
+        <!-- Main Content -->
+        <main class="flex-1 p-8 pt-24">
+            <!-- Header -->
+            <header class="text-center mb-12">
+                <h1 class="text-4xl font-bold text-white mb-4 drop-shadow-lg">เงินปันผล</h1>
+                <p class="text-xl text-white mb-8 max-w-2xl mx-auto drop-shadow-md">
+                    จัดการเงินปันผลของสหกรณ์ออมทรัพย์
+                </p>
+                <!-- ส่วนแสดงโปรไฟล์ผู้ใช้ -->
+                <div class="flex items-center justify-center space-x-3 mb-6">
+                    <div class="relative">
+                        <button id="userMenuButton" class="flex items-center space-x-3 focus:outline-none glass-card px-4 py-2 rounded-full" aria-expanded="false">
+                            <div id="userAvatar" class="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 text-white font-bold border-2 border-white">
+                                <!-- แสดงอักษรย่อจากชื่อผู้ใช้ -->
+                            </div>
+                            <span id="userName" class="text-white font-medium">
+                                <!-- แสดงชื่อผู้ใช้ -->
+                            </span>
+                            <i class="fas fa-chevron-down text-white transition-transform duration-200"></i>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 glass-card rounded-md shadow-lg py-1 z-50 border border-white/30">
+                            <button id="updateUserPasswordBtn" class="w-full px-4 py-2 text-left text-white hover:bg-white/20 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-key mr-2 text-white/80"></i>
+                                <span>เปลี่ยนรหัสผ่าน</span>
+                            </button>
+                            <hr class="my-1 border-white/20">
+                            <button id="logoutButton" class="w-full px-4 py-2 text-left text-white hover:bg-white/20 transition-colors duration-200 flex items-center">
+                                <i class="fa-solid fa-right-from-bracket mr-2"></i>
+                                <span>ออกจากระบบ</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="max-w-6xl mx-auto">
+                <div class="flex justify-center items-center mb-6">
+                    <button id="calculateDividendBtn" class="bg-green-500/70 hover:bg-green-600/90 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition duration-200 ease-in-out">
+                        <i class="fas fa-calculator"></i>
+                        <span>คำนวณปันผลประจำปี</span>
+                    </button>
+                </div>
+
+                <!-- สรุปข้อมูลการปันผล -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="flex items-center justify-between">
+                            <div class="text-gray-600">ดอกเบี้ยรวมทั้งหมด</div>
+                            <i class="fas fa-money-bill-wave text-green-500"></i>
+                        </div>
+                        <div class="text-2xl font-bold mt-2" id="totalInterest">0.00 บาท</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="flex items-center justify-between">
+                            <div class="text-gray-600">จำนวนหุ้นทั้งหมด</div>
+                            <i class="fas fa-chart-pie text-blue-500"></i>
+                        </div>
+                        <div class="text-2xl font-bold mt-2" id="totalShares">0 หุ้น</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="flex items-center justify-between">
+                            <div class="text-gray-600">เงินปันผลต่อหุ้น</div>
+                            <i class="fas fa-coins text-yellow-500"></i>
+                        </div>
+                        <div class="text-2xl font-bold mt-2" id="dividendPerShare">0.00 บาท/หุ้น</div>
+                    </div>
+                </div>
+
+                <!-- ตารางประวัติการปันผล -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="p-6 border-b">
+                        <h3 class="text-xl font-semibold">ประวัติการปันผล</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ปี</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ดอกเบี้ยรวม</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวนหุ้น</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ปันผล/หุ้น</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ดำเนินการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dividendTableBody" class="bg-white divide-y divide-gray-200">
+                                <!-- ข้อมูลจะถูกเพิ่มด้วย JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="text-center p-4 text-gray-600 text-sm mt-8">
+                <p>© 2024 สหกรณ์ออมทรัพย์หมู่บ้าน ตําบล ตะกุกเหนือ. สงวนลิขสิทธิ์.</p>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Modal คำนวณปันผล -->
+    <div id="calculateDividendModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">คำนวณปันผลประจำปี</h3>
+                <button class="text-gray-500 hover:text-gray-700 close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="calculateDividendForm">
+                <div class="mb-4">
+                    <label for="dividendYear" class="block text-gray-700 font-medium mb-2">ปีที่ต้องการคำนวณปันผล</label>
+                    <input type="number" id="dividendYear" required
+                           class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" class="px-4 py-2 text-gray-600 hover:text-gray-800 close">
+                        ยกเลิก
+                    </button>
+                    <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
+                        คำนวณปันผล
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal รายละเอียดการปันผล -->
+    <div id="dividendDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+        <div class="bg-white rounded-lg p-8 max-w-4xl w-full">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">รายละเอียดการปันผล</h3>
+                <button class="text-gray-500 hover:text-gray-700 close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="dividendDetailsContent" class="max-h-[60vh] overflow-y-auto">
+                <!-- เนื้อหาจะถูกเพิ่มด้วย JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- เพิ่ม Modal สำหรับอัพเดทรหัสผ่าน -->
+    <div id="updatePasswordModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">อัพเดทรหัสผ่าน</h3>
+                <button class="close text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="updatePasswordForm" class="space-y-4">
+                <div>
+                    <label for="newPassword" class="block text-sm font-medium text-gray-700">รหัสผ่านใหม่</label>
+                    <input type="password" id="newPassword" name="newPassword" required
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                        placeholder="กรอกรหัสผ่านใหม่">
+                </div>
+                <div>
+                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700">ยืนยันรหัสผ่านใหม่</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                        placeholder="กรอกรหัสผ่านใหม่อีกครั้ง">
+                </div>
+                <div class="flex justify-end space-x-3 mt-4">
+                    <button type="button" class="close text-sm px-4 py-2 border border-gray-300 rounded-md text-gray-600 bg-white hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300">
+                        ยกเลิก
+                    </button>
+                    <button type="submit" class="text-sm px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        อัพเดทรหัสผ่าน
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/admin/scripts/auth.js"></script>
+    <script src="/staff/scripts/dividend.js"></script>
+    <script src="/staff/components/load-topbar.js"></script>
+</body>
+</html> 

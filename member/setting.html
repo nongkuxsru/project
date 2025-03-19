@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="th">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/png" sizes="16x16" href="../images/logo.png"/>
+        <title>การตั้งค่า - สหกรณ์ออมทรัพย์</title>
+        <link rel="stylesheet" href="/styles/setting.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: '#1B8F4C', // สีเขียวสดที่โดดเด่น
+                            secondary: '#264C3B', // สีเขียวเข้มที่ให้ความรู้สึกมั่นคง
+                            accent: '#D9D92E', // สีเหลืองทองที่โดดเด่น
+                            background: '#F1F8F4', // พื้นหลังสีเขียวอ่อน
+                            foreground: '#FFFFFF' // สีขาวสำหรับองค์ประกอบ
+                        },
+                        fontFamily: {
+                            sans: ['IBM Plex Sans Thai', 'sans-serif'], // ฟอนต์ที่อ่านง่าย
+                            heading: ['Poppins', 'sans-serif'] // ฟอนต์สำหรับหัวข้อ
+                        }
+                    }
+                }
+            }
+        </script>
+        <style>
+            body {
+                background-image: url('https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1742&q=80');
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+            }
+            .glass-card {
+                background: rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            }
+            .stat-card {
+                transition: all 0.3s ease;
+            }
+            .stat-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            }
+        </style>
+    </head>
+
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-12">
+        <!-- Topbar Container -->
+        <div id="topbarContainer"></div>
+        
+        <!-- Main Content -->
+        <main class="flex-1">
+            <header class="text-center mb-12">
+                <h1 class="text-4xl font-bold text-white mb-4 drop-shadow-lg">การตั้งค่า</h1>
+                <p class="text-xl text-white mb-8 max-w-2xl mx-auto drop-shadow-md">
+                    จัดการข้อมูลส่วนตัว เปลี่ยนรหัสผ่าน และออกจากระบบ
+                </p>
+                <!-- ส่วนแสดงโปรไฟล์ผู้ใช้ -->
+                <div class="flex items-center justify-center space-x-3 mb-6">
+                    <div class="relative">
+                        <button id="userMenuButton" class="flex items-center space-x-3 focus:outline-none glass-card px-4 py-2 rounded-full" aria-expanded="false">
+                            <div id="userAvatar" class="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 text-white font-bold border-2 border-white">
+                                <!-- แสดงอักษรย่อจากชื่อผู้ใช้ -->
+                            </div>
+                            <span id="userName" class="text-white font-medium">
+                                <!-- แสดงชื่อผู้ใช้ -->
+                            </span>
+                            <i class="fas fa-chevron-down text-white transition-transform duration-200"></i>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 glass-card rounded-md shadow-lg py-1 z-50 border border-white/30">
+                            <button id="updateUserPasswordBtn" class="w-full px-4 py-2 text-left text-white hover:bg-white/20 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-key mr-2 text-white/80"></i>
+                                <span>เปลี่ยนรหัสผ่าน</span>
+                            </button>
+                            <hr class="my-1 border-white/20">
+                            <button id="logoutButton" class="w-full px-4 py-2 text-left text-white hover:bg-white/20 transition-colors duration-200 flex items-center">
+                                <i class="fa-solid fa-right-from-bracket mr-2"></i>
+                                <span>ออกจากระบบ</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+        
+            <!-- Personal Information Section -->
+            <section class="bg-white p-6 shadow-lg rounded-lg w-full max-w-3xl mx-auto border border-gray-200">
+                <h2 class="text-2xl font-bold text-primary mb-6 flex items-center">
+                    <i class="fas fa-user-edit mr-3"></i>
+                    ข้อมูลส่วนตัว
+                </h2>
+                
+                <form id="personalInfoForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- รหัสผู้ใช้ -->
+                        <div class="form-group">
+                            <label for="userId" class="block text-sm font-medium text-gray-700 mb-1">รหัสผู้ใช้</label>
+                            <input type="text" id="userId" name="userId" readonly
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500">
+                        </div>
+
+                        <!-- ชื่อเต็ม -->
+                        <div class="form-group">
+                            <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">ชื่อเต็ม</label>
+                            <input type="text" id="fullName" name="fullName" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        </div>
+
+                        <!-- อีเมล -->
+                        <div class="form-group">
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">อีเมล</label>
+                            <input type="email" id="email" name="email" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        </div>
+
+                        <!-- โทรศัพท์ -->
+                        <div class="form-group">
+                            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">โทรศัพท์</label>
+                            <input type="text" id="phone" name="phone" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        </div>
+
+                        <!-- วันเกิด -->
+                        <div class="form-group">
+                            <label for="birthday" class="block text-sm font-medium text-gray-700 mb-1">วันเกิด</label>
+                            <input type="date" id="birthday" name="birthday" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        </div>
+
+                        <!-- สิทธิ์ -->
+                        <div class="form-group">
+                            <label for="permission" class="block text-sm font-medium text-gray-700 mb-1">สิทธิ์</label>
+                            <input type="text" id="permission" name="permission" readonly
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500">
+                        </div>
+                    </div>
+
+                    <!-- ที่อยู่ -->
+                    <div class="form-group col-span-2">
+                        <label for="address" class="block text-sm font-medium text-gray-700 mb-1">ที่อยู่</label>
+                        <textarea id="address" name="address" required rows="3"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"></textarea>
+                    </div>
+
+                    <!-- ปุ่มดำเนินการ -->
+                    <div class="flex justify-end space-x-4 mt-6">
+                        <button type="submit"
+                            class="px-4 py-2 border border-transparent rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            บันทึกการเปลี่ยนแปลง
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Footer -->
+            <footer class="text-center p-4 text-gray-600 text-sm mt-8">
+                <p>© 2024 สหกรณ์ออมทรัพย์หมู่บ้าน ตําบล ตะกุกเหนือ. สงวนลิขสิทธิ์.</p>
+            </footer>
+        </main>
+    </div>
+
+    <!-- เพิ่ม Modal สำหรับอัพเดทรหัสผ่าน -->
+    <div id="updatePasswordModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">อัพเดทรหัสผ่าน</h3>
+                <button class="close text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="updatePasswordForm" class="space-y-4">
+                <div>
+                    <label for="newPassword" class="block text-sm font-medium text-gray-700">รหัสผ่านใหม่</label>
+                    <input type="password" id="newPassword" name="newPassword" required
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                        placeholder="กรอกรหัสผ่านใหม่">
+                </div>
+                <div>
+                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700">ยืนยันรหัสผ่านใหม่</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                        placeholder="กรอกรหัสผ่านใหม่อีกครั้ง">
+                </div>
+                <div class="flex justify-end space-x-3 mt-4">
+                    <button type="button" class="close text-sm px-4 py-2 border border-gray-300 rounded-md text-gray-600 bg-white hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300">
+                        ยกเลิก
+                    </button>
+                    <button type="submit" class="text-sm px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        อัพเดทรหัสผ่าน
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/member/scripts/auth.js"></script>
+    <script src="/member/scripts/setting.js"></script>
+    <script src="/member/components/load-topbar.js"></script>
+</body>
+</html>

@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="16x16" href="../images/logo.png"/>
+    <title>สัญญาเงินกู้ - สหกรณ์ออมทรัพย์</title>
+    <link rel="stylesheet" href="/styles/setting.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1B8F4C', // สีเขียวสดที่โดดเด่น
+                        secondary: '#264C3B', // สีเขียวเข้มที่ให้ความรู้สึกมั่นคง
+                        accent: '#D9D92E', // สีเหลืองทองที่โดดเด่น
+                        background: '#F1F8F4', // พื้นหลังสีเขียวอ่อน
+                        foreground: '#FFFFFF' // สีขาวสำหรับองค์ประกอบ
+                    },
+                    fontFamily: {
+                        sans: ['IBM Plex Sans Thai', 'sans-serif'], // ฟอนต์ที่อ่านง่าย
+                        heading: ['Poppins', 'sans-serif'] // ฟอนต์สำหรับหัวข้อ
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-image: url('https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1742&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-12">
+        <!-- Topbar Container -->
+        <div id="topbarContainer"></div>
+        <!-- Main Content -->
+        <main class="flex-1 p-8 pt-24 max-h-screen overflow-auto">
+             <!-- Header -->
+             <header class="text-center mb-12">
+                <h1 class="text-4xl font-bold text-white mb-4 drop-shadow-lg">สัญญากู้ยืม</h1>
+                <p class="text-xl text-white mb-8 max-w-2xl mx-auto drop-shadow-md">
+                    จัดการสัญญาเงินกู้ยืมและชำระเงิน
+                </p>
+                <!-- ส่วนแสดงโปรไฟล์ผู้ใช้ -->
+                <div class="flex items-center justify-center space-x-3 mb-6">
+                    <div class="relative">
+                        <button id="userMenuButton" class="flex items-center space-x-3 focus:outline-none glass-card px-4 py-2 rounded-full" aria-expanded="false">
+                            <div id="userAvatar" class="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 text-white font-bold border-2 border-white">
+                                <!-- แสดงอักษรย่อจากชื่อผู้ใช้ -->
+                            </div>
+                            <span id="userName" class="text-white font-medium">
+                                <!-- แสดงชื่อผู้ใช้ -->
+                            </span>
+                            <i class="fas fa-chevron-down text-white transition-transform duration-200"></i>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 glass-card rounded-md shadow-lg py-1 z-50 border border-white/30">
+                            <button id="updateUserPasswordBtn" class="w-full px-4 py-2 text-left text-white hover:bg-white/20 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-key mr-2 text-white/80"></i>
+                                <span>เปลี่ยนรหัสผ่าน</span>
+                            </button>
+                            <hr class="my-1 border-white/20">
+                            <button id="logoutButton" class="w-full px-4 py-2 text-left text-white hover:bg-white/20 transition-colors duration-200 flex items-center">
+                                <i class="fa-solid fa-right-from-bracket mr-2"></i>
+                                <span>ออกจากระบบ</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <section class="glass-card p-6 rounded-lg w-full max-w-6xl mx-auto mb-6">
+                <h2 class="text-2xl font-bold text-white mb-6 text-center">บัญชีสัญญาเงินกู้</h2>
+                
+                <!-- เพิ่มส่วนปุ่มด้านบน -->
+                <div class="flex justify-between mb-4">
+                    <!-- ปุ่มพิมพ์แบบฟอร์มขอสินเชื่อ -->
+                    <button onclick="printEmptyLoanForm()" 
+                            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition duration-300 hover:scale-105">
+                        <i class="fas fa-file-alt"></i>
+                        <span>พิมพ์แบบฟอร์มขอสินเชื่อ</span>
+                    </button>
+                    
+                    <!-- ปุ่มสร้างสัญญาเงินกู้ใหม่ -->
+                    <button id="createPromiseButton" 
+                            class="bg-primary hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition duration-300 hover:scale-105">
+                        <i class="fas fa-plus"></i>
+                        <span>สร้างสัญญาเงินกู้ใหม่</span>
+                    </button>
+                </div>
+
+                <div class="usersTable overflow-x-auto">
+                    <table class="w-full table-auto mt-6 max-w-full">
+                        <thead>
+                            <tr class="bg-green-100 text-gray-800">
+                                <th class="border px-4 py-2">หมายเลขสัญญา</th>
+                                <th class="border px-4 py-2">หมายเลขบัญชีออมทรัพย์</th>
+                                <th class="border px-4 py-2">จำนวนเงินกู้</th>
+                                <th class="border px-4 py-2">วันที่สร้างสัญญา</th>
+                                <th class="border px-4 py-2">วันที่ครบกำหนด</th>
+                                <th class="border px-4 py-2">สถานะ</th>
+                                <th class="border px-4 py-2">การกระทำ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="promiseTableBody">
+                            <tr>
+                                <td colspan="7" class="text-center py-4">กำลังโหลดสัญญาเงินกู้...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- Modal สร้างสัญญาเงินกู้ -->
+            <div id="createPromiseModal" class="modal">
+                <div class="modal-content max-w-3xl w-full bg-white rounded-lg shadow-2xl transform transition-all duration-300 ease-in-out">
+                    <div class="modal-header bg-gradient-to-r from-green-600 to-green-500 text-white p-2 rounded-t-lg flex justify-between items-center">
+                        <h2 class="text-base font-bold flex items-center">
+                            <i class="fas fa-file-signature mr-2"></i>
+                            สร้างสัญญาเงินกู้
+                        </h2>
+                        <span class="close text-white hover:text-gray-200 text-2xl transition-colors cursor-pointer">&times;</span>
+                    </div>
+                    <form id="createPromiseForm" class="p-3">
+                        <div class="bg-green-50 p-1 rounded-lg mb-2 border-l-4 border-green-500">
+                            <p class="text-green-800 text-xs">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                กรุณากรอกรหัสสมาชิกและค้นหาข้อมูลก่อนสร้างสัญญาเงินกู้
+                            </p>
+                        </div>
+                        
+                        <div class="form-group mb-2">
+                            <label for="memberId" class="block text-gray-700 font-medium mb-1 text-xs">รหัสสมาชิก:</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="memberId" class="flex-1 p-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" 
+                                       placeholder="กรอกรหัสสมาชิก" required>
+                                <button type="button" id="searchMemberBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded-lg transition-all duration-300 hover:shadow-lg flex items-center">
+                                    <i class="fas fa-search mr-1"></i> ค้นหา
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-2">
+                            <label for="memberName" class="block text-gray-700 font-medium mb-1 text-xs">ชื่อสมาชิก:</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="memberName" readonly 
+                                       class="flex-1 p-1 border-b-2 border-gray-300 bg-gray-50 rounded-lg text-gray-700 font-medium">
+                                <button type="button" id="viewMemberDetailsBtn" 
+                                        class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded-lg transition-all duration-300 hover:shadow-lg flex items-center" disabled>
+                                    <i class="fas fa-info-circle mr-1"></i> รายละเอียด
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- จัดให้ยอดเงินในบัญชีและจำนวนหุ้นอยู่ในแถวเดียวกัน -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
+                            <div class="form-group">
+                                <label for="savingBalance" class="block text-gray-700 font-medium mb-1 text-xs">ยอดเงินในบัญชีออมทรัพย์:</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-coins text-gray-500"></i>
+                                    </div>
+                                    <input type="text" id="savingBalance" readonly 
+                                           class="w-full pl-10 p-1.5 border-b-2 border-gray-300 bg-gray-50 rounded-lg text-gray-700 font-medium text-sm text-right">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="memberShares" class="block text-gray-700 font-medium mb-1 text-xs">จำนวนหุ้น:</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-chart-pie text-gray-500"></i>
+                                    </div>
+                                    <input type="text" id="memberShares" readonly 
+                                           class="w-full pl-10 p-1.5 border-b-2 border-gray-300 bg-gray-50 rounded-lg text-gray-700 font-medium text-sm text-right">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
+                            <div class="form-group">
+                                <label for="savingStatus" class="block text-gray-700 font-medium mb-1 text-xs">ประเภทบัญชีกู้ยืม:</label>
+                                <div class="relative">
+                                    <select id="savingStatus" class="w-full p-1 border border-gray-300 rounded-lg appearance-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm">
+                                        <option value="ordinary_loan">กู้ยืมสามัญ</option>
+                                        <option value="emergency_loan">กู้ยืมฉุกเฉิน</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                        <i class="fas fa-chevron-down text-gray-500"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="loanAmount" class="block text-gray-700 font-medium mb-1 text-xs">จำนวนเงินที่ขอกู้:</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                        <i class="fas fa-money-bill-wave text-gray-500"></i>
+                                    </div>
+                                    <input type="number" id="loanAmount" required min="0" step="0.01"
+                                           class="w-full pl-8 p-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm text-right"
+                                           placeholder="0.00">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="interestRate" class="block text-gray-700 font-medium mb-1 text-xs">อัตราดอกเบี้ย (% ต่อเดือน):</label>
+                                <div class="relative flex items-center">
+                                    <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                        <i class="fas fa-percentage text-gray-500"></i>
+                                    </div>
+                                    <input type="number" id="interestRate" 
+                                           class="flex-1 pl-8 p-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm text-right" 
+                                           value="1" required min="0" max="15" step="0.01" disabled>
+                                    <span class="ml-1 text-gray-700 font-medium text-sm">%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-2">
+                            <label for="totalWithInterest" class="block text-gray-700 font-medium mb-1 text-xs">จำนวนเงินรวมดอกเบี้ย:</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                    <i class="fas fa-calculator text-gray-500"></i>
+                                </div>
+                                <input type="text" id="totalWithInterest" 
+                                       class="w-full pl-8 p-1 border-2 border-green-300 rounded-lg bg-green-50 text-green-800 font-medium text-right pr-3 text-sm" 
+                                       readonly>
+                            </div>
+                            <!-- เพิ่มส่วนแสดงรายละเอียดการคำนวณดอกเบี้ย -->
+                            <div id="interestDetails" class="mt-1"></div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
+                            <div class="form-group">
+                                <label for="promiseDate" class="block text-gray-700 font-medium mb-1 text-xs">วันที่ทำสัญญา:</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                        <i class="fas fa-calendar-alt text-gray-500"></i>
+                                    </div>
+                                    <input type="date" id="promiseDate" required
+                                           class="w-full pl-8 p-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm text-right pr-3">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="dueDate" class="block text-gray-700 font-medium mb-1 text-xs">วันที่ครบกำหนด:</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                        <i class="fas fa-calendar-check text-gray-500"></i>
+                                    </div>
+                                    <input type="date" id="dueDate" required
+                                           class="w-full pl-8 p-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm text-right pr-3">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <button type="submit" 
+                                    class="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-bold py-1 px-2 rounded-lg transition-all duration-300 hover:shadow-lg flex items-center justify-center text-sm">
+                                <i class="fas fa-save mr-1"></i> บันทึกสัญญา
+                            </button>
+                            <button type="button" 
+                                    class="flex-1 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-bold py-1 px-2 rounded-lg transition-all duration-300 hover:shadow-lg flex items-center justify-center text-sm" 
+                                    id="cancelPromiseButton">
+                                <i class="fas fa-times mr-1"></i> ยกเลิก
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal รายละเอียดสัญญา -->
+            <div id="promiseDetailsModal" class="modal">
+                <div class="modal-content max-w-2xl w-full bg-white rounded-lg shadow-xl transform transition-all duration-300 ease-in-out">
+                    <div class="modal-header bg-gradient-to-r from-green-600 to-green-500 text-white p-3 rounded-t-lg flex justify-between items-center">
+                        <h2 class="text-lg font-bold flex items-center">
+                            <i class="fas fa-file-contract mr-2"></i>
+                            รายละเอียดสัญญาเงินกู้
+                        </h2>
+                        <button class="close hover:text-gray-200 transition-colors">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <div id="promiseDetailsContent" class="p-4 space-y-3">
+                        <!-- เนื้อหาจะถูกเพิ่มด้วย JavaScript -->
+                        <div class="animate-pulse">
+                            <div class="h-3 bg-gray-200 rounded w-3/4 mb-3"></div>
+                            <div class="h-3 bg-gray-200 rounded w-1/2 mb-3"></div>
+                            <div class="h-3 bg-gray-200 rounded w-5/6"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-gray-50 p-3 rounded-b-lg flex justify-end space-x-2">
+                        <button onclick="openPaymentModal()" 
+                            class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-all duration-300">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span>ชำระเงิน</span>
+                        </button>
+                        <button class="bg-primary hover:bg-green-600 text-white px-3 py-1.5 text-sm rounded-lg transition-colors" 
+                                onclick="printPromiseDetails()">
+                            <i class="fas fa-print mr-1"></i>พิมพ์สัญญา
+                        </button>
+                        <button class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 text-sm rounded-lg transition-colors" 
+                                onclick="closePromiseDetails()">
+                            ปิด
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- เพิ่มในส่วน body ของ promise.html -->
+            <div id="paymentModal" class="modal">
+                <div class="modal-content bg-white p-4 rounded-lg shadow-xl max-w-md mx-auto">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-lg font-semibold">บันทึกการชำระเงิน</h2>
+                        <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <form id="paymentForm" onsubmit="handlePayment(event)" class="space-y-3">
+                        <!-- แสดงค่าปรับชำระล่าช้า (ถ้ามี) -->
+                        <div id="lateFeeDisplay" class="mb-3" style="display: none;"></div>
+                        
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                จำนวนเงินที่ชำระ:
+                            </label>
+                            <input type="number" 
+                                id="paymentAmount" 
+                                required 
+                                min="0" 
+                                step="0.01"
+                                class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-right">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                วันที่ชำระ:
+                            </label>
+                            <input type="date" 
+                                id="paymentDate" 
+                                required
+                                class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-right">
+                        </div>
+                        
+                        <!-- แสดงยอดรวมที่ต้องชำระ -->
+                        <div id="totalPaymentDisplay" class="mt-3"></div>
+
+                        <div class="flex justify-end space-x-2 mt-4">
+                            <button type="button" 
+                                onclick="closeModal()"
+                                class="px-3 py-1.5 text-sm text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
+                                ยกเลิก
+                            </button>
+                            <button type="submit"
+                                class="px-3 py-1.5 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
+                                บันทึกการชำระเงิน
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- เพิ่ม Modal สำหรับแสดงประวัติการชำระเงิน -->
+            <div id="paymentHistoryModal" class="modal">
+                <div class="modal-content max-w-2xl w-full bg-white rounded-lg shadow-xl transform transition-all duration-300 ease-in-out">
+                    <div class="modal-header bg-gradient-to-r from-blue-600 to-blue-500 text-white p-3 rounded-t-lg flex justify-between items-center">
+                        <h2 class="text-lg font-bold flex items-center">
+                            <i class="fas fa-history mr-2"></i>
+                            ประวัติการชำระเงิน
+                        </h2>
+                        <button onclick="closeModal()" class="hover:text-gray-200 transition-colors">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <div id="paymentHistoryContent" class="p-4 space-y-3">
+                        <!-- เนื้อหาจะถูกเพิ่มด้วย JavaScript -->
+                    </div>
+                    <div class="modal-footer bg-gray-50 p-3 rounded-b-lg flex justify-end">
+                        <button onclick="closeModal()" 
+                                class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 text-sm rounded-lg transition-colors">
+                            ปิด
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal สำหรับรายละเอียดบัญชีออมทรัพย์ -->
+            <div id="savingDetailsModal" class="modal">
+                <div class="modal-content max-w-2xl w-full bg-white rounded-lg shadow-2xl transform transition-all duration-300 ease-in-out">
+                    <div class="modal-header bg-gradient-to-r from-green-600 to-green-500 text-white p-3 rounded-t-lg flex justify-between items-center">
+                        <h2 class="text-lg font-bold flex items-center">
+                            <i class="fas fa-piggy-bank mr-2"></i>
+                            รายละเอียดบัญชีออมทรัพย์
+                        </h2>
+                        <button class="close text-white hover:text-gray-200 text-xl transition-colors cursor-pointer">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="savingDetailsContent" class="p-4 space-y-3">
+                        <!-- เนื้อหาจะถูกเพิ่มด้วย JavaScript -->
+                        <div class="animate-pulse">
+                            <div class="h-3 bg-gray-200 rounded w-3/4 mb-3"></div>
+                            <div class="h-3 bg-gray-200 rounded w-1/2 mb-3"></div>
+                            <div class="h-3 bg-gray-200 rounded w-5/6"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-gray-50 p-3 rounded-b-lg flex justify-end">
+                        <button class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 text-sm rounded-lg transition-colors" 
+                                onclick="closeModal()">
+                            <i class="fas fa-times mr-1"></i> ปิด
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- เพิ่ม Modal สำหรับอัพเดทรหัสผ่าน -->
+    <div id="updatePasswordModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">อัพเดทรหัสผ่าน</h3>
+                <button class="close text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="updatePasswordForm" class="space-y-4">
+                <div>
+                    <label for="newPassword" class="block text-sm font-medium text-gray-700">รหัสผ่านใหม่</label>
+                    <input type="password" id="newPassword" name="newPassword" required
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                        placeholder="กรอกรหัสผ่านใหม่">
+                </div>
+                <div>
+                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700">ยืนยันรหัสผ่านใหม่</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                        placeholder="กรอกรหัสผ่านใหม่อีกครั้ง">
+                </div>
+                <div class="flex justify-end space-x-3 mt-4">
+                    <button type="button" class="close text-sm px-4 py-2 border border-gray-300 rounded-md text-gray-600 bg-white hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300">
+                        ยกเลิก
+                    </button>
+                    <button type="submit" class="text-sm px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        อัพเดทรหัสผ่าน
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center p-4 text-gray-600 text-sm mt-8">
+        <p>© 2024 สหกรณ์ออมทรัพย์หมู่บ้าน ตําบล ตะกุกเหนือ. สงวนลิขสิทธิ์.</p>
+    </footer>
+
+    <!-- เพิ่มเทมเพลตสำหรับฟอร์มขอสินเชื่อ -->
+    <template id="loanFormTemplate">
+        <div class="loan-form-container" style="font-family: 'Sarabun', sans-serif; max-width: 210mm; margin: 0 auto;">
+            <!-- หัวกระดาษ -->
+            <div style="text-align: center; margin-bottom: 30px;">
+                <img src="/images/logo.png" alt="Logo" style="max-width: 100px; margin-bottom: 15px;">
+                <h1 style="font-size: 24px; font-weight: bold; margin: 8px 0;">แบบฟอร์มคำขอสินเชื่อ</h1>
+                <h2 style="font-size: 22px; margin: 8px 0;">สหกรณ์ออมทรัพย์หมู่บ้าน ตำบลตะกุกเหนือ</h2>
+            </div>
+
+            <!-- ข้อมูลส่วนตัว -->
+            <div style="margin-bottom: 25px;">
+                <h3 style="font-size: 20px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #000;">1. ข้อมูลผู้ขอสินเชื่อ</h3>
+                <div style="margin-bottom: 15px;">
+                    <p style="margin: 8px 0;">
+                        <strong>ชื่อ-นามสกุล:</strong> <span class="form-field">................................................</span>
+                    </p>
+                    <p style="margin: 8px 0;">
+                        <strong>เลขบัตรประชาชน:</strong> <span class="form-field">................................................</span>
+                    </p>
+                    <p style="margin: 8px 0;">
+                        <strong>ที่อยู่:</strong> <span class="form-field">................................................</span>
+                    </p>
+                    <p style="margin: 8px 0;">
+                        <strong>เบอร์โทรศัพท์:</strong> <span class="form-field">................................................</span>
+                    </p>
+                    <p style="margin: 8px 0;">
+                        <strong>เลขบัญชีออมทรัพย์:</strong> <span class="form-field">................................................</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- ข้อมูลการขอสินเชื่อ -->
+            <div style="margin-bottom: 25px;">
+                <h3 style="font-size: 20px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #000;">2. รายละเอียดการขอสินเชื่อ</h3>
+                <div style="margin-bottom: 15px;">
+                    <p style="margin: 8px 0;">ประเภทสินเชื่อที่ต้องการ:</p>
+                    <div style="display: flex; gap: 30px; margin: 10px 0;">
+                        <div style="font-size: 16px;">☐ สินเชื่อสามัญ</div>
+                        <div style="font-size: 16px;">☐ สินเชื่อฉุกเฉิน</div>
+                    </div>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <p style="margin: 8px 0;">
+                        <strong>จำนวนเงินที่ขอกู้:</strong> <span class="form-field">...........................</span> บาท
+                    </p>
+                    <p style="margin: 8px 0;">
+                        <strong>ระยะเวลาการผ่อนชำระ:</strong> <span class="form-field">...........................</span> เดือน
+                    </p>
+                    <p style="margin: 8px 0;">
+                        <strong>วัตถุประสงค์ในการกู้:</strong> <span class="form-field">...........................................................</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- หลักประกัน -->
+            <div style="margin-bottom: 25px;">
+                <h3 style="font-size: 20px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #000;">3. หลักประกัน</h3>
+                <div style="margin-bottom: 15px;">
+                    <p style="margin: 8px 0;">☐ บุคคลค้ำประกัน</p>
+                    <p style="margin: 8px 0;">☐ หลักทรัพย์ค้ำประกัน (โปรดระบุ) <span class="form-field">...........................................................</span></p>
+                    <p style="margin: 8px 0;">☐ อื่นๆ (โปรดระบุ) <span class="form-field">...........................................................</span></p>
+                </div>
+            </div>
+
+            <!-- ลายเซ็นต์ -->
+            <div style="margin-top: 30px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <div style="text-align: center; width: 200px;">
+                        <p style="margin: 5px 0;">ลงชื่อ ................................................</p>
+                        <p style="margin: 5px 0;">(.................................................)</p>
+                        <p style="margin: 5px 0;">ผู้ขอสินเชื่อ</p>
+                        <p style="margin: 5px 0;">วันที่ ........../........../.........</p>
+                    </div>
+                    <div style="text-align: center; width: 200px;">
+                        <p style="margin: 5px 0;">ลงชื่อ ................................................</p>
+                        <p style="margin: 5px 0;">(.................................................)</p>
+                        <p style="margin: 5px 0;">พยาน</p>
+                        <p style="margin: 5px 0;">วันที่ ........../........../.........</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ส่วนสำหรับเจ้าหน้าที่ -->
+            <div style="margin-top: 25px; border-top: 1px dashed #000; padding-top: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="flex: 1;">
+                        <h3 style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">สำหรับเจ้าหน้าที่</h3>
+                        <p style="margin: 5px 0;">ความเห็นเจ้าหน้าที่: <span class="form-field">...........................................................</span></p>
+                        <p style="margin: 5px 0;">ผลการพิจารณา: ☐ อนุมัติ ☐ ไม่อนุมัติ</p>
+                    </div>
+                    <div style="text-align: center; width: 200px;">
+                        <p style="margin: 5px 0;">ลงชื่อ .................................</p>
+                        <p style="margin: 5px 0;">(......................................)</p>
+                        <p style="margin: 5px 0;">ผู้มีอำนาจอนุมัติ</p>
+                        <p style="margin: 5px 0;">วันที่ ......../......../........</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- เพิ่มเทมเพลตสำหรับการพิมพ์รายละเอียดสัญญา -->
+    <template id="promiseDetailsTemplate">
+        <div class="contract-container" style="font-family: 'Sarabun', sans-serif; max-width: 210mm; margin: 0 auto;">
+            <!-- หัวกระดาษ -->
+            <div style="text-align: center; margin-bottom: 30px;">
+                <img src="/images/logo.png" alt="Logo" style="max-width: 100px; margin-bottom: 15px;">
+                <h1 style="font-size: 24px; font-weight: bold; margin: 8px 0;">สัญญาเงินกู้</h1>
+                <h2 style="font-size: 22px; margin: 8px 0;">สหกรณ์ออมทรัพย์หมู่บ้าน ตำบลตะกุกเหนือ</h2>
+            </div>
+
+            <!-- รายละเอียดสัญญา -->
+            <div style="margin-bottom: 25px;">
+                <h3 style="font-size: 20px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #000;">รายละเอียดสัญญา</h3>
+                <div style="margin-bottom: 15px;">
+                    <p style="margin: 8px 0;"><strong>รหัสสัญญา:</strong> <span id="contractId"></span></p>
+                    <p style="margin: 8px 0;"><strong>รหัสสมาชิก:</strong> <span id="memberId"></span></p>
+                    <p style="margin: 8px 0;"><strong>จำนวนเงินต้น:</strong> <span id="amount"></span> บาท</p>
+                    <p style="margin: 8px 0;"><strong>อัตราดอกเบี้ย:</strong> <span id="interestRate"></span> %</p>
+                    <p style="margin: 8px 0;"><strong>จำนวนเงินดอกเบี้ย:</strong> <span id="interest"></span> บาท</p>
+                    <p style="margin: 8px 0;"><strong>จำนวนเงินรวม:</strong> <span id="total"></span> บาท</p>
+                    <p style="margin: 8px 0;"><strong>วันที่ทำสัญญา:</strong> <span id="startDate"></span></p>
+                    <p style="margin: 8px 0;"><strong>วันครบกำหนด:</strong> <span id="dueDate"></span></p>
+                </div>
+            </div>
+
+            <!-- ลายเซ็นต์ -->
+            <div style="margin-top: 50px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <div style="text-align: center; width: 200px;">
+                        <p style="margin: 5px 0;">ลงชื่อ ................................................</p>
+                        <p style="margin: 5px 0;">(.................................................)</p>
+                        <p style="margin: 5px 0;">ผู้ขอสินเชื่อ</p>
+                        <p style="margin: 5px 0;">วันที่ ........../........../.........</p>
+                    </div>
+                    <div style="text-align: center; width: 200px;">
+                        <p style="margin: 5px 0;">ลงชื่อ ................................................</p>
+                        <p style="margin: 5px 0;">(.................................................)</p>
+                        <p style="margin: 5px 0;">ผู้อนุมัติ</p>
+                        <p style="margin: 5px 0;">วันที่ ........../........../.........</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script src="/admin/scripts/auth.js"></script>
+    <script src="/staff/scripts/promise.js"></script>
+    <script src="/staff/components/load-topbar.js"></script>
+</body>
+</html>

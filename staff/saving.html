@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="16x16" href="../images/logo.png"/>
+    <title>บัญชีออมทรัพย์ - สหกรณ์ออมทรัพย์</title>
+    <link rel="stylesheet" href="/styles/setting.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1B8F4C',
+                        secondary: '#264C3B',
+                        accent: '#D9D92E',
+                        background: '#F1F8F4',
+                        foreground: '#FFFFFF'
+                    },
+                    fontFamily: {
+                        sans: ['IBM Plex Sans Thai', 'sans-serif'],
+                        heading: ['Poppins', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-image: url('https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1742&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-12">
+        <!-- Topbar Container -->
+        <div id="topbarContainer"></div>
+        <!-- Main Content -->
+        <main class="flex-1 p-8 pt-24">
+            <!-- Header -->
+            <header class="text-center mb-12">
+                <h1 class="text-4xl font-bold text-white mb-4 drop-shadow-lg">บัญชีออมทรัพย์</h1>
+                <p class="text-xl text-white mb-8 max-w-2xl mx-auto drop-shadow-md">
+                    จัดการบัญชีออมทรัพย์ของสหกรณ์ออมทรัพย์
+                </p>
+                <!-- ส่วนแสดงโปรไฟล์ผู้ใช้ -->
+                <div class="flex items-center justify-center space-x-3 mb-6">
+                    <div class="relative">
+                        <button id="userMenuButton" class="flex items-center space-x-3 focus:outline-none glass-card px-4 py-2 rounded-full" aria-expanded="false">
+                            <div id="userAvatar" class="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 text-white font-bold border-2 border-white">
+                                <!-- แสดงอักษรย่อจากชื่อผู้ใช้ -->
+                            </div>
+                            <span id="userName" class="text-white font-medium">
+                                <!-- แสดงชื่อผู้ใช้ -->
+                            </span>
+                            <i class="fas fa-chevron-down text-white transition-transform duration-200"></i>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-48 glass-card rounded-md shadow-lg py-1 z-50 border border-white/30">
+                            <button id="updateUserPasswordBtn" class="w-full px-4 py-2 text-left text-white hover:bg-white/20 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-key mr-2 text-white/80"></i>
+                                <span>เปลี่ยนรหัสผ่าน</span>
+                            </button>
+                            <hr class="my-1 border-white/20">
+                            <button id="logoutButton" class="w-full px-4 py-2 text-left text-white hover:bg-white/20 transition-colors duration-200 flex items-center">
+                                <i class="fa-solid fa-right-from-bracket mr-2"></i>
+                                <span>ออกจากระบบ</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Search and Filter Section -->
+            <section class="glass-card p-6 rounded-lg w-full max-w-6xl mx-auto mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="flex-1 w-full">
+                        <div class="relative">
+                            <input type="text" id="searchInput" placeholder="ค้นหาตามชื่อหรือเลขบัญชี..."
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <button id="addUserButton" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            <i class="fas fa-plus mr-2"></i>เพิ่มบัญชี
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Account List Section -->
+            <section class="glass-card p-6 rounded-lg w-full max-w-6xl mx-auto mb-6">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                    <i class="fas fa-wallet mr-3"></i>
+                    บัญชีการออม
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">หมายเลขบัญชี</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อสมาชิก</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ยอดคงเหลือ</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อพนักงาน</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่สร้าง</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ธุรกรรม</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accountTableBody" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="7" class="text-center py-4">กำลังโหลดบัญชี...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <!-- เพิ่ม container สำหรับ pagination -->
+                    <div id="pagination" class="flex justify-center items-center space-x-2 mt-4">
+                        <!-- Pagination controls จะถูกเพิ่มโดย JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Add Account Modal -->
+            <div id="addUserModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <div class="transaction-form">
+                        <h2 class="text-primary text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-piggy-bank mr-2 text-green-600"></i>
+                            เพิ่มบัญชีออมทรัพย์ใหม่
+                        </h2>
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-3 mb-4 rounded-md">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-info-circle text-blue-500 mt-1"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-blue-700">กรุณากรอกข้อมูลให้ครบถ้วนเพื่อเปิดบัญชีใหม่สำหรับสมาชิก</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <form id="addUserForm" class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="addAccountId" class="block text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-id-card mr-2 text-green-500"></i>
+                                        หมายเลขบัญชี
+                                    </label>
+                                    <div class="relative">
+                                        <input type="text" id="addAccountId" name="accountId" required 
+                                            class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <span class="text-gray-400">#</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label for="addBalance" class="block text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-coins mr-2 text-yellow-500"></i>
+                                        ยอดคงเหลือเริ่มต้น
+                                    </label>
+                                    <div class="relative">
+                                        <input type="number" id="addBalance" name="balance" required 
+                                            class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <span class="text-gray-400">฿</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="addName" class="block text-sm font-medium text-gray-700 flex items-center">
+                                    <i class="fas fa-user mr-2 text-blue-500"></i>
+                                    เลือกสมาชิก
+                                </label>
+                                <select id="addName" name="name" required 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                    <option value="" disabled selected>-- เลือกสมาชิก --</option>
+                                    <!-- Option will be filled by JavaScript from database -->
+                                </select>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="selectedUserId" class="block text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-fingerprint mr-2 text-purple-500"></i>
+                                        หมายเลขผู้ใช้ที่เลือก
+                                    </label>
+                                    <input type="text" id="selectedUserId" name="selectedUserId" readonly 
+                                        class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-500">
+                                </div>
+                                
+                                <div>
+                                    <label for="addStaffId" class="block text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-user-tie mr-2 text-indigo-500"></i>
+                                        หมายเลขพนักงาน
+                                    </label>
+                                    <input type="text" id="addStaffId" name="staffId" required readonly 
+                                        class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-500">
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="w-full bg-primary text-white py-2 px-6 rounded-lg mt-4 hover:bg-green-600 flex items-center justify-center">
+                                <i class="fas fa-save mr-2"></i>
+                                เพิ่มบัญชีใหม่
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit User Modal -->
+            <div id="editUserModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <div class="transaction-form">
+                        <h2 class="text-primary text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-edit mr-2 text-blue-600"></i>
+                            แก้ไขข้อมูลบัญชี
+                        </h2>
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-3 mb-4 rounded-md">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-blue-700">
+                                        คุณสามารถแก้ไขยอดคงเหลือได้ แต่ไม่สามารถแก้ไขข้อมูลอื่นได้
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <form id="editUserForm" class="space-y-4">
+                            <input type="hidden" id="editUserId" name="userId" />
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="editName" class="flex items-center">
+                                        <i class="fas fa-user mr-2 text-blue-500"></i>
+                                        ชื่อผู้ใช้
+                                    </label>
+                                    <input type="text" id="editName" name="name" readonly class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg" />
+                                </div>
+                                <div>
+                                    <label for="editBalance" class="flex items-center">
+                                        <i class="fas fa-coins mr-2 text-yellow-500"></i>
+                                        ยอดคงเหลือ
+                                    </label>
+                                    <input type="number" id="editBalance" name="balance" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                                </div>
+                            </div>
+                            <div>
+                                <label for="editStaffId" class="flex items-center">
+                                    <i class="fas fa-user-tie mr-2 text-indigo-500"></i>
+                                    หมายเลขพนักงาน
+                                </label>
+                                <input type="text" id="editStaffId" name="staffId" readonly class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg" />
+                            </div>
+                            <button type="submit" class="w-full bg-primary text-white py-2 px-6 rounded-lg mt-4 hover:bg-green-600 flex items-center justify-center">
+                                <i class="fas fa-save mr-2"></i>
+                                บันทึกการเปลี่ยนแปลง
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deposit Modal -->
+            <div id="depositModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <div class="transaction-form">
+                        <h2 class="text-primary text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-money-bill-wave mr-2 text-green-600"></i>
+                            ฝากเงิน
+                        </h2>
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-3 mb-4 rounded-md">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-blue-700">
+                                        สามารถฝากเงินได้ไม่เกิน <span class="font-bold">500 บาท</span> ต่อครั้ง
+                                    </p>
+                                    <p class="text-sm text-blue-700 mt-1">
+                                        ทุก 100 บาท จะได้รับ 1 หุ้น (สูงสุด 5 หุ้นต่อครั้ง)
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <form id="transactionFormDeposit" class="space-y-4">
+                            <input type="hidden" id="transactionUserIdDeposit">
+                            <input type="hidden" name="transactionType" value="deposit">
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="transactionAccountIdDeposit" class="flex items-center">
+                                        <i class="fas fa-id-card mr-2 text-green-500"></i>
+                                        เลขที่บัญชี
+                                    </label>
+                                    <input type="text" id="transactionAccountIdDeposit" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                                <div>
+                                    <label for="transactionNameDeposit" class="flex items-center">
+                                        <i class="fas fa-user mr-2 text-blue-500"></i>
+                                        ชื่อผู้ใช้
+                                    </label>
+                                    <input type="text" id="transactionNameDeposit" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="transactionBalanceDeposit" class="flex items-center">
+                                        <i class="fas fa-wallet mr-2 text-indigo-500"></i>
+                                        ยอดคงเหลือปัจจุบัน
+                                    </label>
+                                    <input type="text" id="transactionBalanceDeposit" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                                <div>
+                                    <label for="transactionAmountDeposit" class="flex items-center">
+                                        <i class="fas fa-hand-holding-usd mr-2 text-yellow-500"></i>
+                                        จำนวนเงินฝาก <span class="text-red-500 text-xs ml-1">(ไม่เกิน 500 บาท)</span>
+                                    </label>
+                                    <input type="number" id="transactionAmountDeposit" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" max="500">
+                                </div>
+                            </div>
+
+                            <div id="depositSharesInfo" class="bg-green-50 border border-green-200 rounded-md p-3">
+                                <div class="flex items-center">
+                                    <i class="fas fa-coins text-green-500 mr-2"></i>
+                                    <span class="text-green-700">คุณจะได้รับ <span id="depositSharesDisplay" class="font-bold">0</span> หุ้น จากการฝากเงินครั้งนี้</span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full bg-primary text-white py-2 px-6 rounded-lg mt-4 hover:bg-green-600 flex items-center justify-center">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                ยืนยันการฝากเงิน
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Withdraw Modal -->
+            <div id="withdrawModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <div class="transaction-form">
+                        <h2 class="text-red-500 text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-money-bill-wave-alt mr-2 text-red-500"></i>
+                            ถอนเงิน
+                        </h2>
+                        <div class="bg-red-50 border-l-4 border-red-400 p-3 mb-4 rounded-md">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-exclamation-circle text-red-500 mt-0.5"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-red-700">
+                                        กรุณาตรวจสอบยอดเงินคงเหลือก่อนทำการถอนเงิน
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <form id="transactionFormWithdraw" class="space-y-4">
+                            <input type="hidden" id="transactionUserIdWithdraw">
+                            <input type="hidden" name="transactionType" value="withdraw">
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="transactionAccountIdWithdraw" class="flex items-center">
+                                        <i class="fas fa-id-card mr-2 text-red-500"></i>
+                                        เลขที่บัญชี
+                                    </label>
+                                    <input type="text" id="transactionAccountIdWithdraw" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                                <div>
+                                    <label for="transactionNameWithdraw" class="flex items-center">
+                                        <i class="fas fa-user mr-2 text-blue-500"></i>
+                                        ชื่อผู้ใช้
+                                    </label>
+                                    <input type="text" id="transactionNameWithdraw" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="transactionBalanceWithdraw" class="flex items-center">
+                                        <i class="fas fa-wallet mr-2 text-indigo-500"></i>
+                                        ยอดคงเหลือปัจจุบัน
+                                    </label>
+                                    <input type="text" id="transactionBalanceWithdraw" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                                <div>
+                                    <label for="transactionAmountWithdraw" class="flex items-center">
+                                        <i class="fas fa-hand-holding-usd mr-2 text-yellow-500"></i>
+                                        จำนวนเงินถอน
+                                    </label>
+                                    <input type="number" id="transactionAmountWithdraw" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                            </div>      
+
+                            <button type="submit" class="w-full bg-red-500 text-white py-2 px-6 rounded-lg mt-4 hover:bg-red-600 flex items-center justify-center">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                ยืนยันการถอนเงิน
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="text-center p-4 text-gray-600 text-sm mt-8">
+                <p>© 2024 สหกรณ์ออมทรัพย์หมู่บ้าน ตําบล ตะกุกเหนือ. สงวนลิขสิทธิ์.</p>
+            </footer>
+        </main>
+    </div>
+
+    <!-- เพิ่ม Modal สำหรับอัพเดทรหัสผ่าน -->
+    <div id="updatePasswordModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">อัพเดทรหัสผ่าน</h3>
+                <button class="close text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="updatePasswordForm" class="space-y-4">
+                <div>
+                    <label for="newPassword" class="block text-sm font-medium text-gray-700">รหัสผ่านใหม่</label>
+                    <input type="password" id="newPassword" name="newPassword" required
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                        placeholder="กรอกรหัสผ่านใหม่">
+                </div>
+                <div>
+                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700">ยืนยันรหัสผ่านใหม่</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                        placeholder="กรอกรหัสผ่านใหม่อีกครั้ง">
+                </div>
+                <div class="flex justify-end space-x-3 mt-4">
+                    <button type="button" class="close text-sm px-4 py-2 border border-gray-300 rounded-md text-gray-600 bg-white hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300">
+                        ยกเลิก
+                    </button>
+                    <button type="submit" class="text-sm px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        อัพเดทรหัสผ่าน
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/admin/scripts/auth.js"></script>
+    <script src="/staff/scripts/saving.js"></script>
+    <script src="/staff/components/load-topbar.js"></script>
+</body>
+</html>
