@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "start": "node server.js",
+    "build": "cp -r public/* build/ || mkdir -p build && cp -r public/* build/",
+    "dev": "nodemon server.js"
+  },
   "dependencies": {
     "sweetalert2": "^11.17.2"
   }
