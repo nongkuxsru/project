@@ -138,23 +138,44 @@ const displayTransactions = (page) => {
         row.className = 'hover:bg-gray-50 transition-colors duration-200';
 
         // กำหนดสีและไอคอนตามประเภทธุรกรรม
-        const transactionType = transaction.type === 'Deposit' 
-            ? `<span class="flex items-center justify-center gap-1">
-                 <i class="fas fa-arrow-up text-green-500"></i>
-                 <span class="text-green-600">ฝากเงิน</span>
-               </span>`
-            : `<span class="flex items-center justify-center gap-1">
-                 <i class="fas fa-arrow-down text-red-500"></i>
-                 <span class="text-red-600">ถอนเงิน</span>
-               </span>`;
+        let transactionType;
+        if (transaction.type === 'Deposit') {
+            transactionType = `<span class="flex items-center justify-center gap-1">
+                <i class="fas fa-arrow-up text-green-500"></i>
+                <span class="text-green-600">ฝากเงิน</span>
+            </span>`;
+        } else if (transaction.type === 'BuyShares') {
+            transactionType = `<span class="flex items-center justify-center gap-1">
+                <i class="fas fa-coins text-yellow-500"></i>
+                <span class="text-yellow-600">ซื้อหุ้น</span>
+            </span>`;
+        } else {
+            transactionType = `<span class="flex items-center justify-center gap-1">
+                <i class="fas fa-arrow-down text-red-500"></i>
+                <span class="text-red-600">ถอนเงิน</span>
+            </span>`;
+        }
 
         // กำหนดสีและสถานะการแสดงผล
         const statusDisplay = getStatusDisplay(transaction.status);
 
         // กำหนดรูปแบบการแสดงจำนวนเงิน
+        let textColorClass;
+        let prefix;
+        if (transaction.type === 'Deposit') {
+            textColorClass = 'text-green-600';
+            prefix = '+';
+        } else if (transaction.type === 'BuyShares') {
+            textColorClass = 'text-yellow-600';
+            prefix = '';
+        } else {
+            textColorClass = 'text-red-600';
+            prefix = '-';
+        }
+
         const amountDisplay = `
-            <span class="font-semibold ${transaction.type === 'Deposit' ? 'text-green-600' : 'text-red-600'}">
-                ${transaction.type === 'Deposit' ? '+' : '-'}
+            <span class="font-semibold ${textColorClass}">
+                ${prefix}
                 ${transaction.amount.toLocaleString()} บาท
             </span>`;
 

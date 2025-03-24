@@ -1,8 +1,77 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Observer สำหรับ sidebar
     observer.observe(document.body, {
         childList: true,
         subtree: true
     });
+    
+    // ดึงข้อมูลผู้ใช้จาก localStorage
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+
+    if (user) {
+        // หากข้อมูลผู้ใช้มีการล็อกอินมาแล้ว
+        const userName = user.name || 'ผู้ใช้ไม่ระบุ';
+        const userAvatar = user.avatar || userName.charAt(0).toUpperCase();
+       
+        // แสดงชื่อผู้ใช้
+        document.getElementById('userName').textContent = 'ยินดีต้อนรับ ' + userName;
+        
+        // แสดงอวาตาร์
+        document.getElementById('userAvatar').textContent = userAvatar;
+
+        // จัดการ Dropdown Menu
+        const userMenuButton = document.getElementById('userMenuButton');
+        const userDropdownMenu = document.getElementById('userDropdownMenu');
+        const chevronIcon = userMenuButton.querySelector('.fa-chevron-down');
+
+        // Toggle dropdown เมื่อคลิกที่ปุ่ม
+        userMenuButton.addEventListener('click', () => {
+            const isExpanded = userMenuButton.getAttribute('aria-expanded') === 'true';
+            userMenuButton.setAttribute('aria-expanded', !isExpanded);
+            userDropdownMenu.classList.toggle('hidden');
+            chevronIcon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+        });
+
+        // ปิด dropdown เมื่อคลิกที่อื่น
+        document.addEventListener('click', (event) => {
+            if (!userMenuButton.contains(event.target)) {
+                userMenuButton.setAttribute('aria-expanded', 'false');
+                userDropdownMenu.classList.add('hidden');
+                chevronIcon.style.transform = 'rotate(0deg)';
+            }
+        });
+
+        // จัดการปุ่มอัพเดทรหัสผ่าน
+        document.getElementById('updateUserPasswordBtn').addEventListener('click', () => {
+            openUpdatePasswordModal(user._id);
+        });
+        
+        // ดึงข้อมูลบัญชีผู้ใช้
+        fetchUserAccount();
+        
+        // ดึงข้อมูลประวัติการทำรายการจาก API
+        fetch('/api/staff/transactions')
+            .then(response => response.json())
+            .then(data => {
+                allTransactions = data.filter(transaction => String(transaction.userName) === userName);
+                filteredTransactions = [...allTransactions]; // เก็บข้อมูลทั้งหมดไว้ก่อนกรอง
+                populateTransactionTable(filteredTransactions);
+                calculateTotalAmounts(filteredTransactions); // คำนวณยอดรวม
+                
+                // เพิ่ม event listener สำหรับการค้นหา
+                const searchInput = document.getElementById('searchTransaction');
+                if (searchInput) {
+                    searchInput.addEventListener('input', handleSearch);
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching transactions:", error);
+            });
+    } else {
+        // หากไม่มีข้อมูลผู้ใช้ใน localStorage
+        document.getElementById('userName').textContent = 'ไม่พบข้อมูลผู้ใช้';
+        document.getElementById('userAvatar').textContent = 'N/A';
+    }
 });
 
 // ===============================
@@ -103,8 +172,24 @@ const fetchUserAccount = async () => {
             // อัปเดตข้อมูลบัญชีใน UI
             document.getElementById('accountId').textContent = account.id_account;
             document.getElementById('accountBalance').textContent = account.balance.toFixed(2);
-            document.getElementById('accountCreatedAt').textContent = new Date(account.createdAt).toLocaleDateString();
+            document.getElementById('accountCreatedAt').textContent = new Date(account.createdAt).toLocaleDateString('th-TH', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
             document.getElementById('accountStaffName').textContent = await fetchUserName(account.id_staff);
+            
+            // แสดงข้อมูลหุ้น
+            const shares = account.shares || 0;
+            document.getElementById('accountShares').textContent = shares;
+            
+            // คำนวณมูลค่าหุ้น (1 หุ้น = 100 บาท)
+            const sharesValue = shares * 100;
+            document.getElementById('sharesValue').textContent = sharesValue.toLocaleString('th-TH') + ' บาท';
+            
+            // เพิ่มเอฟเฟกต์เล็กๆ น้อยๆ
+            animateValue('accountShares', 0, shares, 1000);
+            animateValue('accountBalance', 0, account.balance, 1000);
         } else {
             document.getElementById('accountContainer').innerHTML = '<p class="error">Account data is incomplete.</p>';
         }
@@ -113,8 +198,6 @@ const fetchUserAccount = async () => {
         document.getElementById('accountContainer').innerHTML = '<p class="error">Failed to load account data.</p>';
     }
 };
-
-
 
 // ฟังก์ชันดึงชื่อผู้ใช้จาก API
 const fetchUserName = async (userId) => {
@@ -129,27 +212,90 @@ const fetchUserName = async (userId) => {
     }
 };
 
-// เพิ่มตัวแปรสำหรับจัดการ pagination
+// ฟังก์ชันสำหรับทำ animation ตัวเลข
+const animateValue = (elementId, start, end, duration, isTotal = false) => {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const value = Math.floor(progress * (end - start) + start);
+        
+        if (isTotal) {
+            element.textContent = value.toLocaleString('th-TH') + ' บาท';
+        } else if (elementId === 'accountBalance') {
+            element.textContent = value.toFixed(2);
+        } else {
+            element.textContent = value;
+        }
+        
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        }
+    };
+    window.requestAnimationFrame(step);
+};
+
+// ตัวแปรสำหรับเก็บข้อมูลธุรกรรมทั้งหมด
+let allTransactions = []; // เก็บข้อมูลธุรกรรมทั้งหมด
+let filteredTransactions = []; // เก็บข้อมูลธุรกรรมที่กรองแล้ว
+
+// ตัวแปรสำหรับจัดการ pagination
 let currentPage = 1;
 const rowsPerPage = 8;
 let totalPages = 1;
-let allTransactions = []; // เก็บข้อมูลธุรกรรมทั้งหมด
 
-document.addEventListener("DOMContentLoaded", function() {
-    const storedUserName = localStorage.getItem('currentUser');
-    const localStorageName = JSON.parse(storedUserName).name;
-
-    // ดึงข้อมูลประวัติการทำรายการจาก API
-    fetch('/api/staff/transactions')
-        .then(response => response.json())
-        .then(data => {
-            allTransactions = data.filter(transaction => String(transaction.userName) === localStorageName);
-            populateTransactionTable(allTransactions);
-        })
-        .catch(error => {
-            console.error("Error fetching transactions:", error);
+// ฟังก์ชันสำหรับค้นหาธุรกรรม
+const handleSearch = (event) => {
+    const searchTerm = event.target.value.toLowerCase();
+    
+    if (searchTerm.trim() === '') {
+        filteredTransactions = [...allTransactions]; // คืนค่าข้อมูลทั้งหมดเมื่อไม่มีคำค้นหา
+    } else {
+        filteredTransactions = allTransactions.filter(transaction => {
+            const date = new Date(transaction.date).toLocaleDateString('th-TH').toLowerCase();
+            const type = transaction.type.toLowerCase();
+            const amount = transaction.amount.toString();
+            
+            return date.includes(searchTerm) || 
+                   type.includes(searchTerm) || 
+                   amount.includes(searchTerm);
         });
-});
+    }
+    
+    populateTransactionTable(filteredTransactions);
+    calculateTotalAmounts(filteredTransactions);
+};
+
+// ฟังก์ชันคำนวณยอดรวมของแต่ละประเภทธุรกรรม
+const calculateTotalAmounts = (transactions) => {
+    let totalDeposit = 0;
+    let totalWithdraw = 0;
+    let totalBuyShares = 0;
+    
+    transactions.forEach(transaction => {
+        const transactionType = transaction.type.toLowerCase();
+        if (transactionType === 'deposit') {
+            totalDeposit += transaction.amount;
+        } else if (transactionType === 'withdraw') {
+            totalWithdraw += transaction.amount;
+        } else if (transactionType === 'buyshares') {
+            totalBuyShares += transaction.amount;
+        }
+    });
+    
+    // แสดงยอดรวมในหน้าเว็บ
+    document.getElementById('totalDeposit').textContent = totalDeposit.toLocaleString('th-TH') + ' บาท';
+    document.getElementById('totalWithdraw').textContent = totalWithdraw.toLocaleString('th-TH') + ' บาท';
+    document.getElementById('totalBuyShares').textContent = totalBuyShares.toLocaleString('th-TH') + ' บาท';
+    
+    // เพิ่ม animation สำหรับการแสดงยอดรวม
+    animateValue('totalDeposit', 0, totalDeposit, 1000, true);
+    animateValue('totalWithdraw', 0, totalWithdraw, 1000, true);
+    animateValue('totalBuyShares', 0, totalBuyShares, 1000, true);
+};
 
 // ฟังก์ชั่นในการแสดงข้อมูลในตาราง
 function populateTransactionTable(transactions) {
@@ -170,11 +316,21 @@ function populateTransactionTable(transactions) {
         `;
         emptyRow.appendChild(emptyCell);
         tableBody.appendChild(emptyRow);
+        
+        // รีเซ็ตค่า pagination
+        totalPages = 1;
+        currentPage = 1;
+        renderPagination();
         return;
     }
 
     // คำนวณจำนวนหน้าทั้งหมด
     totalPages = Math.ceil(transactions.length / rowsPerPage);
+
+    // ถ้าหน้าปัจจุบันมากกว่าจำนวนหน้าทั้งหมด ให้กลับไปที่หน้าแรก
+    if (currentPage > totalPages) {
+        currentPage = 1;
+    }
 
     // คำนวณ index เริ่มต้นและสิ้นสุดของข้อมูลที่จะแสดงในหน้าปัจจุบัน
     const startIndex = (currentPage - 1) * rowsPerPage;
@@ -211,15 +367,21 @@ function populateTransactionTable(transactions) {
         typeCell.classList.add("px-4", "py-3", "text-sm", "border-b", "border-gray-200", "text-center");
         
         // ตรวจสอบประเภทรายการและกำหนดไอคอนและสี
-        const isDeposit = transaction.type.toLowerCase() === 'deposit';
+        const transactionType = transaction.type.toLowerCase();
         const typeSpan = document.createElement("span");
         typeSpan.classList.add("px-3", "py-1", "rounded-full", "text-sm", "font-medium", "inline-flex", "items-center");
         
-        if (isDeposit) {
+        if (transactionType === 'deposit') {
             typeSpan.classList.add("bg-green-100", "text-green-800");
             typeSpan.innerHTML = `
                 <i class="fas fa-arrow-up text-green-600 mr-2"></i>
                 ฝากเงิน
+            `;
+        } else if (transactionType === 'buyshares') {
+            typeSpan.classList.add("bg-yellow-100", "text-yellow-800");
+            typeSpan.innerHTML = `
+                <i class="fas fa-coins text-yellow-600 mr-2"></i>
+                ซื้อหุ้น
             `;
         } else {
             typeSpan.classList.add("bg-red-100", "text-red-800");
@@ -234,13 +396,23 @@ function populateTransactionTable(transactions) {
         const amountCell = document.createElement("td");
         amountCell.classList.add("px-4", "py-3", "text-sm", "border-b", "border-gray-200", "font-medium", "text-right");
         
-        const amount = isDeposit ? 
-            `+${transaction.amount.toLocaleString('th-TH')}` : 
-            `-${transaction.amount.toLocaleString('th-TH')}`;
+        let amountDisplay;
+        let textColorClass;
+        
+        if (transactionType === 'deposit') {
+            amountDisplay = `+${transaction.amount.toLocaleString('th-TH')}`;
+            textColorClass = 'text-green-600';
+        } else if (transactionType === 'buyshares') {
+            amountDisplay = `${transaction.amount.toLocaleString('th-TH')}`;
+            textColorClass = 'text-yellow-600';
+        } else {
+            amountDisplay = `-${transaction.amount.toLocaleString('th-TH')}`;
+            textColorClass = 'text-red-600';
+        }
         
         amountCell.innerHTML = `
-            <span class="${isDeposit ? 'text-green-600' : 'text-red-600'}">
-                ${amount} บาท
+            <span class="${textColorClass}">
+                ${amountDisplay} บาท
             </span>
         `;
 
@@ -258,103 +430,55 @@ function populateTransactionTable(transactions) {
 // เพิ่มฟังก์ชันสำหรับสร้าง pagination controls
 const renderPagination = () => {
     const paginationContainer = document.getElementById('pagination');
-    if (!paginationContainer) {
-        // สร้าง container สำหรับ pagination ถ้ายังไม่มี
-        const container = document.createElement('div');
-        container.id = 'pagination';
-        container.className = 'flex justify-center items-center space-x-2 mt-4';
-        document.querySelector('#transactionTable').parentNode.appendChild(container);
-    }
+    if (!paginationContainer) return;
+    
+    paginationContainer.innerHTML = '';
+    
+    // ไม่ต้องแสดง pagination ถ้ามีข้อมูลแค่หน้าเดียว
+    if (totalPages <= 1) return;
+    
+    // สร้าง pagination div ใหม่
+    const paginationDiv = document.createElement('div');
+    paginationDiv.className = 'flex justify-center items-center space-x-2 mt-6 p-3 rounded-lg mx-auto max-w-md';
+    
+    // สร้างปุ่มย้อนกลับ
+    const prevButton = document.createElement('button');
+    prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
+    prevButton.className = 'px-3 py-2 rounded-md ' + 
+                          (currentPage === 1 
+                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                            : 'bg-green-500 text-white hover:bg-green-600 transition-colors');
+    prevButton.disabled = currentPage === 1;
+    prevButton.onclick = () => changePage(currentPage - 1);
+    paginationDiv.appendChild(prevButton);
 
-    paginationContainer.innerHTML = `
-        <button 
-            class="px-3 py-1 rounded-md ${currentPage === 1 ? 'bg-gray-200 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 text-white'}"
-            ${currentPage === 1 ? 'disabled' : ''}
-            onclick="changePage(${currentPage - 1})">
-            <i class="fas fa-chevron-left"></i>
-        </button>
-        <span class="px-4 py-1">หน้า ${currentPage} จาก ${totalPages}</span>
-        <button 
-            class="px-3 py-1 rounded-md ${currentPage === totalPages ? 'bg-gray-200 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 text-white'}"
-            ${currentPage === totalPages ? 'disabled' : ''}
-            onclick="changePage(${currentPage + 1})">
-            <i class="fas fa-chevron-right"></i>
-        </button>
-    `;
+    // แสดงข้อความหน้าปัจจุบัน/ทั้งหมด
+    const pageInfo = document.createElement('span');
+    pageInfo.className = 'px-3 py-2 bg-gray-100 rounded-md font-medium text-gray-700';
+    pageInfo.textContent = `หน้า ${currentPage} จาก ${totalPages}`;
+    paginationDiv.appendChild(pageInfo);
+    
+    // สร้างปุ่มถัดไป
+    const nextButton = document.createElement('button');
+    nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
+    nextButton.className = 'px-3 py-2 rounded-md ' + 
+                          (currentPage === totalPages 
+                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                            : 'bg-green-500 text-white hover:bg-green-600 transition-colors');
+    nextButton.disabled = currentPage === totalPages;
+    nextButton.onclick = () => changePage(currentPage + 1);
+    paginationDiv.appendChild(nextButton);
+    
+    paginationContainer.appendChild(paginationDiv);
 };
 
 // เพิ่มฟังก์ชันสำหรับเปลี่ยนหน้า
 const changePage = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
         currentPage = newPage;
-        populateTransactionTable(allTransactions);
+        populateTransactionTable(filteredTransactions); // ใช้ filteredTransactions แทน allTransactions
     }
 };
-
-document.addEventListener("DOMContentLoaded", function() {
-    const storedUserName = localStorage.getItem('currentUser');
-    const localStorageName = JSON.parse(storedUserName).name;
-
-    // ดึงข้อมูลประวัติการทำรายการจาก API
-    fetch('/api/staff/transactions')
-        .then(response => response.json())
-        .then(data => {
-            const filteredTransactions = data.filter(transaction => String(transaction.userName) === localStorageName);
-                populateTransactionTable(filteredTransactions);
-            })
-        .catch(error => {
-            console.error("Error fetching transactions:", error);
-        });
-});
-
-document.addEventListener("DOMContentLoaded", function() {
-    // ดึงข้อมูลผู้ใช้จาก localStorage
-    const user = JSON.parse(localStorage.getItem('currentUser'));
-
-    if (user) {
-        // หากข้อมูลผู้ใช้มีการล็อกอินมาแล้ว
-        const userName = user.name || 'ผู้ใช้ไม่ระบุ';
-        const userAvatar = user.avatar || userName.charAt(0).toUpperCase();
-       
-        // แสดงชื่อผู้ใช้
-        document.getElementById('userName').textContent = 'ยินดีต้อนรับ ' + userName;
-        
-        // แสดงอวาตาร์
-        document.getElementById('userAvatar').textContent = userAvatar;
-
-        // จัดการ Dropdown Menu
-        const userMenuButton = document.getElementById('userMenuButton');
-        const userDropdownMenu = document.getElementById('userDropdownMenu');
-        const chevronIcon = userMenuButton.querySelector('.fa-chevron-down');
-
-        // Toggle dropdown เมื่อคลิกที่ปุ่ม
-        userMenuButton.addEventListener('click', () => {
-            const isExpanded = userMenuButton.getAttribute('aria-expanded') === 'true';
-            userMenuButton.setAttribute('aria-expanded', !isExpanded);
-            userDropdownMenu.classList.toggle('hidden');
-            chevronIcon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
-        });
-
-        // ปิด dropdown เมื่อคลิกที่อื่น
-        document.addEventListener('click', (event) => {
-            if (!userMenuButton.contains(event.target)) {
-                userMenuButton.setAttribute('aria-expanded', 'false');
-                userDropdownMenu.classList.add('hidden');
-                chevronIcon.style.transform = 'rotate(0deg)';
-            }
-        });
-
-        // จัดการปุ่มอัพเดทรหัสผ่าน
-        document.getElementById('updateUserPasswordBtn').addEventListener('click', () => {
-            openUpdatePasswordModal(user._id);
-        });
-    } else {
-        // หากไม่มีข้อมูลผู้ใช้ใน localStorage
-        document.getElementById('userName').textContent = 'ไม่พบข้อมูลผู้ใช้';
-        document.getElementById('userAvatar').textContent = 'N/A';
-    }
-    fetchUserAccount();
-});
 
 // เพิ่มฟังก์ชันสำหรับเปิด modal อัพเดทรหัสผ่าน
 const openUpdatePasswordModal = (userId) => {

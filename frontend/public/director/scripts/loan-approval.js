@@ -217,28 +217,240 @@ const viewLoanDetails = async (loanId) => {
 };
 
 const displayLoanDetails = (loanDetails) => {
+    console.log('Loan details:', loanDetails); // เพิ่ม log เพื่อตรวจสอบข้อมูลที่ได้รับ
+    
     // แสดงข้อมูลผู้กู้
     const borrower = loanDetails.saving?.id_member || {};
     document.getElementById('borrowerName').textContent = borrower.name || 'ไม่ระบุ';
     document.getElementById('borrowerAddress').textContent = borrower.address || 'ไม่ระบุ';
     document.getElementById('borrowerPhone').textContent = borrower.phone || 'ไม่ระบุ';
-
+    
+    // เพิ่มรูปโปรไฟล์ผู้กู้ (ถ้ามี)
+    const borrowerSection = document.querySelector('.space-y-3');
+    if (borrowerSection) {
+        // ลบรูปโปรไฟล์เดิม (ถ้ามี)
+        const existingProfileImg = borrowerSection.querySelector('.profile-img-container');
+        if (existingProfileImg) {
+            existingProfileImg.remove();
+        }
+        
+        // เพิ่มรูปโปรไฟล์ใหม่
+        const profileImgContainer = document.createElement('div');
+        profileImgContainer.className = 'profile-img-container flex justify-center mb-4';
+        
+        if (borrower.profileImage) {
+            profileImgContainer.innerHTML = `
+                <img src="${borrower.profileImage}" alt="${borrower.name}" 
+                    class="w-24 h-24 rounded-full border-2 border-white shadow-lg object-cover">
+            `;
+        } else {
+            // ถ้าไม่มีรูป ให้แสดงตัวอักษรย่อแทน
+            const initials = borrower.name ? borrower.name.split(' ').map(n => n[0]).join('').toUpperCase() : '?';
+            profileImgContainer.innerHTML = `
+                <div class="w-24 h-24 rounded-full bg-gradient-to-r from-green-500 to-blue-500 flex items-center justify-center text-white text-2xl font-bold border-2 border-white shadow-lg">
+                    ${initials}
+                </div>
+            `;
+        }
+        
+        borrowerSection.insertBefore(profileImgContainer, borrowerSection.firstChild);
+    }
+    
+    // เพิ่มข้อมูลผู้กู้เพิ่มเติม
+    appendInfoIfNotExists(borrowerSection, 'borrowerID', 'รหัสสมาชิก:', borrower.id_member || 'ไม่ระบุ');
+    appendInfoIfNotExists(borrowerSection, 'borrowerEmail', 'อีเมล:', borrower.email || 'ไม่ระบุ');
+    
     // แสดงข้อมูลสัญญา
     document.getElementById('loanAmount').textContent = new Intl.NumberFormat('th-TH', {
         style: 'currency',
         currency: 'THB'
     }).format(loanDetails.amount || 0);
-
+    
     // คำนวณระยะเวลาผ่อนชำระเป็นเดือน
     const startDate = new Date(loanDetails.Datepromise);
     const endDate = new Date(loanDetails.DueDate);
     const months = Math.round((endDate - startDate) / (30 * 24 * 60 * 60 * 1000));
     document.getElementById('loanTerm').textContent = `${months} เดือน`;
-
+    
     document.getElementById('interestRate').textContent = `${loanDetails.interestRate || 0}%`;
-
+    
+    // หาส่วนข้อมูลสัญญาสำหรับการเพิ่มข้อมูล
+    const contractSection = document.querySelectorAll('.space-y-3')[1];
+    if (contractSection) {
+        // เพิ่มข้อมูลสัญญาเพิ่มเติม
+        appendInfoIfNotExists(contractSection, 'contractID', 'เลขที่สัญญา:', loanDetails.id_promise || 'ไม่ระบุ');
+        appendInfoIfNotExists(contractSection, 'loanPurpose', 'วัตถุประสงค์การกู้:', loanDetails.purpose || 'ไม่ระบุ');
+        
+        // จัดรูปแบบวันที่
+        const formattedStartDate = formatThaiDate(startDate);
+        const formattedEndDate = formatThaiDate(endDate);
+        
+        appendInfoIfNotExists(contractSection, 'startDate', 'วันที่เริ่มสัญญา:', formattedStartDate);
+        appendInfoIfNotExists(contractSection, 'endDate', 'วันที่สิ้นสุดสัญญา:', formattedEndDate);
+        
+        // คำนวณและแสดงจำนวนเงินที่ต้องชำระต่อเดือน
+        const monthlyPayment = calculateMonthlyPayment(loanDetails.amount, loanDetails.interestRate, months);
+        appendInfoIfNotExists(contractSection, 'monthlyPayment', 'ยอดชำระต่อเดือน:', new Intl.NumberFormat('th-TH', {
+            style: 'currency',
+            currency: 'THB'
+        }).format(monthlyPayment));
+    }
+    
+    // แสดงเอกสารแนบ (ถ้ามี)
+    if (loanDetails.documents && loanDetails.documents.length > 0) {
+        displayAttachedDocuments(loanDetails.documents);
+    } else {
+        // กรณีไม่มีเอกสารแนบ
+        const documentsContainer = document.getElementById('attachedDocuments');
+        documentsContainer.innerHTML = '<p class="text-white/70 italic">ไม่พบเอกสารแนบ</p>';
+    }
+    
+    // แสดงประวัติการชำระเงิน (ถ้ามี)
+    if (loanDetails.payments && loanDetails.payments.length > 0) {
+        displayPaymentHistory(loanDetails.payments);
+    }
+    
+    // แสดงสถานะสัญญาปัจจุบัน
+    const statusBadge = getStatusBadge(loanDetails.status || 'pending');
+    const modal = document.getElementById('viewDetailsModal');
+    const modalHeader = modal.querySelector('.modal-header') || modal.querySelector('h3').parentElement;
+    
+    // ลบ status badge เดิม (ถ้ามี)
+    const existingBadge = modalHeader.querySelector('.status-badge');
+    if (existingBadge) {
+        existingBadge.remove();
+    }
+    
+    // เพิ่ม status badge ใหม่
+    const statusElement = document.createElement('div');
+    statusElement.className = 'status-badge ml-3';
+    statusElement.innerHTML = statusBadge;
+    modalHeader.querySelector('h3').appendChild(statusElement);
+    
     // อัปเดตปุ่มดำเนินการ
     updateActionButtons(loanDetails.status || 'pending');
+};
+
+// ฟังก์ชั่นแสดงประวัติการชำระเงิน
+const displayPaymentHistory = (payments) => {
+    const historyBody = document.getElementById('paymentHistoryBody');
+    historyBody.innerHTML = '';
+    
+    if (!payments || payments.length === 0) {
+        historyBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center py-4 text-white/70 italic">ยังไม่มีประวัติการชำระเงิน</td>
+            </tr>
+        `;
+        return;
+    }
+    
+    // เรียงลำดับตามวันที่ จากล่าสุดไปเก่าสุด
+    const sortedPayments = [...payments].sort((a, b) => 
+        new Date(b.paymentDate) - new Date(a.paymentDate)
+    );
+    
+    sortedPayments.forEach(payment => {
+        const paymentDate = new Date(payment.paymentDate);
+        const row = document.createElement('tr');
+        row.className = 'bg-white/5 hover:bg-white/10 transition-colors duration-150 text-gray-600';
+        
+        // สถานะการชำระเงิน
+        let statusBadge;
+        switch (payment.status) {
+            case 'success':
+                statusBadge = '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-500/70 text-white">สำเร็จ</span>';
+                break;
+            case 'pending':
+                statusBadge = '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-500/70 text-white">รอตรวจสอบ</span>';
+                break;
+            case 'failed':
+                statusBadge = '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-500/70 text-white">ล้มเหลว</span>';
+                break;
+            default:
+                statusBadge = '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-500/70 text-white">สำเร็จ</span>';
+        }
+        
+        row.innerHTML = `
+            <td class="px-4 py-2 rounded-l-lg">${formatThaiDate(paymentDate)}</td>
+            <td class="px-4 py-2">${payment.installment || '-'}</td>
+            <td class="px-4 py-2 text-right">${formatCurrency(payment.amount)}</td>
+            <td class="px-4 py-2 text-center">${payment.method || 'ชำระด้วยเงินสด'}</td>
+            <td class="px-4 py-2 text-center rounded-r-lg">${statusBadge}</td>
+        `;
+        
+        historyBody.appendChild(row);
+    });
+};
+
+// ฟังก์ชั่นช่วยสำหรับการจัดรูปแบบเงิน
+const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('th-TH', {
+        style: 'currency',
+        currency: 'THB'
+    }).format(amount || 0);
+};
+
+// ฟังก์ชั่นช่วยสำหรับการเพิ่มข้อมูลถ้ายังไม่มี
+const appendInfoIfNotExists = (parentElement, id, label, value) => {
+    if (!parentElement) return;
+    
+    let element = document.getElementById(id);
+    if (!element) {
+        const newElement = document.createElement('div');
+        newElement.className = 'flex border-b border-white/10 pb-2';
+        newElement.innerHTML = `
+            <span class="text-white/80 w-32">${label}</span>
+            <span id="${id}" class="text-white flex-1">${value}</span>
+        `;
+        parentElement.appendChild(newElement);
+    } else {
+        element.textContent = value;
+    }
+};
+
+// ฟังก์ชั่นช่วยสำหรับการจัดรูปแบบวันที่เป็นภาษาไทย
+const formatThaiDate = (date) => {
+    if (!date || isNaN(date)) return 'ไม่ระบุ';
+    
+    const thaiMonths = [
+        'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+        'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+    ];
+    
+    const day = date.getDate();
+    const month = thaiMonths[date.getMonth()];
+    const year = date.getFullYear() + 543; // แปลงเป็นปี พ.ศ.
+    
+    return `${day} ${month} ${year}`;
+};
+
+// ฟังก์ชั่นคำนวณยอดชำระต่อเดือน
+const calculateMonthlyPayment = (principal, interestRate, months) => {
+    if (!principal || !months || months <= 0) return 0;
+    
+    // เงื่อนไขใหม่: ดอกเบี้ย 1% ต่อเดือน และระยะเวลากู้สูงสุด 3 เดือน
+    // คำนวณแบบเงินต้นเท่ากันทุกงวด + ดอกเบี้ยคิดจากเงินต้นคงเหลือ
+    
+    // ใช้ 1% ต่อเดือนโดยตรงตามเงื่อนไข (ไม่แปลงจากรายปีเป็นรายเดือน)
+    const monthlyInterestRate = 0.01; // คงที่ 1% ต่อเดือนตามเงื่อนไขใหม่
+    
+    // คำนวณดอกเบี้ยรวมทั้งหมดที่ต้องจ่าย
+    let totalInterest = 0;
+    let remainingPrincipal = principal;
+    const monthlyPrincipal = principal / months;
+    
+    for (let i = 0; i < months; i++) {
+        // ดอกเบี้ยคิดจากยอดเงินต้นคงเหลือ
+        const interest = remainingPrincipal * monthlyInterestRate;
+        totalInterest += interest;
+        remainingPrincipal -= monthlyPrincipal;
+    }
+    
+    // ยอดจ่ายต่อเดือน = (เงินต้น + ดอกเบี้ยทั้งหมด) / จำนวนงวด
+    const monthlyPayment = (principal + totalInterest) / months;
+    
+    return monthlyPayment;
 };
 
 // ===============================
@@ -464,8 +676,6 @@ const rejectPromise = async (reason, currentUser) => {
         console.error('Error rejecting loan promise:', error);
     }
 }
-
-    // ... rest of the code remains the same
 
 // ===============================
 // Modal Management Functions

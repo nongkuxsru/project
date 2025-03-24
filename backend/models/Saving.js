@@ -35,22 +35,6 @@ const savingSchema = new mongoose.Schema({
     }
 });
 
-// Middleware สำหรับคำนวณหุ้นก่อนบันทึก
-savingSchema.pre('save', function(next) {
-    // คำนวณหุ้นจากยอดเงิน (100 บาท = 1 หุ้น)
-    this.shares = Math.floor(this.balance / 100);
-    next();
-});
-
-// Middleware สำหรับคำนวณหุ้นเมื่อใช้ findOneAndUpdate
-savingSchema.pre('findOneAndUpdate', function(next) {
-    const update = this.getUpdate();
-    if (update.$set && update.$set.balance) {
-        update.$set.shares = Math.floor(update.$set.balance / 100);
-    }
-    next();
-});
-
 const Saving = mongoose.model('Saving', savingSchema);
 
 module.exports = Saving;

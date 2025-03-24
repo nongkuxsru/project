@@ -175,25 +175,28 @@ router.put('/saving/transaction/:userId', async (req, res) => {
             type: type
         });
 
-        // คำนวณยอดเงินและหุ้นใหม่
+        // คำนวณยอดเงินใหม่ (ไม่รวมการคำนวณหุ้น)
         if (type === 'deposit') {
             saving.balance += amount;
-            // คำนวณหุ้นจากจำนวนเงินที่ฝากเข้ามา
-            const newShares = Math.floor(amount / 100);
-            saving.shares = saving.shares || 0; // ตรวจสอบว่ามีค่าหรือไม่ ถ้าไม่มีให้เป็น 0
-            saving.shares += newShares;
-
-            console.log('การคำนวณหุ้น:', {
-                amountDeposited: amount,
-                newShares: newShares,
-                currentShares: saving.shares
-            });
         } else if (type === 'withdraw') {
             // ตรวจสอบว่ามีเงินเพียงพอสำหรับการถอน
             if (saving.balance < amount) {
                 return res.status(400).json({ error: 'ยอดเงินในบัญชีไม่เพียงพอ' });
             }
             saving.balance -= amount;
+        } else if (type === 'buyShares') {
+            // กรณีซื้อหุ้น
+            const sharesToBuy = parseInt(req.body.shares) || 0;
+            const sharePrice = 100; // ราคาหุ้นละ 100 บาท
+            const totalPrice = sharesToBuy * sharePrice;
+            
+            // ตรวจสอบว่าจำนวนหุ้นที่ซื้อไม่เกิน 5 หุ้น
+            if (sharesToBuy > 5) {
+                return res.status(400).json({ error: 'สามารถซื้อหุ้นได้ไม่เกิน 5 หุ้นต่อครั้ง' });
+            }
+            
+            // อัปเดตจำนวนหุ้น
+            saving.shares = (saving.shares || 0) + sharesToBuy;
         } else {
             return res.status(400).json({ error: 'ประเภทธุรกรรมไม่ถูกต้อง' });
         }
@@ -212,12 +215,18 @@ router.put('/saving/transaction/:userId', async (req, res) => {
         });
 
         // สร้างประวัติธุรกรรม
+        let transactionType = 'Unknown';
+        if (type === 'deposit') transactionType = 'Deposit';
+        else if (type === 'withdraw') transactionType = 'Withdraw';
+        else if (type === 'buyShares') transactionType = 'BuyShares';
+
         const transaction = new Transaction({
             userName: req.body.userName || 'ไม่ระบุชื่อ',
-            type: type === 'deposit' ? 'Deposit' : 'Withdraw',
+            type: transactionType,
             amount: amount,
             date: new Date(),
-            status: 'Completed'
+            status: 'Completed',
+            shares_added: type === 'buyShares' ? parseInt(req.body.shares) || 0 : 0
         });
         await transaction.save();
 

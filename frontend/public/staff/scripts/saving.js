@@ -216,6 +216,13 @@ const fetchAccount = async () => {
                     <i class="fas fa-money-bill-wave"></i>
                     <span>ถอน</span>
                 </button>
+                <button 
+                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded-lg transition duration-200 ease-in-out flex items-center gap-1 text-sm"
+                    onclick="openBuySharesModal('${account.id_member}')"
+                    title="ซื้อหุ้น">
+                    <i class="fas fa-coins"></i>
+                    <span>ซื้อหุ้น</span>
+                </button>
             `;
             actionsCell.appendChild(actionWrapper);
             row.appendChild(actionsCell);
@@ -482,21 +489,9 @@ const openTransactionModal = async (userId, type) => {
         if (type === 'deposit') {
             amountInput.max = 500;
             
-            // เพิ่มส่วนแสดงข้อมูลหุ้นที่จะได้รับ
-            const sharesInfoElement = document.getElementById('depositSharesInfo');
-            if (sharesInfoElement) {
-                sharesInfoElement.style.display = 'block';
-            }
-            
-            // เพิ่ม event listener เพื่อคำนวณหุ้นที่จะได้รับเมื่อมีการเปลี่ยนแปลงจำนวนเงิน
+            // เพิ่ม event listener สำหรับตรวจสอบจำนวนเงินที่ฝาก
             amountInput.addEventListener('input', () => {
                 const amount = parseFloat(amountInput.value) || 0;
-                const shares = Math.floor(amount / 100);
-                const sharesDisplay = document.getElementById('depositSharesDisplay');
-                
-                if (sharesDisplay) {
-                    sharesDisplay.textContent = shares > 5 ? 5 : shares;
-                }
                 
                 // แสดงข้อความเตือนถ้าจำนวนเงินเกิน 500 บาท
                 if (amount > 500) {
@@ -632,24 +627,12 @@ const handleTransaction = async (event, type, account) => {
 
     const newBalance = type === 'deposit' ? currentBalance + amount : currentBalance - amount;
     
-    // คำนวณหุ้นที่จะได้รับจากการฝากเงิน (สูงสุด 5 หุ้นต่อครั้ง)
+    // แก้ไขการคำนวณหุ้น ไม่ให้ได้หุ้นจากการฝากเงินอีกต่อไป
     let newShares = account.shares || 0;
-    if (type === 'deposit') {
-        const additionalShares = Math.min(5, Math.floor(amount / 100));
-        newShares += additionalShares;
-    }
-
+    
     // ยืนยันการทำธุรกรรม
     let confirmMessage = `คุณต้องการ${type === 'deposit' ? 'ฝาก' : 'ถอน'}เงินจำนวน ${formatCurrency(amount)} บาท หรือไม่?`;
     
-    // เพิ่มข้อความแสดงหุ้นที่จะได้รับ
-    if (type === 'deposit') {
-        const additionalShares = Math.min(5, Math.floor(amount / 100));
-        if (additionalShares > 0) {
-            confirmMessage += `<br><br>คุณจะได้รับ ${additionalShares} หุ้น จากการฝากเงินครั้งนี้`;
-        }
-    }
-
     const confirmResult = await Swal.fire({
         title: 'ยืนยันการทำธุรกรรม?',
         html: confirmMessage,
@@ -701,7 +684,7 @@ const handleTransaction = async (event, type, account) => {
                 amount: amount,
                 status: 'Completed',
                 date: new Date().toISOString(),
-                shares_added: type === 'deposit' ? Math.min(5, Math.floor(amount / 100)) : 0
+                shares_added: 0 // ไม่เพิ่มหุ้นจากการฝากเงินอีกต่อไป
             }),
         });
 
@@ -726,7 +709,7 @@ const handleTransaction = async (event, type, account) => {
             const slip = document.createElement('div');
             
             // คำนวณหุ้นที่ได้รับจากการฝากเงิน
-            const sharesAdded = type === 'deposit' ? Math.min(5, Math.floor(amount / 100)) : 0;
+            const sharesAdded = 0; // ไม่ได้รับหุ้นจากการฝากเงินอีกต่อไป
             
             slip.innerHTML = `
                 <div class="slip-container" style="font-family: 'Sarabun', sans-serif; max-width: 210mm; margin: 0 auto; padding: 20px;">
@@ -1059,4 +1042,350 @@ const openUpdatePasswordModal = (userId) => {
             });
         }
     };
+};
+
+// เพิ่มฟังก์ชันใหม่สำหรับเปิด modal ซื้อหุ้น
+const openBuySharesModal = async (userId) => {
+    const modal = document.getElementById('buySharesModal');
+    const form = document.getElementById('buySharesForm');
+
+    if (!modal || !form) {
+        console.error('Modal or form not found');
+        return;
+    }
+
+    // แสดง modal
+    modal.style.display = 'block';
+
+    // ดึงข้อมูลผู้ใช้จาก API
+    try {
+        const response = await fetch(`/api/staff/saving/${userId}`);
+        const account = await response.json();
+        const userName = await fetchUserName(account.id_member);
+
+        if (!response.ok || !account) {
+            throw new Error('Failed to fetch account data');
+        }
+
+        // กำหนดค่าให้กับฟอร์ม
+        document.getElementById('transactionAccountIdBuyShares').value = account.id_account;
+        document.getElementById('transactionUserIdBuyShares').value = account._id;
+        document.getElementById('transactionNameBuyShares').value = userName;
+        document.getElementById('transactionBalanceBuyShares').value = formatCurrency(account.balance);
+        document.getElementById('transactionCurrentShares').value = account.shares || 0;
+        
+        // ล้างค่าและ focus ที่ช่องจำนวนหุ้น
+        const sharesInput = document.getElementById('transactionSharesToBuy');
+        sharesInput.value = '';
+        
+        // คำนวณจำนวนเงินที่ต้องชำระเมื่อมีการเปลี่ยนแปลงจำนวนหุ้น
+        sharesInput.addEventListener('input', () => {
+            const shares = parseInt(sharesInput.value) || 0;
+            const amount = shares * 100; // 1 หุ้น = 100 บาท
+            const amountDisplay = document.getElementById('transactionSharesAmount');
+            
+            if (amountDisplay) {
+                amountDisplay.value = formatCurrency(amount) + ' บาท';
+            }
+            
+            // แสดงข้อความเตือนถ้าจำนวนหุ้นเกิน 5 หุ้น
+            if (shares > 5) {
+                sharesInput.value = 5;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'จำกัดการซื้อหุ้น',
+                    text: 'สามารถซื้อหุ้นได้ไม่เกิน 5 หุ้นต่อครั้ง'
+                });
+            }
+        });
+        
+        // ใช้ setTimeout เพื่อให้แน่ใจว่า modal แสดงเรียบร้อยแล้ว
+        setTimeout(() => {
+            sharesInput.focus();
+        }, 100);
+
+        // จัดการการส่งฟอร์ม
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            await handleBuyShares(e, account);
+        };
+
+    } catch (error) {
+        console.error('Error fetching account data:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด!',
+            text: 'ไม่สามารถโหลดข้อมูลบัญชีได้',
+        });
+        modal.style.display = 'none';
+    }
+
+    // ปิด modal
+    document.querySelector('#buySharesModal .close').onclick = () => {
+        modal.style.display = 'none';
+    };
+
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    };
+};
+
+// เพิ่มฟังก์ชันสำหรับจัดการการซื้อหุ้น
+const handleBuyShares = async (event, account) => {
+    const modal = document.getElementById('buySharesModal');
+    const shares = parseInt(document.getElementById('transactionSharesToBuy').value);
+    const amount = shares * 100; // 1 หุ้น = 100 บาท
+    const currentBalance = parseFloat(account.balance);
+
+    if (!shares || shares <= 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'ข้อมูลไม่ถูกต้อง',
+            text: 'กรุณากรอกจำนวนหุ้นที่ถูกต้อง',
+        });
+        return;
+    }
+
+    // ตรวจสอบการซื้อหุ้น
+    if (shares > 5) {
+        Swal.fire({
+            icon: 'error',
+            title: 'จำกัดการซื้อหุ้น',
+            text: 'สามารถซื้อหุ้นได้ไม่เกิน 5 หุ้นต่อครั้ง',
+        });
+        return;
+    }
+
+    // ยืนยันการทำธุรกรรม
+    const confirmMessage = `คุณต้องการซื้อหุ้นจำนวน ${shares} หุ้น เป็นเงิน ${formatCurrency(amount)} บาท หรือไม่?`;
+
+    const confirmResult = await Swal.fire({
+        title: 'ยืนยันการซื้อหุ้น?',
+        html: confirmMessage,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'ใช่, ดำเนินการ!',
+        cancelButtonText: 'ยกเลิก',
+    });
+
+    if (!confirmResult.isConfirmed) return;
+
+    try {
+        // ดึงชื่อผู้ใช้ก่อนทำธุรกรรม
+        let userName = 'ไม่ระบุชื่อ';
+        try {
+            userName = await fetchUserName(account.id_member);
+        } catch (error) {
+            console.warn('Unable to fetch user name:', error);
+        }
+
+        // อัปเดตข้อมูลบัญชี (เพิ่มหุ้นโดยไม่เปลี่ยนแปลงยอดเงิน)
+        const newShares = (account.shares || 0) + shares;
+        
+        const transactionResponse = await fetch(`/api/staff/saving/${account.id_member}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id_account: account.id_account,
+                balance: currentBalance,
+                shares: newShares,
+                id_member: account.id_member,
+                id_staff: account.id_staff
+            }),
+        });
+
+        if (!transactionResponse.ok) {
+            const errorData = await transactionResponse.json();
+            throw new Error(errorData.message || 'Failed to process transaction');
+        }
+
+        // บันทึกประวัติธุรกรรม
+        const historyResponse = await fetch('/api/staff/transactions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user: account._id,
+                userName: userName,
+                type: 'BuyShares',
+                amount: amount,
+                status: 'Completed',
+                date: new Date().toISOString(),
+                shares_added: shares
+            }),
+        });
+
+        if (!historyResponse.ok) {
+            const errorData = await historyResponse.json();
+            console.error('Transaction history error:', errorData);
+            throw new Error('Failed to save transaction history');
+        }
+
+        // ถามผู้ใช้ว่าต้องการพิมพ์สลิปหรือไม่
+        const printSlip = await Swal.fire({
+            icon: 'success',
+            title: 'ซื้อหุ้นสำเร็จ!',
+            text: 'คุณต้องการพิมพ์สลิปหรือไม่?',
+            showCancelButton: true,
+            confirmButtonText: 'พิมพ์สลิป',
+            cancelButtonText: 'ไม่ต้องการ'
+        });
+
+        if (printSlip.isConfirmed) {
+            // สร้างสลิปในรูปแบบ HTML
+            const slip = document.createElement('div');
+            
+            slip.innerHTML = `
+                <div class="slip-container" style="font-family: 'Sarabun', sans-serif; max-width: 210mm; margin: 0 auto; padding: 20px;">
+                    <!-- หัวสลิป -->
+                    <div style="text-align: center; border-bottom: 2px dashed #000; padding-bottom: 15px; margin-bottom: 20px;">
+                        <img src="/images/logo.png" alt="Logo" style="max-width: 100px; margin-bottom: 15px;">
+                        <h2 style="font-size: 28px; font-weight: bold; margin: 8px 0;">ระบบออมทรัพย์</h2>
+                        <h3 style="font-size: 22px; margin: 8px 0;">สลิปซื้อหุ้น</h3>
+                    </div>
+
+                    <!-- ข้อมูลธุรกรรม -->
+                    <div style="margin-bottom: 20px; font-size: 16px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 6px 0; width: 180px;">วันที่:</td>
+                                <td style="text-align: left;">${new Date().toLocaleDateString('th-TH')}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 6px 0;">เวลา:</td>
+                                <td style="text-align: left;">${new Date().toLocaleTimeString('th-TH')}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 6px 0;">เลขที่บัญชี:</td>
+                                <td style="text-align: left;">${account.id_account}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 6px 0;">ชื่อบัญชี:</td>
+                                <td style="text-align: left;">${userName}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- รายละเอียดการทำรายการ -->
+                    <div style="border: 2px solid #000; padding: 15px; margin: 20px 0; border-radius: 8px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 8px 0; font-size: 18px; font-weight: bold;">ประเภทรายการ:</td>
+                                <td style="text-align: right; font-size: 18px; font-weight: bold;">ซื้อหุ้น</td>
+                            </tr>
+                            <tr style="border-top: 1px solid #ddd;">
+                                <td style="padding: 12px 0; font-size: 20px; font-weight: bold;">จำนวนหุ้น:</td>
+                                <td style="text-align: right; font-size: 20px; font-weight: bold; color: #28a745">
+                                    ${shares} หุ้น
+                                </td>
+                            </tr>
+                            <tr style="border-top: 1px solid #ddd;">
+                                <td style="padding: 12px 0; font-size: 20px; font-weight: bold;">จำนวนเงิน:</td>
+                                <td style="text-align: right; font-size: 20px; font-weight: bold; color: #28a745">
+                                    ${formatCurrency(amount)} บาท
+                                </td>
+                            </tr>
+                            <tr style="border-top: 1px solid #ddd;">
+                                <td style="padding: 8px 0; font-size: 18px;">จำนวนหุ้นทั้งหมด:</td>
+                                <td style="text-align: right; font-size: 18px;">${newShares} หุ้น</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- ข้อมูลผู้ทำรายการ -->
+                    <div style="margin: 20px 0; font-size: 16px;">
+                        <p style="margin: 8px 0;">ผู้ทำรายการ: ${await fetchStaffName(account.id_staff)}</p>
+                    </div>
+
+                    <!-- ลายเซ็นและการรับรอง -->
+                    <div style="margin: 40px 0; display: flex; justify-content: space-between;">
+                        <div style="text-align: center; flex: 1;">
+                            <div style="border-top: 1px solid #000; margin-top: 60px; padding-top: 8px; width: 180px; display: inline-block;">
+                                <p style="margin: 4px 0;">ลายมือชื่อผู้ทำรายการ</p>
+                            </div>
+                        </div>
+                        <div style="text-align: center; flex: 1;">
+                            <div style="border-top: 1px solid #000; margin-top: 60px; padding-top: 8px; width: 180px; display: inline-block;">
+                                <p style="margin: 4px 0;">ลายมือชื่อผู้รับเงิน</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- QR Code -->
+                    <div style="text-align: center; margin: 20px 0;">
+                        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=" 
+                             alt="QR Code" style="width: 120px; height: 120px;">
+                    </div>
+
+                    <!-- หมายเหตุ -->
+                    <div style="text-align: center; font-size: 14px; color: #666; margin-top: 20px; border-top: 2px dashed #000; padding-top: 15px;">
+                        <p style="margin: 4px 0;">เอกสารนี้เป็นหลักฐานการทำรายการ</p>
+                        <p style="margin: 4px 0;">กรุณาเก็บไว้เพื่อการตรวจสอบ</p>
+                        <p style="margin: 4px 0;">ขอบคุณที่ใช้บริการ</p>
+                    </div>
+                </div>
+            `;
+
+            // อัปเดตส่วนของการเปิดหน้าต่างพิมพ์
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>สลิปซื้อหุ้น</title>
+                        <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+                        <style>
+                            @page {
+                                size: A4;
+                                margin: 0;
+                            }
+                            body {
+                                font-family: 'Sarabun', sans-serif;
+                                margin: 0;
+                                padding: 0;
+                                background: #fff;
+                            }
+                            .slip-container {
+                                width: 210mm;
+                                height: 297mm;
+                                padding: 15mm;
+                                margin: 0 auto;
+                                background: #fff;
+                                box-sizing: border-box;
+                                display: flex;
+                                flex-direction: column;
+                            }
+                            @media print {
+                                html, body {
+                                    width: 210mm;
+                                    height: 297mm;
+                                }
+                                .slip-container {
+                                    page-break-after: always;
+                                }
+                            }
+                        </style>
+                    </head>
+                    <body>${slip.innerHTML}</body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+            printWindow.close();
+        }
+
+        modal.style.display = 'none';
+        await fetchAccount();
+        event.target.reset();
+
+    } catch (error) {
+        console.error('Error processing buy shares transaction:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด!',
+            text: error.message || 'ไม่สามารถทำธุรกรรมได้ กรุณาลองใหม่อีกครั้ง',
+        });
+    }
 };

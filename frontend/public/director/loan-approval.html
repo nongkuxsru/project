@@ -49,6 +49,104 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
+        
+        /* เพิ่ม CSS สำหรับหน้าแสดงรายละเอียดสัญญา */
+        .profile-img-container {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        .profile-img-container img,
+        .profile-img-container div {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .profile-img-container:hover img,
+        .profile-img-container:hover div {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* ปรับแต่ง Modal */
+        #viewDetailsModal .glass-card {
+            max-height: 90vh;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        
+        #viewDetailsModal .glass-card::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #viewDetailsModal .glass-card::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        #viewDetailsModal .glass-card::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        
+        /* Animation for the modal */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        #viewDetailsModal.flex .glass-card {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        
+        /* ส่วนแสดงเอกสาร */
+        #attachedDocuments .flex {
+            transition: all 0.2s ease;
+        }
+        
+        #attachedDocuments .flex:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translateX(5px);
+        }
+        
+        /* Badge สถานะ */
+        .status-badge {
+            display: inline-flex;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+        
+        /* ปรับแต่งกล่องข้อมูล */
+        .bg-white\/20 {
+            transition: all 0.3s ease;
+        }
+        
+        .bg-white\/20:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* ปุ่มดำเนินการ */
+        #approveBtn, #rejectBtn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        #approveBtn:before, #rejectBtn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.4s ease;
+        }
+        
+        #approveBtn:hover:before, #rejectBtn:hover:before {
+            left: 0;
+        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -222,6 +320,33 @@
                     </h4>
                     <div id="attachedDocuments" class="space-y-2 text-white">
                         <!-- รายการเอกสารจะถูกเพิ่มด้วย JavaScript -->
+                    </div>
+                </div>
+
+                <!-- เพิ่มส่วนแสดงประวัติการชำระเงิน -->
+                <div class="bg-white/20 p-4 rounded-lg border border-white/30 shadow-sm">
+                    <h4 class="font-semibold mb-4 text-white flex items-center">
+                        <i class="fas fa-history mr-2"></i>
+                        ประวัติการชำระเงิน
+                    </h4>
+                    <div id="paymentHistory" class="overflow-x-auto">
+                        <table class="min-w-full text-white border-separate" style="border-spacing: 0 5px;">
+                            <thead>
+                                <tr class="bg-white/10">
+                                    <th class="px-4 py-2 rounded-l-lg text-left">วันที่ชำระ</th>
+                                    <th class="px-4 py-2 text-left">งวดที่</th>
+                                    <th class="px-4 py-2 text-right">จำนวนเงิน</th>
+                                    <th class="px-4 py-2 text-center">วิธีการชำระ</th>
+                                    <th class="px-4 py-2 text-center rounded-r-lg">สถานะ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentHistoryBody">
+                                <!-- รายการประวัติการชำระจะถูกเพิ่มด้วย JavaScript -->
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-white/70 italic">ยังไม่มีประวัติการชำระเงิน</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 

@@ -306,9 +306,6 @@
                                     <p class="text-sm text-blue-700">
                                         สามารถฝากเงินได้ไม่เกิน <span class="font-bold">500 บาท</span> ต่อครั้ง
                                     </p>
-                                    <p class="text-sm text-blue-700 mt-1">
-                                        ทุก 100 บาท จะได้รับ 1 หุ้น (สูงสุด 5 หุ้นต่อครั้ง)
-                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -347,13 +344,6 @@
                                         จำนวนเงินฝาก <span class="text-red-500 text-xs ml-1">(ไม่เกิน 500 บาท)</span>
                                     </label>
                                     <input type="number" id="transactionAmountDeposit" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" max="500">
-                                </div>
-                            </div>
-
-                            <div id="depositSharesInfo" class="bg-green-50 border border-green-200 rounded-md p-3">
-                                <div class="flex items-center">
-                                    <i class="fas fa-coins text-green-500 mr-2"></i>
-                                    <span class="text-green-700">คุณจะได้รับ <span id="depositSharesDisplay" class="font-bold">0</span> หุ้น จากการฝากเงินครั้งนี้</span>
                                 </div>
                             </div>
 
@@ -428,6 +418,93 @@
                             <button type="submit" class="w-full bg-red-500 text-white py-2 px-6 rounded-lg mt-4 hover:bg-red-600 flex items-center justify-center">
                                 <i class="fas fa-check-circle mr-2"></i>
                                 ยืนยันการถอนเงิน
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buy Shares Modal -->
+            <div id="buySharesModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <div class="transaction-form">
+                        <h2 class="text-primary text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-coins mr-2 text-yellow-600"></i>
+                            ซื้อหุ้น
+                        </h2>
+                        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-3 mb-4 rounded-md">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-info-circle text-yellow-500 mt-0.5"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-yellow-700">
+                                        ราคาหุ้นละ <span class="font-bold">100 บาท</span> ต่อหุ้น
+                                    </p>
+                                    <p class="text-sm text-yellow-700 mt-1">
+                                        ซื้อได้สูงสุด <span class="font-bold">5 หุ้น</span> ต่อครั้ง
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <form id="buySharesForm" class="space-y-4">
+                            <input type="hidden" id="transactionUserIdBuyShares">
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="transactionAccountIdBuyShares" class="flex items-center">
+                                        <i class="fas fa-id-card mr-2 text-green-500"></i>
+                                        เลขที่บัญชี
+                                    </label>
+                                    <input type="text" id="transactionAccountIdBuyShares" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                                <div>
+                                    <label for="transactionNameBuyShares" class="flex items-center">
+                                        <i class="fas fa-user mr-2 text-blue-500"></i>
+                                        ชื่อผู้ใช้
+                                    </label>
+                                    <input type="text" id="transactionNameBuyShares" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="transactionBalanceBuyShares" class="flex items-center">
+                                        <i class="fas fa-wallet mr-2 text-indigo-500"></i>
+                                        ยอดคงเหลือปัจจุบัน
+                                    </label>
+                                    <input type="text" id="transactionBalanceBuyShares" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                                <div>
+                                    <label for="transactionCurrentShares" class="flex items-center">
+                                        <i class="fas fa-chart-pie mr-2 text-purple-500"></i>
+                                        จำนวนหุ้นปัจจุบัน
+                                    </label>
+                                    <input type="text" id="transactionCurrentShares" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="transactionSharesToBuy" class="flex items-center">
+                                        <i class="fas fa-coins mr-2 text-yellow-500"></i>
+                                        จำนวนหุ้นที่ต้องการซื้อ <span class="text-red-500 text-xs ml-1">(ไม่เกิน 5 หุ้น)</span>
+                                    </label>
+                                    <input type="number" id="transactionSharesToBuy" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" min="1" max="5">
+                                </div>
+                                <div>
+                                    <label for="transactionSharesAmount" class="flex items-center">
+                                        <i class="fas fa-money-bill-wave mr-2 text-green-500"></i>
+                                        จำนวนเงินที่ต้องชำระ
+                                    </label>
+                                    <input type="text" id="transactionSharesAmount" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full bg-yellow-500 text-white py-2 px-6 rounded-lg mt-4 hover:bg-yellow-600 flex items-center justify-center">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                ยืนยันการซื้อหุ้น
                             </button>
                         </form>
                     </div>

@@ -167,6 +167,13 @@ router.get('/financial-summary', async (req, res) => {
                         bgColor = '#FEE2E2';
                         icon = 'fa-arrow-circle-up';
                         break;
+                    case 'buyshares':
+                    case 'BuyShares':
+                        type = 'ซื้อหุ้น';
+                        color = '#EAB308';
+                        bgColor = '#FEF9C3';
+                        icon = 'fa-coins';
+                        break;
                     case 'loan':
                         type = 'การกู้ยืม';
                         color = '#6366F1';
@@ -217,6 +224,16 @@ router.get('/financial-summary', async (req, res) => {
                 color: '#DC2626',
                 bgColor: '#FEE2E2',
                 icon: 'fa-arrow-circle-up'
+            },
+            {
+                type: 'ซื้อหุ้น',
+                count: 0,
+                amount: 0,
+                countChange: 0,
+                amountChange: 0,
+                color: '#EAB308',
+                bgColor: '#FEF9C3',
+                icon: 'fa-coins'
             },
             {
                 type: 'การกู้ยืม',
